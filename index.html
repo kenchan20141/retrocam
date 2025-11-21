@@ -659,11 +659,11 @@
             }
             processCtx.putImageData(imgData, 0, 0);
 
-            // [新增功能] 菲林模式在觀景窗的輕微漏光預覽
+            // 菲林模式在觀景窗的輕微漏光預覽
             if (mode.id === 'FILM') {
                 processCtx.globalCompositeOperation = 'screen';
                 const leak = processCtx.createLinearGradient(0, 0, w * 0.5, h);
-                leak.addColorStop(0, 'rgba(255, 100, 50, 0.15)'); // 輕微橙色
+                leak.addColorStop(0, 'rgba(255, 100, 50, 0.15)'); 
                 leak.addColorStop(1, 'rgba(0,0,0,0)');
                 processCtx.fillStyle = leak;
                 processCtx.fillRect(0,0,w,h);
@@ -725,12 +725,13 @@
             finalCanvas.width = targetW; finalCanvas.height = targetH;
             finalCtx.filter = 'none'; finalCtx.globalCompositeOperation = 'source-over';
 
+            // 1. 繪製基礎圖像
             if (mode.id === 'FILM') {
                 finalCtx.imageSmoothingEnabled = true; finalCtx.drawImage(processCanvas, 0, 0, targetW, targetH);
                 finalCtx.globalCompositeOperation = 'screen'; finalCtx.filter = 'blur(10px) opacity(0.4)';
                 finalCtx.drawImage(processCanvas, 0, 0, targetW, targetH); 
                 
-                // [新增功能] 菲林模式隨機強力漏光效果
+                // 菲林模式強力漏光效果
                 finalCtx.filter = 'none';
                 const isLeft = Math.random() > 0.5;
                 const leakW = targetW * (0.3 + Math.random() * 0.4);
@@ -738,15 +739,13 @@
                     isLeft ? 0 : targetW, 0, 
                     isLeft ? leakW : targetW - leakW, 0
                 );
-                leakGrad.addColorStop(0, 'rgba(255, 60, 20, 0.6)'); // 強烈紅橘色邊緣
-                leakGrad.addColorStop(0.4, 'rgba(255, 180, 50, 0.3)'); // 中間偏黃
+                leakGrad.addColorStop(0, 'rgba(255, 60, 20, 0.6)'); 
+                leakGrad.addColorStop(0.4, 'rgba(255, 180, 50, 0.3)'); 
                 leakGrad.addColorStop(1, 'rgba(0,0,0,0)');
-                
                 finalCtx.fillStyle = leakGrad;
                 finalCtx.fillRect(0, 0, targetW, targetH);
-                
                 finalCtx.globalAlpha = 1.0;
-                finalCtx.globalCompositeOperation = 'source-over'; // 重置混合模式
+                finalCtx.globalCompositeOperation = 'source-over'; 
 
             } else if (mode.id === 'CCD') {
                 finalCtx.imageSmoothingEnabled = true; finalCtx.filter = 'blur(1px) contrast(1.1)'; finalCtx.drawImage(processCanvas, 0, 0, targetW, targetH);
@@ -754,6 +753,28 @@
                 finalCtx.imageSmoothingEnabled = false; finalCtx.drawImage(processCanvas, 0, 0, targetW, targetH);
             }
             
+            // 2. [新增功能] 繪製復古日期 (無論什麼模式都添加)
+            finalCtx.save();
+            const dateNow = new Date();
+            const yy = dateNow.getFullYear().toString().slice(-2);
+            const mm = (dateNow.getMonth() + 1).toString().padStart(2, '0');
+            const dd = dateNow.getDate().toString().padStart(2, '0');
+            const dateStr = `'${yy} ${mm} ${dd}`; // 格式如 '25 11 21
+
+            finalCtx.globalCompositeOperation = 'source-over'; 
+            finalCtx.shadowColor = '#ff5500'; // 橙紅色光暈
+            finalCtx.shadowBlur = 15;
+            finalCtx.fillStyle = 'rgba(255, 170, 50, 0.9)'; // 復古橙色
+            // 計算字體大小 (相對於 1080p)
+            const fontSize = 50;
+            finalCtx.font = `bold ${fontSize}px "Courier New", monospace`;
+            finalCtx.textAlign = 'right';
+            finalCtx.textBaseline = 'bottom';
+            // 繪製
+            finalCtx.fillText(dateStr, targetW - 60, targetH - 50);
+            finalCtx.restore();
+            
+            // 3. 生成最終圖片數據
             highResPhoto = finalCanvas.toDataURL('image/jpeg', 0.92);
 
             if (isRollMode) {
@@ -809,12 +830,10 @@
 
                 // 統一的沖洗邏輯
                 if (!isRollMode) {
-                    // 1張模式：直接沖洗暫存的單張照片
                     if (pendingPhoto) {
                         startDevelopingSequence([{ image: pendingPhoto }]);
                     }
                 } else {
-                    // 36張模式：檢查是否拍完，拍完則沖洗所有照片
                     if (currentFrame >= 36) {
                         const photos = await getAllPhotos();
                         startDevelopingSequence(photos);
@@ -825,7 +844,7 @@
 
         async function startDevelopingSequence(photos) {
             if (!photos || photos.length === 0) return;
-            finalBatchPhotos = photos; // 儲存供下載使用
+            finalBatchPhotos = photos; 
 
             const mode = MODES[currentModeIdx];
             devOverlay.style.display = 'flex';
@@ -839,7 +858,7 @@
                 
                 devImage.style.backgroundImage = `url(${photos[i].image})`;
                 devImage.style.animation = 'none';
-                devImage.offsetHeight; // 觸發重繪
+                devImage.offsetHeight; 
                 devImage.style.animation = 'developProcess 3.8s forwards';
                 await new Promise(r => setTimeout(r, 4000)); 
             }
@@ -849,14 +868,12 @@
             collectBtn.style.display = 'block';
         }
 
-        // 點擊收集照片按鈕 -> 下載 -> 根據模式清理資料
         collectBtn.addEventListener('click', async () => {
             const mode = MODES[currentModeIdx];
             collectBtn.style.display = 'none';
             devStatus.textContent = "SAVING TO DISK...";
 
             for (let i = 0; i < finalBatchPhotos.length; i++) {
-                // 根據模式命名檔案
                 let fileName;
                 if (isRollMode) {
                     fileName = `ROLL_${i+1}_${mode.id}.jpg`;
@@ -868,7 +885,6 @@
                 await new Promise(r => setTimeout(r, 200));
             }
             
-            // 清理工作
             if (isRollMode) {
                 await clearDB();
                 currentFrame = 0;
@@ -877,7 +893,7 @@
                 pendingPhoto = null;
             }
             
-            checkLeverState(); // 確保燈號狀態正確
+            checkLeverState();
 
             setTimeout(() => {
                 devOverlay.style.display = 'none';
@@ -907,4 +923,4 @@
         window.addEventListener('resize', () => { checkOrientation(); resizeElements(); });
     </script>
 </body>
-</html>
+    </html>
