@@ -725,7 +725,7 @@
             finalCanvas.width = targetW; finalCanvas.height = targetH;
             finalCtx.filter = 'none'; finalCtx.globalCompositeOperation = 'source-over';
 
-            // 1. 繪製基礎圖像
+            // 1. 繪製基礎圖像 (不含日期)
             if (mode.id === 'FILM') {
                 finalCtx.imageSmoothingEnabled = true; finalCtx.drawImage(processCanvas, 0, 0, targetW, targetH);
                 finalCtx.globalCompositeOperation = 'screen'; finalCtx.filter = 'blur(10px) opacity(0.4)';
@@ -753,28 +753,9 @@
                 finalCtx.imageSmoothingEnabled = false; finalCtx.drawImage(processCanvas, 0, 0, targetW, targetH);
             }
             
-            // 2. [新增功能] 繪製復古日期 (無論什麼模式都添加)
-            finalCtx.save();
-            const dateNow = new Date();
-            const yy = dateNow.getFullYear().toString().slice(-2);
-            const mm = (dateNow.getMonth() + 1).toString().padStart(2, '0');
-            const dd = dateNow.getDate().toString().padStart(2, '0');
-            const dateStr = `'${yy} ${mm} ${dd}`; // 格式如 '25 11 21
+            // 注意：這裡不再繪製日期，保持 pendingPhoto / highResPhoto 是乾淨的
 
-            finalCtx.globalCompositeOperation = 'source-over'; 
-            finalCtx.shadowColor = '#ff5500'; // 橙紅色光暈
-            finalCtx.shadowBlur = 15;
-            finalCtx.fillStyle = 'rgba(255, 170, 50, 0.9)'; // 復古橙色
-            // 計算字體大小 (相對於 1080p)
-            const fontSize = 50;
-            finalCtx.font = `bold ${fontSize}px "Courier New", monospace`;
-            finalCtx.textAlign = 'right';
-            finalCtx.textBaseline = 'bottom';
-            // 繪製
-            finalCtx.fillText(dateStr, targetW - 60, targetH - 50);
-            finalCtx.restore();
-            
-            // 3. 生成最終圖片數據
+            // 2. 生成圖片數據 (乾淨版)
             highResPhoto = finalCanvas.toDataURL('image/jpeg', 0.92);
 
             if (isRollMode) {
@@ -785,11 +766,43 @@
             } else {
                 pendingPhoto = highResPhoto;
                 fsViewfinder.style.display = 'none';
-                reviewImg.src = pendingPhoto;
+                reviewImg.src = pendingPhoto; // 顯示無日期預覽
                 reviewImg.style.imageRendering = (mode.id === 'BW' || mode.id === 'COLOR') ? 'pixelated' : 'auto';
                 reviewOverlay.style.display = 'flex';
             }
         };
+
+        // 新增：在沖洗階段為照片添加日期的函數
+        function applyDateStamp(imgUrl, dateObj) {
+            return new Promise(resolve => {
+                const img = new Image();
+                img.onload = () => {
+                    // 使用 finalCanvas 作為工作區
+                    finalCanvas.width = 1920; finalCanvas.height = 1080;
+                    finalCtx.globalCompositeOperation = 'source-over';
+                    finalCtx.filter = 'none'; 
+                    finalCtx.drawImage(img, 0, 0); // 繪製原始乾淨照片
+
+                    // 繪製日期邏輯
+                    const d = new Date(dateObj);
+                    const yy = d.getFullYear().toString().slice(-2);
+                    const mm = (d.getMonth() + 1).toString().padStart(2, '0');
+                    const dd = d.getDate().toString().padStart(2, '0');
+                    const dateStr = `'${yy} ${mm} ${dd}`;
+
+                    finalCtx.shadowColor = '#ff5500';
+                    finalCtx.shadowBlur = 15;
+                    finalCtx.fillStyle = 'rgba(255, 170, 50, 0.9)';
+                    finalCtx.font = `bold 50px "Courier New", monospace`;
+                    finalCtx.textAlign = 'right';
+                    finalCtx.textBaseline = 'bottom';
+                    finalCtx.fillText(dateStr, 1920 - 60, 1080 - 50);
+
+                    resolve(finalCanvas.toDataURL('image/jpeg', 0.92));
+                };
+                img.src = imgUrl;
+            });
+        }
 
         vfTrigger.addEventListener('click', () => { if (isStreaming) fsViewfinder.style.display = 'block'; });
         
@@ -831,7 +844,8 @@
                 // 統一的沖洗邏輯
                 if (!isRollMode) {
                     if (pendingPhoto) {
-                        startDevelopingSequence([{ image: pendingPhoto }]);
+                        // 單張模式：傳入當前時間作為日期
+                        startDevelopingSequence([{ image: pendingPhoto, date: new Date() }]);
                     }
                 } else {
                     if (currentFrame >= 36) {
@@ -844,19 +858,31 @@
 
         async function startDevelopingSequence(photos) {
             if (!photos || photos.length === 0) return;
-            finalBatchPhotos = photos; 
-
+            
+            // 在開始沖洗動畫前，先將所有照片加上日期
+            const processedPhotos = [];
             const mode = MODES[currentModeIdx];
+            
             devOverlay.style.display = 'flex';
+            devStatus.textContent = "PROCESSING DATES..."; // 提示用戶正在處理
+
+            for(let p of photos) {
+                const datedImg = await applyDateStamp(p.image, p.date);
+                processedPhotos.push({ image: datedImg });
+            }
+            
+            finalBatchPhotos = processedPhotos; // 供下載使用 (已有日期)
+
             collectBtn.style.display = 'none'; 
             devImage.style.imageRendering = (mode.id === 'BW' || mode.id === 'COLOR') ? 'pixelated' : 'auto';
 
-            for (let i = 0; i < photos.length; i++) {
+            for (let i = 0; i < processedPhotos.length; i++) {
                 devStatus.textContent = isRollMode 
-                    ? `DEVELOPING FRAME ${i+1} / ${photos.length}` 
+                    ? `DEVELOPING FRAME ${i+1} / ${processedPhotos.length}` 
                     : `DEVELOPING PHOTO...`;
                 
-                devImage.style.backgroundImage = `url(${photos[i].image})`;
+                // 顯示的是已有日期的照片
+                devImage.style.backgroundImage = `url(${processedPhotos[i].image})`;
                 devImage.style.animation = 'none';
                 devImage.offsetHeight; 
                 devImage.style.animation = 'developProcess 3.8s forwards';
@@ -864,7 +890,7 @@
             }
 
             devStatus.textContent = "DEVELOPING COMPLETE";
-            collectBtn.textContent = "COLLECT PHOTO" + (photos.length > 1 ? "S" : "");
+            collectBtn.textContent = "COLLECT PHOTO" + (processedPhotos.length > 1 ? "S" : "");
             collectBtn.style.display = 'block';
         }
 
@@ -923,4 +949,4 @@
         window.addEventListener('resize', () => { checkOrientation(); resizeElements(); });
     </script>
 </body>
-    </html>
+</html>
