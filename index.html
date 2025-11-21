@@ -186,13 +186,28 @@
             background: #222; display: flex; justify-content: center; align-items: center;
             box-shadow: inset 2px 2px 5px rgba(0,0,0,0.8);
         }
+        
+        /* [修改] 底片卡樣式：邊條顏色改為動態變量 */
         .film-card {
             width: 150px; height: 70px; background: #f4e9c5; box-shadow: 1px 1px 4px rgba(0,0,0,0.5);
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             transform: rotate(-1deg); transition: filter 0.3s;
         }
-        .film-card::before, .film-card::after { content: ''; position: absolute; width: 100%; height: 6px; background: #c00; }
+        /* 預設顏色 (如果沒有屬性) */
+        .film-card::before, .film-card::after { 
+            content: ''; position: absolute; width: 100%; height: 6px; 
+            background: #333; /* 預設深色 */
+            transition: background 0.3s ease;
+        }
         .film-card::before { top: 0; } .film-card::after { bottom: 0; }
+        
+        /* 不同模式的邊條顏色 */
+        .film-card[data-mode="BW"]::before, .film-card[data-mode="BW"]::after { background: #111; }        /* 黑白: 黑色 */
+        .film-card[data-mode="COLOR"]::before, .film-card[data-mode="COLOR"]::after { background: #c00; }  /* 彩色: 紅色 */
+        .film-card[data-mode="CCD"]::before, .film-card[data-mode="CCD"]::after { background: #0055cc; }   /* CCD: 藍色 */
+        .film-card[data-mode="FILM"]::before, .film-card[data-mode="FILM"]::after { background: #007700; } /* Film: 綠色 */
+        .film-card[data-mode="HCBW"]::before, .film-card[data-mode="HCBW"]::after { background: #555; }    /* HC-BW: 深灰 */
+
         .film-card h3 { margin: 4px 0 0; font-size: 24px; font-weight: 900; color: #000; line-height: 1; font-family: Impact, sans-serif; }
         .film-card p { margin: 2px 0; font-size: 10px; color: #333; font-weight: bold; text-transform: uppercase; }
 
@@ -544,11 +559,16 @@
             const m = MODES[currentModeIdx];
             modeTitle.textContent = m.name; modeSub.textContent = m.sub; fsModeText.textContent = m.name;
             const h3 = filmCard.querySelector('h3');
+            
+            // 設定文字顏色
             if(m.id === 'BW') h3.style.color = '#000'; 
             else if(m.id === 'FILM') h3.style.color = '#007700';
             else if(m.id === 'COLOR') h3.style.color = '#c00';
-            else if(m.id === 'HCBW') h3.style.color = '#333'; // HCBW 顏色
+            else if(m.id === 'HCBW') h3.style.color = '#333';
             else h3.style.color = '#0055cc';
+
+            // [新增] 設定底片卡模式屬性，觸發 CSS 改變邊條顏色
+            filmCard.setAttribute('data-mode', m.id);
         }
         updateModeUI();
 
@@ -761,8 +781,7 @@
             } else if (mode.id === 'CCD') {
                 finalCtx.imageSmoothingEnabled = true; finalCtx.filter = 'blur(1px) contrast(1.1)'; finalCtx.drawImage(processCanvas, 0, 0, targetW, targetH);
             } else if (mode.id === 'HCBW') {
-                // 新增：HC-BW 模式的成像邏輯
-                // 關鍵：直接繪製 'video' 源，而非 'processCanvas'，以獲取手機最高清畫質
+                // HC-BW 模式的成像邏輯
                 finalCtx.imageSmoothingEnabled = true;
                 finalCtx.filter = 'grayscale(100%) contrast(140%)'; 
                 finalCtx.drawImage(video, 0, 0, targetW, targetH); 
