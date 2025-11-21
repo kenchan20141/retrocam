@@ -658,6 +658,18 @@
                 }
             }
             processCtx.putImageData(imgData, 0, 0);
+
+            // [新增功能] 菲林模式在觀景窗的輕微漏光預覽
+            if (mode.id === 'FILM') {
+                processCtx.globalCompositeOperation = 'screen';
+                const leak = processCtx.createLinearGradient(0, 0, w * 0.5, h);
+                leak.addColorStop(0, 'rgba(255, 100, 50, 0.15)'); // 輕微橙色
+                leak.addColorStop(1, 'rgba(0,0,0,0)');
+                processCtx.fillStyle = leak;
+                processCtx.fillRect(0,0,w,h);
+                processCtx.globalCompositeOperation = 'source-over';
+            }
+
             if (smallCanvas.width !== w) { smallCanvas.width = w; smallCanvas.height = h; }
             smallCanvas.style.imageRendering = (mode.id === 'BW' || mode.id === 'COLOR') ? 'pixelated' : 'auto';
             smallCtx.drawImage(processCanvas, 0, 0);
@@ -716,7 +728,26 @@
             if (mode.id === 'FILM') {
                 finalCtx.imageSmoothingEnabled = true; finalCtx.drawImage(processCanvas, 0, 0, targetW, targetH);
                 finalCtx.globalCompositeOperation = 'screen'; finalCtx.filter = 'blur(10px) opacity(0.4)';
-                finalCtx.drawImage(processCanvas, 0, 0, targetW, targetH); finalCtx.globalAlpha = 1.0;
+                finalCtx.drawImage(processCanvas, 0, 0, targetW, targetH); 
+                
+                // [新增功能] 菲林模式隨機強力漏光效果
+                finalCtx.filter = 'none';
+                const isLeft = Math.random() > 0.5;
+                const leakW = targetW * (0.3 + Math.random() * 0.4);
+                const leakGrad = finalCtx.createLinearGradient(
+                    isLeft ? 0 : targetW, 0, 
+                    isLeft ? leakW : targetW - leakW, 0
+                );
+                leakGrad.addColorStop(0, 'rgba(255, 60, 20, 0.6)'); // 強烈紅橘色邊緣
+                leakGrad.addColorStop(0.4, 'rgba(255, 180, 50, 0.3)'); // 中間偏黃
+                leakGrad.addColorStop(1, 'rgba(0,0,0,0)');
+                
+                finalCtx.fillStyle = leakGrad;
+                finalCtx.fillRect(0, 0, targetW, targetH);
+                
+                finalCtx.globalAlpha = 1.0;
+                finalCtx.globalCompositeOperation = 'source-over'; // 重置混合模式
+
             } else if (mode.id === 'CCD') {
                 finalCtx.imageSmoothingEnabled = true; finalCtx.filter = 'blur(1px) contrast(1.1)'; finalCtx.drawImage(processCanvas, 0, 0, targetW, targetH);
             } else {
