@@ -500,6 +500,7 @@
         let isStreaming = false;
         let pendingPhoto = null;
         let highResPhoto = null;
+        let finalBatchPhotos = [];
 
         const fsPrompt = document.getElementById('fullscreen-prompt');
         const enterFsBtn = document.getElementById('enter-fs-btn');
@@ -590,6 +591,7 @@
             } else {
                 rollModeSwitch.classList.remove('mode-36');
                 readyLight.classList.remove('active'); leverBase.classList.remove('glow');
+                pendingPhoto = null; // Clear any pending photo from 1-shot
             }
             checkLeverState();
             updateCounterDisplay();
@@ -675,11 +677,9 @@
             shutterBtn.classList.add('pressed');
             playShutterSound();
             
-            // 根據目前視圖狀態決定動畫位置
             const isFullScreen = fsViewfinder.style.display === 'block';
 
             if (isFullScreen) {
-                // 全屏模式：加到 body 或 fsViewfinder
                 const blind = document.createElement('div');
                 blind.className = 'shutter-blind';
                 fsViewfinder.appendChild(blind);
@@ -690,10 +690,8 @@
                 document.body.appendChild(flash);
                 setTimeout(() => flash.remove(), 200);
             } else {
-                // 機身模式：只在小取景器內
                 const smallBlind = document.createElement('div');
                 smallBlind.className = 'vf-shutter-blind';
-                // vfTrigger 是 .viewfinder-wrap
                 vfTrigger.appendChild(smallBlind);
                 setTimeout(() => smallBlind.remove(), 150);
 
@@ -778,72 +776,77 @@
                 readyLight.classList.remove('active');
                 leverPulled = false;
 
+                // 統一的沖洗邏輯
                 if (!isRollMode) {
-                    if (pendingPhoto) startDevelopingSingle(pendingPhoto);
+                    // 1張模式：直接沖洗暫存的單張照片
+                    if (pendingPhoto) {
+                        startDevelopingSequence([{ image: pendingPhoto }]);
+                    }
                 } else {
+                    // 36張模式：檢查是否拍完，拍完則沖洗所有照片
                     if (currentFrame >= 36) {
-                        startBatchDeveloping();
+                        const photos = await getAllPhotos();
+                        startDevelopingSequence(photos);
                     }
                 }
             }, 400);
         });
 
-        function startDevelopingSingle(imgData) {
-            const mode = MODES[currentModeIdx];
-            devStatus.textContent = "DEVELOPING...";
-            collectBtn.style.display = 'none';
-            devImage.style.backgroundImage = `url(${imgData})`;
-            devImage.style.imageRendering = (mode.id === 'BW' || mode.id === 'COLOR') ? 'pixelated' : 'auto';
-            devOverlay.style.display = 'flex';
-            setTimeout(() => {
-                downloadImage(imgData, `RETRO_${mode.id}_${Date.now()}.jpg`);
-                devOverlay.style.display = 'none'; pendingPhoto = null;
-            }, 3500);
-        }
+        async function startDevelopingSequence(photos) {
+            if (!photos || photos.length === 0) return;
+            finalBatchPhotos = photos; // 儲存供下載使用
 
-        let finalBatchPhotos = []; 
-        async function startBatchDeveloping() {
             const mode = MODES[currentModeIdx];
-            
-            // 1. 讀取照片 (不清除 DB)
-            const photos = await getAllPhotos(); 
-            if (photos.length === 0) return;
-            finalBatchPhotos = photos; 
-
-            // 2. 播放動畫
             devOverlay.style.display = 'flex';
             collectBtn.style.display = 'none'; 
             devImage.style.imageRendering = (mode.id === 'BW' || mode.id === 'COLOR') ? 'pixelated' : 'auto';
 
             for (let i = 0; i < photos.length; i++) {
-                devStatus.textContent = `DEVELOPING FRAME ${i+1} / ${photos.length}`;
+                devStatus.textContent = isRollMode 
+                    ? `DEVELOPING FRAME ${i+1} / ${photos.length}` 
+                    : `DEVELOPING PHOTO...`;
+                
                 devImage.style.backgroundImage = `url(${photos[i].image})`;
                 devImage.style.animation = 'none';
-                devImage.offsetHeight; 
+                devImage.offsetHeight; // 觸發重繪
                 devImage.style.animation = 'developProcess 3.8s forwards';
                 await new Promise(r => setTimeout(r, 4000)); 
             }
 
             devStatus.textContent = "DEVELOPING COMPLETE";
+            collectBtn.textContent = "COLLECT PHOTO" + (photos.length > 1 ? "S" : "");
             collectBtn.style.display = 'block';
         }
 
-        // 點擊收集照片按鈕 -> 下載 -> 然後才清除資料
+        // 點擊收集照片按鈕 -> 下載 -> 根據模式清理資料
         collectBtn.addEventListener('click', async () => {
             const mode = MODES[currentModeIdx];
             collectBtn.style.display = 'none';
             devStatus.textContent = "SAVING TO DISK...";
 
             for (let i = 0; i < finalBatchPhotos.length; i++) {
-                downloadImage(finalBatchPhotos[i].image, `ROLL_${i+1}_${mode.id}.jpg`);
+                // 根據模式命名檔案
+                let fileName;
+                if (isRollMode) {
+                    fileName = `ROLL_${i+1}_${mode.id}.jpg`;
+                } else {
+                    fileName = `RETRO_${mode.id}_${Date.now()}.jpg`;
+                }
+                
+                downloadImage(finalBatchPhotos[i].image, fileName);
                 await new Promise(r => setTimeout(r, 200));
             }
             
-            // 3. 下載完成後，清除 DB 並歸零
-            await clearDB();
-            currentFrame = 0;
-            updateCounterDisplay();
-            checkLeverState(); // 熄燈
+            // 清理工作
+            if (isRollMode) {
+                await clearDB();
+                currentFrame = 0;
+                updateCounterDisplay();
+            } else {
+                pendingPhoto = null;
+            }
+            
+            checkLeverState(); // 確保燈號狀態正確
 
             setTimeout(() => {
                 devOverlay.style.display = 'none';
