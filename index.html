@@ -489,7 +489,8 @@
             { id: 'BW', name: 'B&W', sub: 'TRI-X 400', type: 'bw' },
             { id: 'COLOR', name: 'COLOR', sub: 'GAME-CAM', type: 'color' },
             { id: 'CCD', name: 'DIGI', sub: 'CCD SENSOR', type: 'ccd' },
-            { id: 'FILM', name: 'FILM', sub: 'JPN-CYAN', type: 'film' } 
+            { id: 'FILM', name: 'FILM', sub: 'JPN-CYAN', type: 'film' },
+            { id: 'HCBW', name: 'HC-BW', sub: 'ACROS 100', type: 'hcbw' } // 新增：高對比高清黑白
         ];
 
         let savedMode = localStorage.getItem('camModeIdx');
@@ -543,8 +544,11 @@
             const m = MODES[currentModeIdx];
             modeTitle.textContent = m.name; modeSub.textContent = m.sub; fsModeText.textContent = m.name;
             const h3 = filmCard.querySelector('h3');
-            if(m.id === 'BW') h3.style.color = '#000'; else if(m.id === 'FILM') h3.style.color = '#007700';
-            else if(m.id === 'COLOR') h3.style.color = '#c00'; else h3.style.color = '#0055cc';
+            if(m.id === 'BW') h3.style.color = '#000'; 
+            else if(m.id === 'FILM') h3.style.color = '#007700';
+            else if(m.id === 'COLOR') h3.style.color = '#c00';
+            else if(m.id === 'HCBW') h3.style.color = '#333'; // HCBW 顏色
+            else h3.style.color = '#0055cc';
         }
         updateModeUI();
 
@@ -655,6 +659,13 @@
                     data[i] = Math.floor(r / 42) * 42; data[i+1] = Math.floor(g / 42) * 42; data[i+2] = Math.floor(b / 42) * 42;
                 } else if (mode.id === 'CCD') {
                     r = r * 1.02; b = b * 1.08; if (r > 240 || g > 240 || b > 240) { r = 255; g = 250; b = 255; }
+                } else if (mode.id === 'HCBW') {
+                    // HC-BW 預覽模式：高對比灰階算法 (簡單運算以保持流暢)
+                    let gray = r * 0.299 + g * 0.587 + b * 0.114;
+                    // 增加對比度
+                    gray = 128 + (gray - 128) * 1.5;
+                    if(gray < 0) gray = 0; if(gray > 255) gray = 255;
+                    data[i] = data[i+1] = data[i+2] = gray;
                 }
             }
             processCtx.putImageData(imgData, 0, 0);
@@ -749,12 +760,16 @@
 
             } else if (mode.id === 'CCD') {
                 finalCtx.imageSmoothingEnabled = true; finalCtx.filter = 'blur(1px) contrast(1.1)'; finalCtx.drawImage(processCanvas, 0, 0, targetW, targetH);
+            } else if (mode.id === 'HCBW') {
+                // 新增：HC-BW 模式的成像邏輯
+                // 關鍵：直接繪製 'video' 源，而非 'processCanvas'，以獲取手機最高清畫質
+                finalCtx.imageSmoothingEnabled = true;
+                finalCtx.filter = 'grayscale(100%) contrast(140%)'; 
+                finalCtx.drawImage(video, 0, 0, targetW, targetH); 
             } else {
                 finalCtx.imageSmoothingEnabled = false; finalCtx.drawImage(processCanvas, 0, 0, targetW, targetH);
             }
             
-            // 注意：這裡不再繪製日期，保持 pendingPhoto / highResPhoto 是乾淨的
-
             // 2. 生成圖片數據 (乾淨版)
             highResPhoto = finalCanvas.toDataURL('image/jpeg', 0.92);
 
@@ -772,7 +787,7 @@
             }
         };
 
-        // 新增：在沖洗階段為照片添加日期的函數
+        // 在沖洗階段為照片添加日期的函數
         function applyDateStamp(imgUrl, dateObj) {
             return new Promise(resolve => {
                 const img = new Image();
