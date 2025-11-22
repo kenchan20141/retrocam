@@ -8,7 +8,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Retrocam</title>
+<title>Retro Cam - Multicolor Neon</title>
 <style>
     :root {
         --leather-color: #151515;
@@ -537,7 +537,8 @@
             { id: 'SKETCH_INK', name: 'INK', sub: 'COMIC PEN', color: '#000' },
             { id: 'SKETCH_OIL', name: 'OIL', sub: 'IMPASTO', color: '#8b4513' },
             { id: 'SKETCH_CYBER', name: 'CYBER', sub: 'NEON GRID', color: '#0f0' },
-            { id: 'SKETCH_BLUE', name: 'BLUE', sub: 'BLUEPRINT', color: '#4169e1' }
+            { id: 'SKETCH_BLUE', name: 'BLUE', sub: 'BLUEPRINT', color: '#4169e1' },
+            { id: 'SKETCH_HK_NEON', name: 'HK NEON', sub: 'NIGHT LIGHTS', color: '#ff00cc' }
         ];
         
         let savedMode = localStorage.getItem('camModeIdx');
@@ -789,9 +790,10 @@
             const isOil = (modeId === 'SKETCH_OIL');
             const isCyber = (modeId === 'SKETCH_CYBER');
             const isBlueprint = (modeId === 'SKETCH_BLUE');
+            const isHKNeon = (modeId === 'SKETCH_HK_NEON');
 
             let threshold = 15; 
-            if(isInk) threshold = 20;
+            if(isInk || isHKNeon) threshold = 20;
             if(isOil) threshold = 40; 
             if(isCyber || isBlueprint) threshold = 25;
 
@@ -802,7 +804,6 @@
                     const r = data[i]; const g = data[i+1]; const b = data[i+2];
                     const val = (r + g + b) / 3;
                     
-                    // Neighbors
                     let rightVal = val; let bottomVal = val;
                     if(x < scanW - 1) { rightVal = (data[i+4] + data[i+5] + data[i+6]) / 3; }
                     if(y < scanH - 1) { bottomVal = (data[i+scanW*4] + data[i+scanW*4+1] + data[i+scanW*4+2]) / 3; }
@@ -811,9 +812,27 @@
                     
                     let isEdge = diff > threshold;
                     
-                    // --- FILTER LOGIC ---
-
-                    if (isCyber) {
+                    if (isHKNeon) {
+                        if(isEdge) {
+                            const intensity = Math.min(diff * 3, 255);
+                            let nr = r, ng = g, nb = b;
+                            if(r > g && r > b) { 
+                                if(g > b) { nr = 255; ng = 220; nb = 0; } // Yellow
+                                else { nr = 255; ng = 0; nb = 100; } // Pink
+                            } else if(g > r && g > b) {
+                                if(b > r) { nr = 0; ng = 255; nb = 255; } // Cyan
+                                else { nr = 50; ng = 255; nb = 50; } // Green
+                            } else {
+                                if(r > g) { nr = 200; ng = 0; nb = 255; } // Purple
+                                else { nr = 0; ng = 80; nb = 255; } // Deep Blue
+                            }
+                            if(intensity > 100) { nr = Math.min(255, nr + 150); ng = Math.min(255, ng + 150); nb = Math.min(255, nb + 150); }
+                            outData[i] = nr; outData[i+1] = ng; outData[i+2] = nb;
+                        } else {
+                            outData[i] = 10; outData[i+1] = 5; outData[i+2] = 15;
+                        }
+                    }
+                    else if (isCyber) {
                         if(isEdge) { outData[i] = 0; outData[i+1] = 255; outData[i+2] = 50; } 
                         else { let dim = (y % 4 === 0) ? 30 : 10; outData[i] = 0; outData[i+1] = dim; outData[i+2] = 0; }
                     }
@@ -938,7 +957,6 @@
                 
                 processCtx.putImageData(imgData, 0, 0);
 
-                // Apply Grain
                 if (mode.id !== 'CCD' && mode.id !== 'COLOR') {
                     processCtx.save(); processCtx.globalCompositeOperation = "overlay"; 
                     let grainOpacity = 0.25; if(mode.id === 'BW') grainOpacity = 0.35; if(mode.id === 'FILM') grainOpacity = 0.22; 
@@ -951,7 +969,6 @@
                 }
             }
 
-            // Render to Viewfinders
             const isPixelated = (!isSketchMode && (mode.id === 'COLOR' || mode.id === 'BW'));
             
             if (!isSelfieMode) {
@@ -972,7 +989,7 @@
             }
         }
 
-        // Viewfinder Interaction - SEQUENTIAL LOGIC RESTORED
+        // Viewfinder Interaction - WITH 600ms DELAY & THICKER FOCUS
         vfTrigger.addEventListener('click', (e) => { 
             e.stopPropagation(); 
             fsViewfinder.style.display = 'block'; 
@@ -1012,16 +1029,15 @@
             const btn = isSelfieMode ? frontShutterBtn : shutterBtn;
             btn.classList.add('pressed');
             
-            // 1. Focus Phase
-            const splitCircle = document.getElementById('splitCircle');
-            if(splitCircle && !isSketchMode) {
+            // FOCUS PHASE
+            if (!isSketchMode) {
                 splitCircle.classList.add('focused');
+                playFocusSound();
             }
-            if(!isSketchMode) playFocusSound();
-
-            // 2. Delay for Sequence (600ms)
+            
+            // DELAYED SHUTTER
             setTimeout(() => {
-                // 3. Shutter Phase
+                // SHUTTER PHASE
                 playShutterSound();
                 
                 if (isSelfieMode) {
@@ -1029,20 +1045,16 @@
                     setTimeout(() => shutterFlash.classList.remove('flash'), 150);
                 } else {
                     const container = (fsViewfinder.style.display === 'block') ? fsViewfinder : vfTrigger;
-                    const blind = document.createElement('div');
-                    blind.className = container === fsViewfinder ? 'shutter-blind' : 'vf-shutter-blind';
-                    container.appendChild(blind);
-                    setTimeout(() => blind.remove(), 150);
+                    const blind = document.createElement('div'); blind.className = container === fsViewfinder ? 'shutter-blind' : 'vf-shutter-blind';
+                    container.appendChild(blind); setTimeout(() => blind.remove(), 150);
                 }
                 
-                // 4. Capture
-                performCapture();
+                performCapture(); 
                 
-                // 5. Cleanup
                 btn.classList.remove('pressed');
-                if(splitCircle) splitCircle.classList.remove('focused');
+                if (splitCircle) splitCircle.classList.remove('focused');
                 
-            }, 600);
+            }, 600); // 600ms Delay
         }
 
         function generateLightLeak(ctx, w, h) {
@@ -1161,6 +1173,7 @@
                         const m = SKETCH_MODES[currentModeIdx];
                         if(m.id === 'SKETCH_CYBER') ctx.fillStyle = '#0f0';
                         else if(m.id === 'SKETCH_BLUE') ctx.fillStyle = '#fff';
+                        else if(m.id === 'SKETCH_HK_NEON') ctx.fillStyle = '#ff00cc';
                         else ctx.fillStyle = 'rgba(50, 50, 50, 0.85)';
                         
                         ctx.font = `normal 45px "Segoe Print", "Comic Sans MS", cursive`;
