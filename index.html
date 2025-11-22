@@ -1289,11 +1289,27 @@
             currentFrame = 0; updateCounterDisplay(); checkLeverState();
         });
 
-        let leverPulled = false;
+       let leverPulled = false;
         advanceLever.addEventListener('click', async () => {
+            // 檢查是否可以過片
             if (!readyLight.classList.contains('active') || leverPulled) return;
-            playLeverSound(); leverPulled = true; advanceLever.style.transform = 'rotate(130deg)';
-            setTimeout(() => { advanceLever.style.transform = 'rotate(10deg)'; styleOverlay.style.display = 'flex'; leverPulled = false; }, 400);
+            
+            leverPulled = true;
+
+            // [修改重點] 使用 requestAnimationFrame 包裹，確保動畫與聲音在「同一幀」觸發
+            requestAnimationFrame(() => {
+                advanceLever.style.transform = 'rotate(130deg)'; // 1. 先設定動畫
+                
+                // 微調：延遲 50ms 播放聲音，配合撥桿的物理慣性 (解決聲音太快的問題)
+                setTimeout(playLeverSound, 50); 
+            });
+
+            // 400ms 後回彈並顯示選單
+            setTimeout(() => { 
+                advanceLever.style.transform = 'rotate(10deg)'; 
+                styleOverlay.style.display = 'flex'; 
+                leverPulled = false; 
+            }, 400);
         });
 
         document.querySelectorAll('.style-btn').forEach(btn => {
