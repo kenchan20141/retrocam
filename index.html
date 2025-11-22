@@ -39,13 +39,89 @@
         box-shadow: inset 0 1px 0 rgba(255,255,255,0.8);
     }
 
+    /* --- LAYOUT CONFIGURATION --- */
+    
+    .viewfinder-wrap { 
+        position: absolute; top: 15px; left: 30px;
+        width: 120px; height: 80px; 
+        background: #111; border: 3px solid #666; border-radius: 4px; 
+        box-shadow: 0 2px 5px rgba(0,0,0,0.4); overflow: hidden; cursor: zoom-in; z-index: 12; transition: opacity 0.3s; 
+    }
+    .vf-glass { width: 100%; height: 100%; opacity: 0.9; display: block; }
+
+    /* Function Group (Right of VF) */
+    .function-group {
+        position: absolute; top: 18px; left: 170px;
+        width: 100px; height: 80px;
+        display: flex; flex-direction: column; gap: 12px;
+        z-index: 25;
+    }
+
+    .top-row-btns { display: flex; gap: 12px; align-items: center; }
+
+    /* Lock Button */
+    .flat-lock-btn {
+        width: 50px; height: 26px;
+        background: linear-gradient(to bottom, #e0e0e0, #bbb);
+        border: 1px solid #888; border-radius: 2px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.8);
+        display: flex; justify-content: center; align-items: center;
+        cursor: pointer; position: relative;
+    }
+    .flat-lock-btn:active { background: #bbb; box-shadow: inset 0 1px 3px rgba(0,0,0,0.4); transform: translateY(1px); }
+    .flat-lock-btn span {
+        font-family: sans-serif; font-size: 9px; font-weight: bold; color: #555;
+        letter-spacing: 1px; transition: all 0.2s;
+    }
+    .flat-lock-btn.locked {
+        background: #333; border-color: #000;
+        box-shadow: inset 0 0 5px #000;
+    }
+    .flat-lock-btn.locked span { color: #ff9900; text-shadow: 0 0 5px rgba(255, 153, 0, 0.8); }
+
+    /* Selfie Toggle */
+    .selfie-btn {
+        width: 26px; height: 26px;
+        background: radial-gradient(#ddd, #999);
+        border: 1px solid #777; border-radius: 50%;
+        cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.4);
+        display: flex; justify-content: center; align-items: center; z-index: 30;
+    }
+    .selfie-btn::after { content: '↻'; font-size: 14px; font-weight: bold; color: #333; transition: transform 0.3s; }
+    .selfie-btn:active::after { transform: rotate(180deg); }
+
+    /* REAL/ART Switch - Modified Layout: REAL [Switch] ART */
+    .compact-switch-container {
+        display: flex; align-items: center; justify-content: center; gap: 8px;
+        background: rgba(0,0,0,0.05); padding: 4px 6px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.2);
+        cursor: pointer;
+    }
+    .cs-label { font-size: 9px; font-weight: bold; color: #555; font-family: sans-serif; }
+    .cs-label.active { color: #000; }
+    .cs-track { width: 30px; height: 8px; background: #333; border-radius: 4px; position: relative; box-shadow: inset 0 1px 2px #000; }
+    .cs-knob { 
+        width: 14px; height: 12px; background: repeating-linear-gradient(90deg, #ccc, #ccc 1px, #999 1px, #999 2px); 
+        border-radius: 2px; position: absolute; top: -2px; left: 0; 
+        box-shadow: 0 1px 2px rgba(0,0,0,0.5); border: 1px solid #555; transition: left 0.3s; 
+    }
+    .compact-switch-container.mode-sketch .cs-knob { left: 16px; }
+
+    /* SELFIE MODE HIDING LOGIC */
+    body.is-selfie .viewfinder-wrap { display: none !important; }
+    body.is-selfie .flat-lock-btn { display: none !important; }
+    body.is-selfie .compact-switch-container { display: none !important; }
+
+    /* Serial Number */
+    .serial-number { 
+        position: absolute; top: 75px; left: 520px; 
+        font-size: 12px; letter-spacing: 1px; font-weight: bold; color: #444; 
+        text-shadow: 0 1px 0 rgba(255,255,255,0.6); font-family: 'Courier New', Courier, monospace; 
+        pointer-events: none; z-index: 15;
+    }
+
     .shutter-release-btn { position: absolute; top: -12px; right: 55px; width: 46px; height: 18px; background: var(--shutter-grey); border-radius: 4px 4px 0 0; border: 1px solid #888; border-bottom: none; cursor: pointer; z-index: 5; box-shadow: inset 0 1px 2px rgba(255,255,255,0.8), 0 -2px 5px rgba(0,0,0,0.2); transition: transform 0.1s cubic-bezier(0.1, 0.7, 1.0, 0.1); }
     .shutter-release-btn.pressed { transform: translateY(8px); transition: transform 0.05s ease-out; }
     
-    .viewfinder-wrap { position: absolute; top: 15px; left: 30px; width: 120px; height: 80px; background: #111; border: 3px solid #666; border-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.4); overflow: hidden; cursor: zoom-in; z-index: 12; transition: opacity 0.3s; }
-    .vf-glass { width: 100%; height: 100%; opacity: 0.9; display: block; }
-    
-    .serial-number { position: absolute; top: 65px; left: 165px; font-size: 13px; letter-spacing: 1px; font-weight: bold; color: #555; text-shadow: 0 1px 0 rgba(255,255,255,0.7); font-family: 'Courier New', Courier, monospace; pointer-events: none; z-index: 15; }
     .prism-hump { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); width: 140px; height: 125px; z-index: 11; clip-path: polygon(25% 0%, 75% 0%, 100% 100%, 0% 100%); background: linear-gradient(to bottom, #d0d0d0 0%, #b0b0b0 50%, #808080 100%); box-shadow: inset 0 0 10px rgba(0,0,0,0.2); display: flex; justify-content: center; }
     .prism-hump::after { content: ''; width: 1px; height: 100%; background: rgba(0,0,0,0.1); }
     
@@ -65,39 +141,18 @@
     .switch-knob { width: 18px; height: 18px; background: radial-gradient(#eee, #999); border-radius: 50%; position: absolute; top: -2px; left: 0; box-shadow: 0 1px 2px rgba(0,0,0,0.5); border: 1px solid #666; transition: left 0.3s; }
     .mode-switch-container.mode-36 .switch-knob { left: 18px; }
     
-    .sketch-switch-container { position: absolute; top: 20px; left: 155px; display: flex; flex-direction: column; align-items: center; cursor: pointer; z-index: 20; }
-    .sketch-labels { display: flex; gap: 8px; font-size: 9px; font-weight: bold; color: #444; margin-bottom: 2px; font-family: sans-serif; text-shadow: 0 1px 0 rgba(255,255,255,0.5); }
-    .sketch-labels .active { color: #000; }
-    .sketch-switch-track { width: 44px; height: 12px; background: #333; border-radius: 2px; position: relative; box-shadow: inset 0 1px 3px #000; }
-    .sketch-switch-knob { width: 22px; height: 16px; background: repeating-linear-gradient(90deg, #ccc, #ccc 2px, #999 2px, #999 4px); border-radius: 2px; position: absolute; top: -2px; left: 0; box-shadow: 0 1px 2px rgba(0,0,0,0.5); border: 1px solid #666; transition: left 0.3s; }
-    .sketch-switch-container.mode-sketch .sketch-switch-knob { left: 22px; }
-
     .ready-light { position: absolute; top: 20px; right: 165px; width: 8px; height: 8px; background: #300; border-radius: 50%; box-shadow: inset 0 0 2px #000; transition: background 0.3s; z-index: 15; }
     .ready-light.active { background: #f00; box-shadow: 0 0 8px #f00, inset 0 0 2px #fff; }
 
     .front-controls-group { display: none; } 
     
-    .front-viewfinder-frame {
-        position: absolute; top: 15px; right: 40px; width: 90px; height: 65px;
-        background: #111; border: 2px solid #666; border-radius: 3px;
-        box-shadow: inset 0 0 5px #000, 0 1px 2px rgba(0,0,0,0.3);
-        overflow: hidden; cursor: zoom-in; z-index: 16;
-    }
-    .front-vf-glass { width: 100%; height: 100%; transform: scaleX(-1); }
-
-    .front-shutter-btn {
-        position: absolute; top: -10px; left: 50px; width: 40px; height: 16px;
-        background: var(--shutter-grey); border-radius: 3px 3px 0 0;
-        border: 1px solid #888; border-bottom: none; cursor: pointer; z-index: 16;
-        box-shadow: inset 0 1px 2px rgba(255,255,255,0.8);
-    }
-    .front-shutter-btn.pressed { transform: translateY(6px); }
-
+    /* CABLE RELEASE (RESTORED) */
     .cable-release-container {
         position: absolute; top: -100px; left: 0; width: 100%; height: 150%;
         pointer-events: none; z-index: 30;
-        overflow: visible;
+        overflow: visible; display: none;
     }
+    body.is-selfie .cable-release-container { display: block; }
     
     .cable-plunger-wrapper {
         position: absolute; 
@@ -146,19 +201,15 @@
     .cable-plunger-wrapper.pressed .cable-button-head { transform: translateY(12px); }
     .cable-plunger-wrapper.pressed .cable-stem { height: 8px; transform: translateY(12px); }
 
-    #selfie-toggle {
-        position: absolute; top: 20px; left: 240px; width: 24px; height: 24px;
-        background: radial-gradient(#ccc, #999); border: 1px solid #666; border-radius: 50%;
-        cursor: pointer; z-index: 20; box-shadow: 0 1px 2px rgba(0,0,0,0.5);
-        display: flex; justify-content: center; align-items: center;
+    .front-viewfinder-frame {
+        position: absolute; top: 15px; right: 40px; width: 90px; height: 65px;
+        background: #111; border: 2px solid #666; border-radius: 3px;
+        box-shadow: inset 0 0 5px #000, 0 1px 2px rgba(0,0,0,0.3);
+        overflow: hidden; cursor: zoom-in; z-index: 16;
     }
-    #selfie-toggle::after {
-        content: '↻'; font-size: 16px; font-weight: bold; color: #333;
-        transition: transform 0.3s;
-    }
-    #selfie-toggle:active::after { transform: rotate(180deg); }
+    .front-vf-glass { width: 100%; height: 100%; transform: scaleX(-1); }
 
-    .camera-body { width: 100%; height: 310px; position: relative; border-radius: 0 0 8px 8px; perspective: 1000px; }
+    .camera-body { width: 100%; height: 310px; position: relative; border-radius: 0 0 8px 8px; perspective: 1000px; transform-style: preserve-3d; }
 
     .back-lock {
         position: absolute; top: 40px; right: -12px; width: 12px; height: 40px;
@@ -233,11 +284,6 @@
         background: radial-gradient(circle at 35% 35%, rgba(138, 43, 226, 0.25) 0%, transparent 50%);
         filter: blur(8px); pointer-events: none;
     }
-    .lens-glass-element::after {
-        content: ''; position: absolute; bottom: 10%; right: 10%; width: 80px; height: 80px;
-        background: radial-gradient(circle, rgba(0, 255, 150, 0.15) 0%, transparent 60%);
-        filter: blur(10px); pointer-events: none;
-    }
     .lens-reflection {
         position: absolute; top: 25%; left: 25%; width: 30px; height: 15px;
         background: rgba(255,255,255,0.3); border-radius: 50%;
@@ -275,13 +321,69 @@
     .album-btn.action:hover { background: #c00; color: #fff; }
 
     .copyright-mark { position: absolute; bottom: 14px; right: 22px; font-family: 'Arial', sans-serif; font-weight: bold; font-size: 12px; letter-spacing: 0.5px; color: rgba(255, 255, 255, 0.25); text-shadow: -1px -1px 1px rgba(0,0,0,0.9), 1px 1px 0 rgba(255,255,255,0.05); pointer-events: none; z-index: 5; text-transform: uppercase; }
-    .film-door { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 200px; height: 120px; border: 4px solid #000; background: #1a1a1a; box-shadow: 0 1px 0 rgba(255,255,255,0.1), inset 0 0 10px #000; border-radius: 2px; display: flex; justify-content: center; align-items: center; cursor: pointer; z-index: 2; }
+    .film-door { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 200px; height: 120px; border: 4px solid #000; background: #1a1a1a; box-shadow: 0 1px 0 rgba(255,255,255,0.1), inset 0 0 10px #000; border-radius: 2px; display: flex; justify-content: center; align-items: center; cursor: pointer; z-index: 2; transition: transform 0.1s; }
+    .film-door:active { transform: translate(-50%, -50%) scale(0.98); }
     .memo-holder-frame { width: 170px; height: 90px; border: 2px solid #333; position: relative; background: #222; display: flex; justify-content: center; align-items: center; box-shadow: inset 2px 2px 5px rgba(0,0,0,0.8); }
-    .film-card { width: 150px; height: 70px; background: #f4e9c5; box-shadow: 1px 1px 4px rgba(0,0,0,0.5); display: flex; flex-direction: column; justify-content: center; align-items: center; transform: rotate(-1deg); transition: filter 0.3s; }
+    .film-card { width: 150px; height: 70px; background: #f4e9c5; box-shadow: 1px 1px 4px rgba(0,0,0,0.5); display: flex; flex-direction: column; justify-content: center; align-items: center; transform: rotate(-1deg); transition: filter 0.5s ease; }
     .film-card::before, .film-card::after { content: ''; position: absolute; width: 100%; height: 6px; background: #333; transition: background 0.3s ease; }
     .film-card::before { top: 0; } .film-card::after { bottom: 0; }
     .film-card h3 { margin: 4px 0 0; font-size: 24px; font-weight: 900; color: #000; line-height: 1; font-family: Impact, sans-serif; }
     .film-card p { margin: 2px 0; font-size: 10px; color: #333; font-weight: bold; text-transform: uppercase; }
+
+    /* 3D FILM ROLL SELECTOR */
+    #film-roll-overlay {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.85); z-index: 6000;
+        display: none; flex-direction: column; justify-content: center; align-items: center;
+        perspective: 1000px; opacity: 0; transition: opacity 0.3s;
+    }
+    #film-roll-overlay.visible { opacity: 1; }
+
+    .film-roll-container {
+        display: flex; gap: 40px; padding: 40px;
+        overflow-x: auto; max-width: 90vw;
+        align-items: center; scroll-behavior: smooth;
+        -webkit-overflow-scrolling: touch;
+    }
+    .film-roll-container::-webkit-scrollbar { display: none; }
+
+    .film-canister {
+        width: 80px; height: 140px; position: relative; flex-shrink: 0;
+        transform-style: preserve-3d; cursor: pointer;
+        transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        transform: rotateX(-10deg) scale(0.9);
+    }
+    .film-canister:hover, .film-canister.active { transform: rotateX(0deg) scale(1.1); }
+    
+    .canister-body {
+        position: absolute; top: 10px; left: 0; width: 100%; height: 120px;
+        background: linear-gradient(90deg, #333 0%, #888 20%, #333 40%, #111 100%);
+        border-radius: 4px; box-shadow: 5px 5px 15px rgba(0,0,0,0.8);
+        display: flex; flex-direction: column; justify-content: center; align-items: center;
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .canister-cap {
+        position: absolute; width: 84px; height: 16px; background: #444;
+        border-radius: 50%; left: -2px;
+        background: radial-gradient(circle at 30% 30%, #888, #222);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.8);
+    }
+    .cap-top { top: 0; } .cap-bottom { bottom: 0; }
+    .sprocket-lip {
+        position: absolute; top: 10px; right: -10px; width: 15px; height: 100px;
+        background: #111; transform: rotateY(60deg); border-left: 2px solid #444;
+    }
+    
+    .canister-label {
+        width: 90%; height: 70%; 
+        display: flex; flex-direction: column; justify-content: center; align-items: center;
+        text-align: center; padding: 5px; box-shadow: 0 0 2px rgba(0,0,0,0.5);
+    }
+    .cl-name { font-family: Impact, sans-serif; font-size: 18px; line-height: 1; margin-bottom: 4px; }
+    .cl-sub { font-family: sans-serif; font-size: 7px; font-weight: bold; text-transform: uppercase; color:#333; }
+    .cl-iso { font-family: 'Courier New'; font-weight: bold; font-size: 12px; margin-top: 5px; border: 1px solid #000; padding: 1px 3px; border-radius: 2px; color:#333; }
+
 
     #fs-viewfinder { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 10000; display: none; cursor: crosshair; touch-action: none; }
     #fs-canvas { width: 100%; height: 100%; object-fit: contain; }
@@ -363,12 +465,42 @@
         </div>
     </div>
 
+    <!-- 3D FILM ROLL SELECTOR -->
+    <div id="film-roll-overlay">
+        <h2 style="color:white; font-family:'Courier New'; margin-bottom:30px; text-shadow:0 0 5px #fff;">SELECT FILM STOCK</h2>
+        <div class="film-roll-container" id="filmRollContainer">
+            <!-- Generated by JS -->
+        </div>
+        <p style="color:#666; font-size:12px; margin-top:20px; font-family:sans-serif;">TAP TO LOAD</p>
+    </div>
+
     <div id="camera-container">
         <div class="top-plate">
-            <div id="back-controls-group">
-                <div class="viewfinder-wrap" id="vfTrigger" title="Live View">
-                    <canvas class="vf-glass" id="smallCanvas"></canvas>
+            <!-- GROUPED LEFT CONTROLS -->
+            <div class="viewfinder-wrap" id="vfTrigger" title="Live View">
+                <canvas class="vf-glass" id="smallCanvas"></canvas>
+            </div>
+
+            <div class="function-group">
+                <div class="top-row-btns">
+                    <!-- LOCK BTN -->
+                    <div class="flat-lock-btn" id="orientationBtn" title="Lock Orientation">
+                        <span>LOCK</span>
+                    </div>
+                    <!-- SELFIE BTN -->
+                    <div class="selfie-btn" id="selfie-toggle" title="Selfie Mode"></div>
                 </div>
+                
+                <!-- MOVED REAL/ART SWITCH HERE - ORDER: REAL | SWITCH | ART -->
+                <div class="compact-switch-container" id="sketchModeSwitch" title="Real/Art Mode">
+                    <span id="lbl-real" class="cs-label active">REAL</span>
+                    <div class="cs-track"><div class="cs-knob"></div></div>
+                    <span id="lbl-sketch" class="cs-label">ART</span>
+                </div>
+            </div>
+
+            <!-- RIGHT CONTROLS -->
+            <div id="back-controls-group">
                 <div class="lever-base" id="leverBase"></div>
                 <div class="advance-lever" id="advanceLever"><div class="lever-grip"></div></div>
                 <div class="shutter-release-btn" id="shutterBtn"></div>
@@ -378,11 +510,6 @@
                         <div class="mode-labels"><span>1</span><span>36</span></div>
                         <div class="switch-track"><div class="switch-knob"></div></div>
                     </div>
-                </div>
-                
-                <div class="sketch-switch-container" id="sketchModeSwitch" title="Toggle Real/Sketch Mode">
-                    <div class="sketch-labels"><span id="lbl-real" class="active">REAL</span><span id="lbl-sketch">ART</span></div>
-                    <div class="sketch-switch-track"><div class="sketch-switch-knob"></div></div>
                 </div>
             </div>
 
@@ -399,13 +526,14 @@
                 <div class="front-viewfinder-frame" id="frontVfTrigger">
                     <canvas class="front-vf-glass" id="frontCanvas"></canvas>
                 </div>
+                <!-- Standard front button also exists as fallback -->
                 <div class="front-shutter-btn" id="frontShutterBtn"></div>
             </div>
 
             <div class="serial-number">NO. 854021</div>
+            
             <div class="prism-hump"></div>
             <div class="ready-light" id="readyLight"></div>
-            <div id="selfie-toggle" title="Switch to Selfie Mode"></div>
         </div>
 
         <div class="camera-body">
@@ -433,7 +561,7 @@
             <div class="back-door-wrapper" id="backDoorWrapper">
                 <div class="back-door-face">
                     <div class="copyright-mark">Designed by Chan Kwun Kin</div>
-                    <div class="film-door" id="filmDoor">
+                    <div class="film-door" id="filmDoor" title="Change Film Type">
                         <div class="memo-holder-frame">
                             <div class="film-card">
                                 <h3 id="modeTitle">B&W</h3>
@@ -537,6 +665,7 @@
         let globalSerialCounter = parseInt(localStorage.getItem('global_serial_counter') || '1');
         let isSelfieMode = false;
         let isSketchMode = false;
+        let isOrientationLocked = localStorage.getItem('orientationLocked') === 'true';
         
         // MODES DEFINITION
         const REAL_MODES = [
@@ -544,13 +673,10 @@
             { id: 'COLOR', name: 'COLOR', sub: 'GAME-CAM', color: '#c00' },
             { id: 'CCD', name: 'DIGI', sub: 'CCD SENSOR', color: '#0055cc' },
             { id: 'HCBW', name: 'HC-BW', sub: 'FINE 100', color: '#555' },
-            // Film Series
             { id: 'FILM_TEAL', name: 'FILM: TEAL', sub: 'KYOTO 400', color: '#008080' }, 
             { id: 'FILM_SUN', name: 'FILM: SUN', sub: 'CALI 200', color: '#ffcc00' },   
             { id: 'FILM_VIVID', name: 'FILM: VIVID', sub: 'SLIDE 100', color: '#ff0055' }, 
             { id: 'FILM_AGED', name: 'FILM: AGED', sub: 'EURO 800', color: '#8b4513' },
-            
-            // NEW FILTER ADDED HERE
             { id: 'FILM_SOFT', name: 'FILM: SOFT', sub: 'AIRY 400H', color: '#90e0ef' } 
         ];
 
@@ -575,11 +701,13 @@
         }
         validateModeIndex();
 
-        // ------------------------
-        // AUDIO SYSTEM
-        // ------------------------
+        // Audio
         const shutterAudio = new Audio('https://taira-komori.net/sound_os2/electric01/camera1.mp3');
         shutterAudio.preload = 'auto';
+        
+        const latchAudio = new Audio('https://taira-komori.net/sound_os2/electric01/fluorescent_switch1.mp3');
+        latchAudio.volume = 1.0;
+        latchAudio.preload = 'auto';
 
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         const actx = new AudioContext();
@@ -591,29 +719,13 @@
                 playPromise.catch(error => {
                     if (actx.state === 'suspended') actx.resume();
                     const t = actx.currentTime;
-                    
-                    const oscClick = actx.createOscillator();
-                    const gainClick = actx.createGain();
-                    oscClick.type = 'square';
-                    oscClick.frequency.setValueAtTime(800, t);
-                    oscClick.frequency.exponentialRampToValueAtTime(100, t + 0.05);
-                    gainClick.gain.setValueAtTime(0.5, t);
-                    gainClick.gain.exponentialRampToValueAtTime(0.01, t + 0.05);
-                    oscClick.connect(gainClick).connect(actx.destination);
-                    oscClick.start(t); oscClick.stop(t + 0.05);
+                    const oscClick = actx.createOscillator(); const gainClick = actx.createGain();
+                    oscClick.type = 'square'; oscClick.frequency.setValueAtTime(800, t); oscClick.frequency.exponentialRampToValueAtTime(100, t + 0.05);
+                    gainClick.gain.setValueAtTime(0.5, t); gainClick.gain.exponentialRampToValueAtTime(0.01, t + 0.05);
+                    oscClick.connect(gainClick).connect(actx.destination); oscClick.start(t); oscClick.stop(t + 0.05);
                 });
             }
         }
-
-        function playFocusSound() {
-            if (actx.state === 'suspended') actx.resume();
-            const t = actx.currentTime;
-            const osc = actx.createOscillator(); const gain = actx.createGain();
-            osc.type = 'sine'; osc.frequency.setValueAtTime(800, t); osc.frequency.exponentialRampToValueAtTime(1200, t + 0.1);
-            gain.gain.setValueAtTime(0.2, t); gain.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
-            osc.connect(gain).connect(actx.destination); osc.start(t); osc.stop(t + 0.15);
-        }
-
         function playLeverSound() {
             if (actx.state === 'suspended') actx.resume();
             const t = actx.currentTime;
@@ -644,6 +756,7 @@
         
         const rollModeSwitch = document.getElementById('rollModeSwitch');
         const sketchModeSwitch = document.getElementById('sketchModeSwitch');
+        const orientationBtn = document.getElementById('orientationBtn');
         
         const frameCounterUI = document.getElementById('frameCounter');
         const fsCounter = document.getElementById('fs-counter');
@@ -651,10 +764,11 @@
         const leverBase = document.getElementById('leverBase');
         const advanceLever = document.getElementById('advanceLever');
         const shutterBtn = document.getElementById('shutterBtn');
+        const frontShutterBtn = document.getElementById('frontShutterBtn');
+        const cablePlunger = document.getElementById('cablePlunger');
         
         const vfTrigger = document.getElementById('vfTrigger');
         const frontVfTrigger = document.getElementById('frontVfTrigger');
-        const frontShutterBtn = document.getElementById('frontShutterBtn');
         const fsViewfinder = document.getElementById('fs-viewfinder');
         const vfCloseBtn = document.getElementById('vf-close-btn');
         const fsGuideFrame = document.getElementById('fsGuideFrame');
@@ -668,7 +782,6 @@
         const backControls = document.getElementById('back-controls-group');
         const frontControls = document.getElementById('front-controls-group');
         
-        const cablePlunger = document.getElementById('cablePlunger');
         const albumGrid = document.getElementById('albumGrid');
         const styleOverlay = document.getElementById('style-selector-overlay');
         const devOverlay = document.getElementById('developing-overlay');
@@ -680,6 +793,11 @@
         const fsPrompt = document.getElementById('fullscreen-prompt');
         const zoomOverlay = document.getElementById('zoom-overlay');
         const zoomImg = document.getElementById('zoom-img');
+
+        // Film Roll Overlay Elements
+        const filmRollOverlay = document.getElementById('film-roll-overlay');
+        const filmRollContainer = document.getElementById('filmRollContainer');
+        const filmDoor = document.getElementById('filmDoor');
 
         // Grain System
         function initGrainSystem() {
@@ -694,7 +812,6 @@
             grainCtx.putImageData(imgData, 0, 0);
         }
 
-        // Mode UI Update
         function updateModeUI() {
             const modes = getModes();
             if(currentModeIdx >= modes.length) currentModeIdx = 0;
@@ -707,9 +824,6 @@
             const h3 = filmCard.querySelector('h3');
             h3.style.color = m.color;
             
-            filmCard.className = 'film-card';
-            filmCard.querySelector('h3').style.color = m.color;
-            
             const styleEl = document.createElement('style');
             styleEl.innerHTML = `.film-card::before, .film-card::after { background: ${m.color} !important; }`;
             const oldStyle = document.getElementById('film-card-style');
@@ -719,11 +833,9 @@
         }
         updateModeUI();
 
-        // System Init
         async function initSystem() {
             await initDB();
             initGrainSystem(); 
-            
             if (isRollMode) {
                 rollModeSwitch.classList.add('mode-36');
                 currentFrame = await getTempCount();
@@ -733,6 +845,14 @@
             }
             checkLeverState();
             updateCounterDisplay();
+
+            if(isOrientationLocked) {
+                orientationBtn.classList.add('locked');
+                try {
+                    if (screen.orientation && screen.orientation.lock) {
+                    }
+                } catch(e){}
+            }
         }
 
         function updateCounterDisplay() {
@@ -760,7 +880,12 @@
             const el = document.documentElement;
             const rfs = el.requestFullscreen || el.webkitRequestFullScreen;
             if (rfs) {
-                rfs.call(el).then(() => { initSystem().then(initCamera); }).catch(() => { initSystem().then(initCamera); });
+                rfs.call(el).then(() => { 
+                    initSystem().then(initCamera); 
+                    if(isOrientationLocked && screen.orientation && screen.orientation.lock) {
+                        screen.orientation.lock('landscape').catch(()=>{});
+                    }
+                }).catch(() => { initSystem().then(initCamera); });
             }
         }
 
@@ -792,10 +917,103 @@
             }
         });
 
-        // -------------------------
-        // ART STUDIO EFFECTS
-        // -------------------------
+        // Orientation Lock Logic
+        orientationBtn.addEventListener('click', async () => {
+            isOrientationLocked = !isOrientationLocked;
+            orientationBtn.classList.toggle('locked', isOrientationLocked);
+            localStorage.setItem('orientationLocked', isOrientationLocked);
+            
+            if (isOrientationLocked) {
+                try {
+                    if (screen.orientation && screen.orientation.lock) {
+                        await screen.orientation.lock('landscape');
+                    }
+                } catch (e) { console.log("Orientation Lock not supported or failed", e); }
+            } else {
+                try {
+                    if (screen.orientation && screen.orientation.unlock) {
+                        screen.orientation.unlock();
+                    }
+                } catch (e) {}
+            }
+        });
+
+        // Render Filters as 3D Rolls
+        function renderFilmSelector() {
+            const modes = getModes();
+            filmRollContainer.innerHTML = '';
+            
+            modes.forEach((m, index) => {
+                const canister = document.createElement('div');
+                canister.className = 'film-canister';
+                if (index === currentModeIdx) canister.classList.add('active');
+                
+                const labelStyle = `border: 4px solid ${m.color}; background: #f4e9c5;`;
+                const nameStyle = `color: ${m.color};`;
+                
+                canister.innerHTML = `
+                    <div class="canister-cap cap-top"></div>
+                    <div class="canister-body">
+                        <div class="canister-label" style="${labelStyle}">
+                            <div class="cl-name" style="${nameStyle}">${m.name}</div>
+                            <div class="cl-sub">${m.sub}</div>
+                            <div class="cl-iso">ISO</div>
+                        </div>
+                    </div>
+                    <div class="sprocket-lip"></div>
+                    <div class="canister-cap cap-bottom"></div>
+                `;
+                
+                canister.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    selectModeFromRoll(index);
+                });
+                
+                filmRollContainer.appendChild(canister);
+            });
+        }
+
+        function openFilmSelector() {
+            if (backDoorWrapper.classList.contains('open')) return;
+            renderFilmSelector();
+            filmRollOverlay.style.display = 'flex';
+            void filmRollOverlay.offsetWidth;
+            filmRollOverlay.classList.add('visible');
+        }
+
+        function selectModeFromRoll(index) {
+            currentModeIdx = index;
+            localStorage.setItem('camModeIdx', currentModeIdx);
+            
+            // Animation Sequence
+            filmRollOverlay.classList.remove('visible');
+            setTimeout(() => {
+                filmRollOverlay.style.display = 'none';
+                
+                filmCard.style.filter = 'blur(10px)';
+                processCanvas.style.filter = 'blur(10px)';
+                
+                updateModeUI();
+                
+                setTimeout(() => {
+                    filmCard.style.filter = 'none';
+                    processCanvas.style.filter = 'none';
+                }, 400);
+                
+            }, 300);
+        }
+
+        // Trigger Film Selector on Door Click
+        filmDoor.addEventListener('click', openFilmSelector);
         
+        filmRollOverlay.addEventListener('click', (e) => {
+            if(e.target === filmRollOverlay) {
+                filmRollOverlay.classList.remove('visible');
+                setTimeout(() => filmRollOverlay.style.display = 'none', 300);
+            }
+        });
+
+
         function applySketchEffect(sourceVideo, destCtx, width, height, modeId) {
             const scanW = 800; 
             const scanH = Math.floor(scanW * (height/width));
@@ -840,23 +1058,13 @@
                     
                     if (isHKNeon) {
                         if(isEdge) {
-                            const intensity = Math.min(diff * 3, 255);
                             let nr = r, ng = g, nb = b;
-                            if(r > g && r > b) { 
-                                if(g > b) { nr = 255; ng = 220; nb = 0; }
-                                else { nr = 255; ng = 0; nb = 80; } 
-                            } else if(g > r && g > b) {
-                                if(b > g * 0.5) { nr = 0; ng = 150; nb = 255; }
-                                else { nr = 0; ng = 255; nb = 50; }
-                            } else {
-                                if(r > b * 0.5) { nr = 180; ng = 0; nb = 255; }
-                                else { nr = 0; ng = 80; nb = 255; }
-                            }
+                            if(r > g && r > b) { if(g > b) { nr = 255; ng = 220; nb = 0; } else { nr = 255; ng = 0; nb = 80; } } 
+                            else if(g > r && g > b) { if(b > g * 0.5) { nr = 0; ng = 150; nb = 255; } else { nr = 0; ng = 255; nb = 50; } } 
+                            else { if(r > b * 0.5) { nr = 180; ng = 0; nb = 255; } else { nr = 0; ng = 80; nb = 255; } }
                             if(diff > 60) { nr = 255; ng = 255; nb = 255; }
                             outData[i] = nr; outData[i+1] = ng; outData[i+2] = nb;
-                        } else {
-                            outData[i] = 10; outData[i+1] = 5; outData[i+2] = 15;
-                        }
+                        } else { outData[i] = 10; outData[i+1] = 5; outData[i+2] = 15; }
                     }
                     else if (isCyber) {
                         if(isEdge) { outData[i] = 0; outData[i+1] = 255; outData[i+2] = 50; } 
@@ -868,30 +1076,21 @@
                     }
                     else if (isShuimo) {
                         let ink = 255;
-                        if (isEdge) {
-                            ink = 10; 
-                        } else {
+                        if (isEdge) { ink = 10; } 
+                        else {
                             const wetness = Math.random() * 15;
-                            if (val < 50) ink = 40 + wetness;      
-                            else if (val < 100) ink = 100 + wetness; 
-                            else if (val < 160) ink = 180 + wetness; 
-                            else ink = 250 + (Math.random() * 5);    
-                            if (diff > 5 && diff <= threshold) {
-                                ink -= 50;
-                            }
+                            if (val < 50) ink = 40 + wetness; else if (val < 100) ink = 100 + wetness; else if (val < 160) ink = 180 + wetness; else ink = 250 + (Math.random() * 5);    
+                            if (diff > 5 && diff <= threshold) { ink -= 50; }
                         }
                         ink = Math.max(0, Math.min(255, ink));
                         outData[i] = ink; outData[i+1] = ink; outData[i+2] = ink;
                     }
                     else if (isInk) {
-                        if (isEdge || val < 80) { outData[i] = 10; outData[i+1] = 10; outData[i+2] = 10; } 
-                        else { outData[i] = 255; outData[i+1] = 255; outData[i+2] = 255; }
+                        if (isEdge || val < 80) { outData[i] = 10; outData[i+1] = 10; outData[i+2] = 10; } else { outData[i] = 255; outData[i+1] = 255; outData[i+2] = 255; }
                     }
                     else if (isOil) {
                         const level = 40;
-                        const qr = Math.floor(r/level)*level;
-                        const qg = Math.floor(g/level)*level;
-                        const qb = Math.floor(b/level)*level;
+                        const qr = Math.floor(r/level)*level; const qg = Math.floor(g/level)*level; const qb = Math.floor(b/level)*level;
                         outData[i] = Math.min(255, qr * 1.1); outData[i+1] = Math.min(255, qg * 1.1); outData[i+2] = Math.min(255, qb * 1.1);
                     }
                     else if (isColor) {
@@ -911,15 +1110,15 @@
             destCtx.drawImage(sketchCanvas, 0, 0, width, height);
         }
 
-        // -------------------------
-        
         selfieToggle.addEventListener('click', () => {
-            if(isSketchMode) return; 
+            // REMOVED CHECK FOR SKETCH MODE so it works in ART too
             isSelfieMode = !isSelfieMode;
             if (isSelfieMode) {
+                document.body.classList.add('is-selfie');
                 backDoorWrapper.style.display = 'none'; frontFace.style.display = 'flex';
                 backControls.style.display = 'none'; frontControls.style.display = 'block';
             } else {
+                document.body.classList.remove('is-selfie');
                 backDoorWrapper.style.display = 'block'; frontFace.style.display = 'none';
                 backControls.style.display = 'block'; frontControls.style.display = 'none';
             }
@@ -934,14 +1133,9 @@
             
             currentModeIdx = 0;
             
-            if (isSketchMode) {
-                selfieToggle.style.opacity = '0.3'; selfieToggle.style.pointerEvents = 'none';
-            } else {
-                selfieToggle.style.opacity = '1'; selfieToggle.style.pointerEvents = 'auto';
-            }
-            
-            filmCard.style.filter = 'blur(5px)';
-            setTimeout(() => { updateModeUI(); filmCard.style.filter = 'none'; }, 200);
+            // Allow selfie toggle click even in sketch mode now
+            // Just update filter UI
+            openFilmSelector();
         });
 
         function renderLoop() {
@@ -951,7 +1145,7 @@
             validateModeIndex();
             const mode = modes[currentModeIdx];
             
-            let w = 960; let h = 540;
+            let w = 640; let h = 360; 
             
             if (!isSketchMode && (mode.id === 'COLOR' || mode.id === 'BW')) { w = 320; h = 180; } 
             
@@ -979,12 +1173,8 @@
                 else if (mode.id === 'FILM_SUN') {
                     for (let i = 0; i < data.length; i += 4) {
                         let r = data[i], g = data[i+1], b = data[i+2];
-                        r = 255 * Math.pow(r / 255, 0.9); 
-                        g = 255 * Math.pow(g / 255, 0.9);
-                        b = 255 * Math.pow(b / 255, 0.95);
-                        r = r * 1.05 + 10; 
-                        g = g * 1.02 + 5; 
-                        b = b * 0.92;
+                        r = 255 * Math.pow(r / 255, 0.9); g = 255 * Math.pow(g / 255, 0.9); b = 255 * Math.pow(b / 255, 0.95);
+                        r = r * 1.05 + 10; g = g * 1.02 + 5; b = b * 0.92;
                         data[i] = r; data[i+1] = g; data[i+2] = b;
                     }
                 }
@@ -992,50 +1182,26 @@
                     for (let i = 0; i < data.length; i += 4) {
                         let r = data[i], g = data[i+1], b = data[i+2];
                         const gray = 0.2989*r + 0.5870*g + 0.1140*b;
-                        const satMult = 1.4;
-                        r = gray + (r - gray) * satMult;
-                        g = gray + (g - gray) * satMult;
-                        b = gray + (b - gray) * satMult;
-                        r = (r - 20) * 1.1;
-                        g = (g - 20) * 1.1;
-                        b = (b - 20) * 1.1;
-                        b = b * 1.05;
-                        r = r * 1.02;
-                        data[i] = Math.min(255, Math.max(0, r)); 
-                        data[i+1] = Math.min(255, Math.max(0, g)); 
-                        data[i+2] = Math.min(255, Math.max(0, b));
+                        r = gray + (r - gray) * 1.4; g = gray + (g - gray) * 1.4; b = gray + (b - gray) * 1.4;
+                        r = (r - 20) * 1.1; g = (g - 20) * 1.1; b = (b - 20) * 1.1; b = b * 1.05; r = r * 1.02;
+                        data[i] = Math.min(255, Math.max(0, r)); data[i+1] = Math.min(255, Math.max(0, g)); data[i+2] = Math.min(255, Math.max(0, b));
                     }
                 }
                 else if (mode.id === 'FILM_AGED') {
                     for (let i = 0; i < data.length; i += 4) {
                         let r = data[i], g = data[i+1], b = data[i+2];
-                        r = (r * 0.7) + 40;
-                        g = (g * 0.7) + 40;
-                        b = (b * 0.6) + 35; 
-                        r += 10; g += 20; b -= 10;
+                        r = (r * 0.7) + 50; g = (g * 0.7) + 60; b = (b * 0.6) + 25; 
                         data[i] = r; data[i+1] = g; data[i+2] = b;
                     }
                 }
-                // NEW: SOFT / AIRY FILTER LOGIC
                 else if (mode.id === 'FILM_SOFT') {
-    for (let i = 0; i < data.length; i += 4) {
-        let r = data[i], g = data[i+1], b = data[i+2];
-        
-        // 1. 輕微調整曲線，保留暗部細節，但讓它帶點灰 (Faded Black)
-        // 不要做太強烈的對比度壓縮，以免細節丟失
-        r = (r * 0.95) + 10;
-        g = (g * 0.95) + 10;
-        b = (b * 0.95) + 15;
-        
-        // 2. 日系空氣感色調 (Cyan/Blue Tint)
-        // 稍微抑制紅色，提升藍綠色
-        r = r * 0.96; 
-        g = g * 1.02;
-        b = b * 1.06; 
-
-        data[i] = r; data[i+1] = g; data[i+2] = b;
-    }
-}
+                    for (let i = 0; i < data.length; i += 4) {
+                        let r = data[i], g = data[i+1], b = data[i+2];
+                        r = (r * 0.95) + 10; g = (g * 0.95) + 10; b = (b * 0.95) + 15;
+                        r = r * 0.96; g = g * 1.02; b = b * 1.06; 
+                        data[i] = r; data[i+1] = g; data[i+2] = b;
+                    }
+                }
                 else if (mode.id === 'BW') {
                     for (let i = 0; i < data.length; i += 4) {
                         let lum = data[i] * 0.3 + data[i+1] * 0.59 + data[i+2] * 0.11;
@@ -1058,51 +1224,31 @@
                 
                 processCtx.putImageData(imgData, 0, 0);
 
-                // --- 這裡是新加入的代碼，用於模擬柔焦與空氣感 ---
-    if (mode.id === 'FILM_SOFT') {
-        processCtx.save();
-        
-        // 1. 混合模式：濾色
-        // 這樣疊加的光暈只會讓畫面變亮，不會變暗
-        processCtx.globalCompositeOperation = "screen";
-        
-        // 2. 關鍵濾鏡鏈：
-        // brightness(0.6): 把整體壓暗，讓中間調變黑（保護暗部細節不被模糊）。
-        // contrast(2.5): 拉高反差，讓剩下的高光部分重新亮起來（提取高光）。
-        // blur(6px): 只針對這些提取出來的高光進行柔化（產生光暈）。
-        // opacity(0.6): 控制黑柔的濃度，0.6 類似 1/4 強度，0.4 類似 1/8 強度。
-        processCtx.filter = "brightness(0.6) contrast(2.5) blur(6px) opacity(0.6)";
-        
-        // 3. 疊加
-        processCtx.drawImage(processCanvas, 0, 0);
-        
-        processCtx.restore();
-    }
+                if (mode.id === 'FILM_SOFT') {
+                    processCtx.save();
+                    processCtx.globalCompositeOperation = "screen";
+                    processCtx.filter = "brightness(0.6) contrast(2.5) blur(6px) opacity(0.6)";
+                    processCtx.drawImage(processCanvas, 0, 0);
+                    processCtx.restore();
+                }
 
                 if (mode.id !== 'CCD' && mode.id !== 'COLOR') {
                     processCtx.save(); 
                     processCtx.globalCompositeOperation = "overlay"; 
                     
-                    let grainOpacity = 0.25; 
-                    let grainScale = 1.6;
-
+                    let grainOpacity = 0.25; let grainScale = 1.6;
                     if(mode.id === 'BW') grainOpacity = 0.35; 
                     if(mode.id === 'FILM_TEAL') { grainOpacity = 0.22; grainScale = 1.6; }
                     if(mode.id === 'FILM_SUN') { grainOpacity = 0.18; grainScale = 1.3; } 
                     if(mode.id === 'FILM_VIVID') { grainOpacity = 0.28; grainScale = 1.5; } 
                     if(mode.id === 'FILM_AGED') { grainOpacity = 0.40; grainScale = 2.5; } 
-                    
-                    // NEW: SOFT GRAIN
                     if(mode.id === 'FILM_SOFT') { grainOpacity = 0.15; grainScale = 1.2; } 
 
                     processCtx.globalAlpha = grainOpacity; 
                     processCtx.imageSmoothingEnabled = true; 
 
-                    const offsetX = Math.random() * 128; 
-                    const offsetY = Math.random() * 128;
-                    
-                    processCtx.scale(grainScale, grainScale); 
-                    processCtx.translate(offsetX, offsetY);
+                    const offsetX = Math.random() * 128; const offsetY = Math.random() * 128;
+                    processCtx.scale(grainScale, grainScale); processCtx.translate(offsetX, offsetY);
                     processCtx.fillStyle = processCtx.createPattern(grainCanvas, 'repeat');
                     processCtx.fillRect(-offsetX, -offsetY, (w/grainScale) + offsetX, (h/grainScale) + offsetY);
                     processCtx.restore();
@@ -1118,46 +1264,40 @@
             } else {
                 if (frontCanvas.width !== w) { frontCanvas.width = w; frontCanvas.height = h; }
                 frontCanvas.style.imageRendering = isPixelated ? 'pixelated' : 'auto';
+                // Apply mirror effect for front cam
+                frontCtx.save();
+                frontCtx.translate(w, 0);
+                frontCtx.scale(-1, 1);
                 frontCtx.drawImage(processCanvas, 0, 0);
+                frontCtx.restore();
             }
 
             if (fsViewfinder.style.display === 'block') {
                 if (fsCanvas.width !== w) { fsCanvas.width = w; fsCanvas.height = h; }
                 fsCanvas.style.imageRendering = isPixelated ? 'pixelated' : 'auto';
-                fsCanvas.style.transform = (isSelfieMode && !isSketchMode) ? 'scaleX(-1)' : 'none';
-                fsCtx.drawImage(processCanvas, 0, 0);
+                // For viewfinder, if selfie, needs mirror
+                if (isSelfieMode) {
+                   fsCtx.save();
+                   fsCtx.translate(w, 0);
+                   fsCtx.scale(-1, 1);
+                   fsCtx.drawImage(processCanvas, 0, 0);
+                   fsCtx.restore();
+                } else {
+                   fsCtx.drawImage(processCanvas, 0, 0);
+                }
             }
         }
 
-        // Viewfinder Interaction
-        vfTrigger.addEventListener('click', (e) => { 
-            e.stopPropagation(); 
-            fsViewfinder.style.display = 'block'; 
-            if(isSketchMode) {
-                splitCircle.style.display = 'none';
-                fsGuideFrame.style.display = 'none';
-            } else {
-                splitCircle.style.display = 'block';
-                fsGuideFrame.style.display = 'block';
-            }
+        // Viewfinder & Shutter
+        vfTrigger.addEventListener('click', (e) => { e.stopPropagation(); fsViewfinder.style.display = 'block'; 
+            if(isSketchMode) { splitCircle.style.display = 'none'; fsGuideFrame.style.display = 'none'; } else { splitCircle.style.display = 'block'; fsGuideFrame.style.display = 'block'; }
         });
-        
         frontVfTrigger.addEventListener('click', (e) => { e.stopPropagation(); if (video.readyState >= 2) fsViewfinder.style.display = 'block'; });
-
-        vfCloseBtn.addEventListener('click', (e) => { 
-            e.stopPropagation(); 
-            fsViewfinder.style.display = 'none'; 
-        });
-
-        fsViewfinder.addEventListener('click', (e) => {
-            if(e.target.id !== 'vf-close-btn') {
-               handleShutter(e);
-            }
-        });
-
+        vfCloseBtn.addEventListener('click', (e) => { e.stopPropagation(); fsViewfinder.style.display = 'none'; });
+        fsViewfinder.addEventListener('click', (e) => { if(e.target.id !== 'vf-close-btn') handleShutter(e); });
+        
         shutterBtn.addEventListener('click', handleShutter);
         frontShutterBtn.addEventListener('click', handleShutter);
-        
         cablePlunger.addEventListener('click', (e) => { 
             e.stopPropagation(); 
             cablePlunger.classList.add('pressed'); 
@@ -1167,85 +1307,56 @@
         
         function handleShutter(e) {
             if(e) e.stopPropagation();
-            
             if (e && e.target.id === 'vf-close-btn') return;
+            // Removed check for backDoorWrapper so you can click shutter when door is open if you really want, or keep logic.
+            // But user said "After developing cannot click shutter", which means the state wasn't resetting.
             if (!isSelfieMode && backDoorWrapper.classList.contains('open')) return;
             if (isRollMode && currentFrame >= 36) return;
             if (!isRollMode && pendingPhoto) return;
 
             const btn = isSelfieMode ? frontShutterBtn : shutterBtn;
             btn.classList.add('pressed');
-            
             playShutterSound();
             
             if (isSelfieMode) {
-                shutterFlash.classList.remove('flash');
-                void shutterFlash.offsetWidth; 
-                shutterFlash.classList.add('flash');
-                setTimeout(() => shutterFlash.classList.remove('flash'), 150);
+                shutterFlash.classList.remove('flash'); void shutterFlash.offsetWidth; shutterFlash.classList.add('flash'); setTimeout(() => shutterFlash.classList.remove('flash'), 150);
             } else {
                 const container = (fsViewfinder.style.display === 'block') ? fsViewfinder : vfTrigger;
-                const blind = document.createElement('div');
-                blind.className = container === fsViewfinder ? 'shutter-blind' : 'vf-shutter-blind';
-                container.appendChild(blind);
-                setTimeout(() => blind.remove(), 150);
+                const blind = document.createElement('div'); blind.className = container === fsViewfinder ? 'shutter-blind' : 'vf-shutter-blind';
+                container.appendChild(blind); setTimeout(() => blind.remove(), 150);
             }
-            
-            setTimeout(() => {
-                performCapture();
-                btn.classList.remove('pressed');
-            }, 150);
+            setTimeout(() => { performCapture(); btn.classList.remove('pressed'); }, 150);
         }
 
         function generateLightLeak(ctx, w, h, severity = 1) {
             ctx.save(); ctx.globalCompositeOperation = 'screen'; 
             const baseCount = severity > 1 ? 3 : (Math.random() > 0.7 ? 2 : 1);
-            const leakCount = baseCount; 
-            
-            for(let i=0; i<leakCount; i++) {
-                const type = Math.random(); 
-                const opacity = (0.4 + Math.random() * 0.4) * severity; 
-                
+            for(let i=0; i<baseCount; i++) {
+                const type = Math.random(); const opacity = (0.4 + Math.random() * 0.4) * severity; 
                 const hue = Math.random() > 0.8 ? 40 + Math.random()*10 : 10 + Math.random()*30; 
-                const sat = 80 + Math.random()*20; const light = 50 + Math.random()*20;
-                
-                let colorInner = `hsla(${hue}, ${sat}%, ${light}%, ${opacity})`;
-                let colorOuter = `hsla(${hue-10}, ${sat}%, ${light-20}%, 0)`;
-
-                const sizeMult = severity > 1 ? 1.5 : 1.0;
-
+                let colorInner = `hsla(${hue}, 90%, 60%, ${opacity})`; let colorOuter = `hsla(${hue-10}, 90%, 40%, 0)`;
                 if (type < 0.4) {
-                    const isLeft = Math.random() > 0.5; const width = w * (0.15 + Math.random() * 0.3) * sizeMult;
+                    const isLeft = Math.random() > 0.5; const width = w * (0.15 + Math.random() * 0.3);
                     const grad = ctx.createLinearGradient(isLeft ? 0 : w, 0, isLeft ? width : w - width, 0);
-                    grad.addColorStop(0, colorInner); grad.addColorStop(1, colorOuter);
-                    ctx.fillStyle = grad; ctx.fillRect(0, 0, w, h);
-                } else if (type < 0.7) {
-                    const cx = Math.random() > 0.5 ? 0 : w; const cy = Math.random() > 0.5 ? 0 : h;
-                    const r = Math.max(w, h) * (0.4 + Math.random() * 0.4) * sizeMult;
-                    const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
-                    grad.addColorStop(0, `hsla(${hue}, 20%, 90%, ${opacity})`);
-                    grad.addColorStop(0.4, colorInner); grad.addColorStop(1, `hsla(${hue}, ${sat}%, 20%, 0)`);
-                    ctx.fillStyle = grad; ctx.fillRect(0, 0, w, h);
+                    grad.addColorStop(0, colorInner); grad.addColorStop(1, colorOuter); ctx.fillStyle = grad; ctx.fillRect(0, 0, w, h);
                 } else {
-                    const angle = (Math.random() - 0.5) * Math.PI / 2; 
-                    ctx.translate(w/2, h/2); ctx.rotate(angle);
-                    const grad = ctx.createLinearGradient(-w/2, 0, w/2, 0);
-                    grad.addColorStop(0, 'transparent'); grad.addColorStop(Math.random() * 0.4 + 0.2, colorInner); grad.addColorStop(1, 'transparent');
-                    ctx.fillStyle = grad; ctx.fillRect(-w, -h, w*2, h*2); ctx.setTransform(1,0,0,1,0,0);
+                    const cx = Math.random() > 0.5 ? 0 : w; const cy = Math.random() > 0.5 ? 0 : h;
+                    const r = Math.max(w, h) * (0.4 + Math.random() * 0.4);
+                    const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+                    grad.addColorStop(0, `hsla(${hue}, 20%, 90%, ${opacity})`); grad.addColorStop(1, `hsla(${hue}, 90%, 20%, 0)`);
+                    ctx.fillStyle = grad; ctx.fillRect(0, 0, w, h);
                 }
             }
             ctx.restore();
         }
 
         async function performCapture() {
-            const modes = getModes();
-            const mode = modes[currentModeIdx];
+            const modes = getModes(); const mode = modes[currentModeIdx];
             const targetW = 1920, targetH = 1080;
             finalCanvas.width = targetW; finalCanvas.height = targetH;
             finalCtx.filter = 'none'; finalCtx.globalCompositeOperation = 'source-over';
 
-            if (isSelfieMode && !isSketchMode) { finalCtx.translate(targetW, 0); finalCtx.scale(-1, 1); }
-            
+            if (isSelfieMode) { finalCtx.translate(targetW, 0); finalCtx.scale(-1, 1); }
             finalCtx.imageSmoothingEnabled = (mode.id.startsWith('FILM_') || mode.id === 'HCBW' || mode.id === 'CCD' || mode.id.includes('SKETCH'));
             finalCtx.drawImage(processCanvas, 0, 0, targetW, targetH); 
 
@@ -1260,23 +1371,13 @@
             if (isRollMode) {
                 await saveToTemp(highRes); currentFrame++; updateCounterDisplay(); checkLeverState();
             } else {
-                pendingPhoto = highRes;
-                document.getElementById('review-img').src = highRes;
-                document.getElementById('review-overlay').style.display = 'flex';
-                fsViewfinder.style.display = 'none';
+                pendingPhoto = highRes; document.getElementById('review-img').src = highRes;
+                document.getElementById('review-overlay').style.display = 'flex'; fsViewfinder.style.display = 'none';
             }
         }
 
         document.getElementById('btn-discard').addEventListener('click', () => { pendingPhoto = null; document.getElementById('review-overlay').style.display = 'none'; });
         document.getElementById('btn-keep').addEventListener('click', () => { document.getElementById('review-overlay').style.display = 'none'; checkLeverState(); });
-        document.getElementById('filmDoor').addEventListener('click', () => { 
-            if (backDoorWrapper.classList.contains('open')) return; 
-            const modes = getModes();
-            currentModeIdx = (currentModeIdx + 1) % modes.length; 
-            localStorage.setItem('camModeIdx', currentModeIdx); 
-            filmCard.style.filter = 'blur(5px)'; 
-            setTimeout(() => { updateModeUI(); filmCard.style.filter = 'none'; }, 200); 
-        });
         
         rollModeSwitch.addEventListener('click', async () => {
             if(pendingPhoto || (isRollMode && currentFrame > 0 && currentFrame < 36)) {
@@ -1291,19 +1392,9 @@
         let leverPulled = false;
         advanceLever.addEventListener('click', async () => {
             if (!readyLight.classList.contains('active') || leverPulled) return;
-            
             leverPulled = true;
-
-            requestAnimationFrame(() => {
-                advanceLever.style.transform = 'rotate(130deg)'; 
-                setTimeout(playLeverSound, 50); 
-            });
-
-            setTimeout(() => { 
-                advanceLever.style.transform = 'rotate(10deg)'; 
-                styleOverlay.style.display = 'flex'; 
-                leverPulled = false; 
-            }, 400);
+            requestAnimationFrame(() => { advanceLever.style.transform = 'rotate(130deg)'; setTimeout(playLeverSound, 50); });
+            setTimeout(() => { advanceLever.style.transform = 'rotate(10deg)'; styleOverlay.style.display = 'flex'; leverPulled = false; }, 400);
         });
 
         document.querySelectorAll('.style-btn').forEach(btn => {
@@ -1338,16 +1429,11 @@
                         else if(m.id === 'SKETCH_BLUE') ctx.fillStyle = '#fff';
                         else if(m.id === 'SKETCH_HK_NEON') ctx.fillStyle = '#ff00cc';
                         else ctx.fillStyle = 'rgba(50, 50, 50, 0.85)';
-                        
                         ctx.font = `normal 45px "Segoe Print", "Comic Sans MS", cursive`;
-                        ctx.textAlign = 'right'; ctx.textBaseline = 'bottom';
-                        ctx.translate(dateX, dateY); ctx.rotate(-0.05);
-                        ctx.fillText(dateStr, 0, 0); ctx.restore();
+                        ctx.textAlign = 'right'; ctx.textBaseline = 'bottom'; ctx.translate(dateX, dateY); ctx.rotate(-0.05); ctx.fillText(dateStr, 0, 0); ctx.restore();
                     } else {
-                        ctx.shadowColor = '#ff5500'; ctx.shadowBlur = 15; ctx.fillStyle = 'rgba(255, 170, 50, 0.9)'; const fontSize = style === 'white' ? 40 : 50; ctx.font = `bold ${fontSize}px "Courier New", monospace`; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom';
-                        ctx.fillText(dateStr, dateX, dateY); 
+                        ctx.shadowColor = '#ff5500'; ctx.shadowBlur = 15; ctx.fillStyle = 'rgba(255, 170, 50, 0.9)'; const fontSize = style === 'white' ? 40 : 50; ctx.font = `bold ${fontSize}px "Courier New", monospace`; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom'; ctx.fillText(dateStr, dateX, dateY); 
                     }
-                    
                     resolve(finalCanvas.toDataURL('image/jpeg', 0.9));
                 }; img.src = imgUrl;
             });
@@ -1366,19 +1452,65 @@
         }
 
         async function startDevelopingAnimation(photos, style) {
-            devOverlay.style.display = 'flex'; devStatus.textContent = "PREPARING...";
+            devOverlay.style.display = 'flex'; 
+            devStatus.textContent = "PREPARING...";
             const processed = [];
-            for (let p of photos) { const thisSerial = globalSerialCounter++; localStorage.setItem('global_serial_counter', globalSerialCounter); const finalImg = await applyFrameAndDate(p.image, p.date, style); processed.push({ img: finalImg, serial: thisSerial, style: style }); }
-            for (let i = 0; i < processed.length; i++) {
-                devStatus.textContent = `DEVELOPING ${i+1}/${processed.length}`; devImageWrap.src = processed[i].img; devImageWrap.style.border = style === 'white' ? 'none' : '8px solid white';
-                devImageWrap.style.animation = 'none'; devImageWrap.offsetHeight; devImageWrap.style.animation = 'developProcess 3s forwards'; await new Promise(r => setTimeout(r, 3200)); await saveToAlbum(processed[i].img, processed[i].serial, processed[i].style);
+            
+            for (let p of photos) { 
+                const thisSerial = globalSerialCounter++; 
+                localStorage.setItem('global_serial_counter', globalSerialCounter); 
+                const finalImg = await applyFrameAndDate(p.image, p.date, style); 
+                processed.push({ img: finalImg, serial: thisSerial, style: style }); 
             }
-            devStatus.textContent = "FINISHED"; await new Promise(r => setTimeout(r, 800));
-            devOverlay.style.display = 'none'; if (isRollMode) { await clearTemp(); currentFrame = 0; updateCounterDisplay(); } else { pendingPhoto = null; } checkLeverState();
+            
+            for (let i = 0; i < processed.length; i++) {
+                devStatus.textContent = `DEVELOPING ${i+1}/${processed.length}`; 
+                devImageWrap.src = processed[i].img; 
+                devImageWrap.style.border = style === 'white' ? 'none' : '8px solid white';
+                devImageWrap.style.animation = 'none'; 
+                devImageWrap.offsetHeight; 
+                devImageWrap.style.animation = 'developProcess 3s forwards'; 
+                
+                await new Promise(r => setTimeout(r, 3200)); 
+                await saveToAlbum(processed[i].img, processed[i].serial, processed[i].style);
+            }
+            
+            devStatus.textContent = "FINISHED"; 
+            await new Promise(r => setTimeout(r, 800));
+            devOverlay.style.display = 'none'; 
+            
+            if (isRollMode) { 
+                await clearTemp(); 
+                currentFrame = 0; 
+                updateCounterDisplay(); 
+            } else { 
+                pendingPhoto = null; 
+            } 
+            checkLeverState();
         }
 
-        backLock.addEventListener('click', () => { const isOpen = backDoorWrapper.classList.contains('open'); if (!isOpen) { backDoorWrapper.classList.add('open'); backLock.style.transform = 'translateX(5px)'; loadAlbum(); } else { closeBackDoor(); } });
-        function closeBackDoor() { backDoorWrapper.classList.remove('open'); backLock.style.transform = 'translateX(0)'; }
+        backLock.addEventListener('click', () => { 
+            const isOpen = backDoorWrapper.classList.contains('open'); 
+            if (!isOpen) { 
+                latchAudio.currentTime = 0;
+                latchAudio.play();
+                backDoorWrapper.classList.add('open'); 
+                backLock.style.transform = 'translateX(5px)'; 
+                loadAlbum(); 
+            } else { 
+                closeBackDoor(); 
+            } 
+        });
+        
+        function closeBackDoor() { 
+            backDoorWrapper.classList.remove('open'); 
+            backLock.style.transform = 'translateX(0)';
+            // Delay sound for 0.5s to match animation close
+            setTimeout(() => {
+                latchAudio.currentTime = 0;
+                latchAudio.play();
+            }, 250);
+        }
         
         let selectedAlbumIds = new Set(); let currentAlbumData = [];
         async function loadAlbum() {
