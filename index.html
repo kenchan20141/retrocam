@@ -27,9 +27,22 @@
     @keyframes rotatePhone { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-90deg); } }
 
     #camera-container {
-        width: 760px; height: 420px; position: relative; transform-origin: center;
+        width: 760px; height: 420px; 
+        
+        /* [關鍵修改] 改為 fixed 定位，強制鎖定視窗中心 */
+        position: fixed; 
+        top: 50%; 
+        left: 50%;
+        
+        /* 預設先置中 (JS 會再覆寫這個 transform 加入 scale) */
+        transform: translate(-50%, -50%);
+        
+        transform-origin: center; /* 保持中心縮放 */
+        
         filter: drop-shadow(0 0 2px rgba(255,255,255,0.25)) drop-shadow(0 30px 60px rgba(0,0,0,0.9)); 
-        display: none; transform-style: preserve-3d; 
+        display: none; 
+        transform-style: preserve-3d; 
+        z-index: 100; /* 確保層級夠高 */
     }
 
     .top-plate {
@@ -760,8 +773,25 @@
         async function processExport(addSerial) { const selectedData = currentAlbumData.filter(p => selectedAlbumIds.has(p.id)); const filesToShare = []; for (let p of selectedData) { let finalDataUrl = p.image; if (addSerial) finalDataUrl = await overlaySerial(p.image, p.serial, p.style); const fileName = `RETRO_No${p.serial}_${Date.now()}.jpg`; if (exportActionType === 'download') { const link = document.createElement('a'); link.download = fileName; link.href = finalDataUrl; link.click(); await new Promise(r => setTimeout(r, 200)); } else { const blob = await (await fetch(finalDataUrl)).blob(); filesToShare.push(new File([blob], fileName, { type: 'image/jpeg' })); } } if (exportActionType === 'share' && filesToShare.length > 0) { try { await navigator.share({ files: filesToShare }); } catch (e) {} } const idsToRemove = selectedData.map(p => p.id); await deleteFromAlbum(idsToRemove); resetToCameraUI(); }
         function resetToCameraUI() { exportModal.style.display = 'none'; closeBackDoor(); document.getElementById('review-overlay').style.display = 'none'; pendingPhoto = null; checkLeverState(); }
         function checkOrientation() { if (window.innerHeight > window.innerWidth) { document.getElementById('orientation-lock').style.display = 'flex'; document.getElementById('camera-container').style.display = 'none'; fsPrompt.style.display = 'none'; } else { document.getElementById('orientation-lock').style.display = 'none'; if (document.fullscreenElement) { document.getElementById('camera-container').style.display = 'block'; document.getElementById('fullscreen-prompt').style.display = 'none'; resizeElements(); } else { enforceFullscreen(); } } }
-        function resizeElements() { const w = window.innerWidth; const h = window.innerHeight; const isTablet = (w / h) < 1.6; const multiplier = isTablet ? 0.85 : 1.0; const scale = Math.min(w / 800, h / 480) * multiplier; document.getElementById('camera-container').style.transform = `scale(${scale})`; }
-        window.addEventListener('resize', () => { checkOrientation(); resizeElements(); });
+       function resizeElements() { 
+            const w = window.innerWidth; 
+            const h = window.innerHeight; 
+            const isTablet = (w / h) < 1.6; 
+            const multiplier = isTablet ? 0.85 : 1.0; 
+            const scale = Math.min(w / 800, h / 480) * multiplier; 
+            
+            // [關鍵修改] 必須同時保留 translate (置中) 和 scale (縮放)
+            document.getElementById('camera-container').style.transform = `translate(-50%, -50%) scale(${scale})`; 
+        }
+
+        // [額外優化] 監聽 resize 時增加一個微小的延遲
+        // 這能解決旋轉瞬間螢幕尺寸還沒算好導致錯位的問題
+        window.addEventListener('resize', () => { 
+            checkOrientation(); 
+            resizeElements(); 
+            // 雙重保險：旋轉後 300ms 再算一次，確保位置絕對正確
+            setTimeout(resizeElements, 300);
+        });
     </script>
 </body>
 </html>
