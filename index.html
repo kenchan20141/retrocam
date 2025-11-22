@@ -65,7 +65,7 @@
     .switch-knob { width: 18px; height: 18px; background: radial-gradient(#eee, #999); border-radius: 50%; position: absolute; top: -2px; left: 0; box-shadow: 0 1px 2px rgba(0,0,0,0.5); border: 1px solid #666; transition: left 0.3s; }
     .mode-switch-container.mode-36 .switch-knob { left: 18px; }
     
-    /* Sketch Switch Controls */
+    /* Sketch Switch Controls (保留原代碼功能) */
     .sketch-switch-container { position: absolute; top: 20px; left: 155px; display: flex; flex-direction: column; align-items: center; cursor: pointer; z-index: 20; }
     .sketch-labels { display: flex; gap: 8px; font-size: 9px; font-weight: bold; color: #444; margin-bottom: 2px; font-family: sans-serif; text-shadow: 0 1px 0 rgba(255,255,255,0.5); }
     .sketch-labels .active { color: #000; }
@@ -75,6 +75,10 @@
 
     .ready-light { position: absolute; top: 20px; right: 165px; width: 8px; height: 8px; background: #300; border-radius: 50%; box-shadow: inset 0 0 2px #000; transition: background 0.3s; z-index: 15; }
     .ready-light.active { background: #f00; box-shadow: 0 0 8px #f00, inset 0 0 2px #fff; }
+
+    /* ========================================= */
+    /* 新增：完全參照參考代碼的自拍/正面設計 CSS */
+    /* ========================================= */
 
     .front-controls-group { display: none; } 
     
@@ -94,6 +98,7 @@
     }
     .front-shutter-btn.pressed { transform: translateY(6px); }
 
+    /* Cable Release / Plunger Design from Reference */
     .cable-release-container {
         position: absolute; top: -100px; left: 0; width: 100%; height: 150%;
         pointer-events: none; z-index: 30;
@@ -108,6 +113,7 @@
         display: flex; flex-direction: column; align-items: center;
         transform: rotate(-10deg);
     }
+    
     .cable-button-head {
         width: 28px; height: 18px;
         background: radial-gradient(circle at 30% 30%, #ff3333, #aa0000);
@@ -117,6 +123,7 @@
         box-shadow: inset 0 2px 3px rgba(255,255,255,0.4);
         transition: transform 0.1s;
     }
+    
     .cable-stem {
         width: 8px; height: 20px;
         background: linear-gradient(to right, #999, #eee, #777);
@@ -124,6 +131,7 @@
         margin-top: -2px; position: relative; z-index: 2;
         transition: height 0.1s, transform 0.1s;
     }
+    
     .cable-disc {
         width: 46px; height: 12px;
         background: linear-gradient(to bottom, #ccc, #888);
@@ -131,6 +139,7 @@
         margin-top: -2px; position: relative; z-index: 2;
         box-shadow: 0 3px 5px rgba(0,0,0,0.4);
     }
+    
     .cable-grip-body {
         width: 16px; height: 70px;
         background: repeating-linear-gradient(45deg, #666, #666 2px, #888 2px, #888 4px);
@@ -138,8 +147,24 @@
         margin-top: -6px; position: relative; z-index: 1;
         box-shadow: 3px 3px 8px rgba(0,0,0,0.6);
     }
+    
     .cable-plunger-wrapper.pressed .cable-button-head { transform: translateY(12px); }
     .cable-plunger-wrapper.pressed .cable-stem { height: 8px; transform: translateY(12px); }
+
+    /* Selfie Toggle Button from Reference */
+    #selfie-toggle {
+        position: absolute; top: 20px; left: 240px; width: 24px; height: 24px;
+        background: radial-gradient(#ccc, #999); border: 1px solid #666; border-radius: 50%;
+        cursor: pointer; z-index: 20; box-shadow: 0 1px 2px rgba(0,0,0,0.5);
+        display: flex; justify-content: center; align-items: center;
+    }
+    #selfie-toggle::after {
+        content: '↻'; font-size: 16px; font-weight: bold; color: #333;
+        transition: transform 0.3s;
+    }
+    #selfie-toggle:active::after { transform: rotate(180deg); }
+
+    /* ========================================= */
 
     .camera-body { width: 100%; height: 310px; position: relative; border-radius: 0 0 8px 8px; perspective: 1000px; }
 
@@ -370,6 +395,7 @@
                 </div>
             </div>
 
+            <!-- Front Controls Group (完全參照文末 HTML) -->
             <div id="front-controls-group" class="front-controls-group" style="display:none;">
                 <div class="cable-release-container">
                     <div class="cable-plunger-wrapper" id="cablePlunger">
@@ -383,13 +409,14 @@
                 <div class="front-viewfinder-frame" id="frontVfTrigger">
                     <canvas class="front-vf-glass" id="frontCanvas"></canvas>
                 </div>
+                <!-- 保留這個元素以保持邏輯相容，但視覺上由 cablePlunger 取代 -->
                 <div class="front-shutter-btn" id="frontShutterBtn"></div>
             </div>
 
             <div class="serial-number">NO. 854021</div>
             <div class="prism-hump"></div>
             <div class="ready-light" id="readyLight"></div>
-            <div id="selfie-toggle" title="Switch to Selfie Mode" style="left: 130px;"></div>
+            <div id="selfie-toggle" title="Switch to Selfie Mode"></div>
         </div>
 
         <div class="camera-body">
@@ -1120,7 +1147,14 @@
 
         shutterBtn.addEventListener('click', handleShutter);
         frontShutterBtn.addEventListener('click', handleShutter);
-        cablePlunger.addEventListener('click', (e) => { e.stopPropagation(); cablePlunger.classList.add('pressed'); setTimeout(() => cablePlunger.classList.remove('pressed'), 200); handleShutter(e); });
+        
+        // Cable Plunger Action
+        cablePlunger.addEventListener('click', (e) => { 
+            e.stopPropagation(); 
+            cablePlunger.classList.add('pressed'); 
+            setTimeout(() => cablePlunger.classList.remove('pressed'), 200); 
+            handleShutter(e); 
+        });
         
         function handleShutter(e) {
             if(e) e.stopPropagation();
