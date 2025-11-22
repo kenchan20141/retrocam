@@ -88,6 +88,68 @@
     }
     .front-shutter-btn.pressed { transform: translateY(6px); }
 
+    /* [修訂] 移除線纜 SVG，保留手柄按鈕 */
+    .cable-release-container {
+        position: absolute; top: -100px; left: 0; width: 100%; height: 150%;
+        pointer-events: none; z-index: 30;
+        overflow: visible;
+    }
+    
+    /* 專業快門手柄 (Pro Plunger) - 懸浮於右側 */
+    .cable-plunger-wrapper {
+        position: absolute; 
+        top: 320px; right: -90px; 
+        width: 60px; height: 120px;
+        pointer-events: auto; cursor: pointer;
+        display: flex; flex-direction: column; align-items: center;
+        transform: rotate(-10deg);
+    }
+    /* 頂部按鈕 (紅色) */
+    .cable-button-head {
+        width: 28px; height: 18px;
+        background: radial-gradient(circle at 30% 30%, #ff3333, #aa0000);
+        border-radius: 50% 50% 5px 5px;
+        border: 1px solid #333; border-bottom: none;
+        position: relative; z-index: 3;
+        box-shadow: inset 0 2px 3px rgba(255,255,255,0.4);
+        transition: transform 0.1s;
+    }
+    /* 按鈕頸部 (連桿) */
+    .cable-stem {
+        width: 8px; height: 20px;
+        background: linear-gradient(to right, #999, #eee, #777);
+        border: 1px solid #555;
+        margin-top: -2px; position: relative; z-index: 2;
+        transition: height 0.1s, transform 0.1s;
+    }
+    /* 指托盤 (金屬圓盤) */
+    .cable-disc {
+        width: 46px; height: 12px;
+        background: linear-gradient(to bottom, #ccc, #888);
+        border-radius: 50%; border: 1px solid #444;
+        margin-top: -2px; position: relative; z-index: 2;
+        box-shadow: 0 3px 5px rgba(0,0,0,0.4);
+    }
+    /* 主握柄 (滾花紋理模擬) */
+    .cable-grip-body {
+        width: 16px; height: 70px;
+        background: repeating-linear-gradient(
+            45deg,
+            #666,
+            #666 2px,
+            #888 2px,
+            #888 4px
+        );
+        border: 1px solid #333; border-radius: 0 0 4px 4px;
+        margin-top: -6px; position: relative; z-index: 1;
+        box-shadow: 3px 3px 8px rgba(0,0,0,0.6);
+    }
+
+    /* 按壓動畫 */
+    .cable-plunger-wrapper.pressed .cable-button-head { transform: translateY(12px); }
+    .cable-plunger-wrapper.pressed .cable-stem { height: 8px; transform: translateY(12px); }
+
+
     #selfie-toggle {
         position: absolute; top: 20px; left: 170px; width: 24px; height: 24px;
         background: radial-gradient(#ccc, #999); border: 1px solid #666; border-radius: 50%;
@@ -164,27 +226,23 @@
         position: relative;
     }
     
-    /* [視覺升級] 仿真鍍膜玻璃 */
+    /* 仿真鍍膜玻璃 */
     .lens-glass-element {
         width: 160px; height: 160px; border-radius: 50%;
-        /* 深邃的底色，帶有幽藍色調 */
         background: radial-gradient(circle at 50% 50%, #1a0b2e 0%, #000 80%);
         position: relative; overflow: hidden;
         box-shadow: inset 0 0 40px #000;
     }
-    /* 主鍍膜反光 (紫/洋紅) */
     .lens-glass-element::before {
         content: ''; position: absolute; top: -30%; left: -30%; width: 160%; height: 160%;
         background: radial-gradient(circle at 35% 35%, rgba(138, 43, 226, 0.25) 0%, transparent 50%);
         filter: blur(8px); pointer-events: none;
     }
-    /* 次級鍍膜反光 (青/綠) */
     .lens-glass-element::after {
         content: ''; position: absolute; bottom: 10%; right: 10%; width: 80px; height: 80px;
         background: radial-gradient(circle, rgba(0, 255, 150, 0.15) 0%, transparent 60%);
         filter: blur(10px); pointer-events: none;
     }
-    /* 表面高光 */
     .lens-reflection {
         position: absolute; top: 25%; left: 25%; width: 30px; height: 15px;
         background: rgba(255,255,255,0.3); border-radius: 50%;
@@ -218,7 +276,6 @@
 
     .album-controls { height: 50px; background: #181818; border-top: 1px solid #333; display: flex; justify-content: flex-end; align-items: center; padding: 0 20px; gap: 15px; }
     .album-btn { background: transparent; border: 1px solid #666; color: #888; font-family: 'Courier New', monospace; padding: 5px 10px; cursor: pointer; font-size: 12px; }
-    .album-btn:hover { color: #fff; border-color: #fff; }
     .album-btn.action { border-color: #c00; color: #c00; }
     .album-btn.action:hover { background: #c00; color: #fff; }
 
@@ -241,10 +298,9 @@
     #fs-canvas { width: 100%; height: 100%; object-fit: contain; }
     .fs-ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; box-shadow: inset 0 0 150px rgba(0,0,0,0.7); }
     
-    /* [修改] 對焦時，方框不亮綠色 */
     .fs-guide-frame { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 85%; height: 85%; border: 1px solid rgba(255,255,255,0.3); }
     
-    /* [修改] 對焦時，圓圈亮綠色 */
+    /* 對焦時，圓圈亮綠色 */
     .split-image-circle { 
         position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
         width: 60px; height: 60px; border: 1px solid rgba(255,255,255,0.4); border-radius: 50%; 
@@ -312,7 +368,6 @@
         <div class="fs-ui-layer">
             <div id="vf-close-btn" title="Exit Viewfinder">×</div>
             <div class="fs-guide-frame" id="fsGuideFrame"></div>
-            <!-- 裂像圓圈 -->
             <div class="split-image-circle" id="splitCircle"></div>
             <div class="fs-data">
                 <span id="fs-mode-text">B&W</span><span>1/250</span><span>f/2.8</span><span id="fs-counter">36</span>
@@ -339,6 +394,17 @@
             </div>
 
             <div id="front-controls-group" class="front-controls-group" style="display:none;">
+                <!-- [修訂] 移除 SVG 線纜，僅保留按鈕容器 -->
+                <div class="cable-release-container">
+                    <!-- 手柄 (連接到線尾) -->
+                    <div class="cable-plunger-wrapper" id="cablePlunger">
+                        <div class="cable-button-head"></div>
+                        <div class="cable-stem"></div>
+                        <div class="cable-disc"></div>
+                        <div class="cable-grip-body"></div>
+                    </div>
+                </div>
+
                 <div class="front-viewfinder-frame" id="frontVfTrigger">
                     <canvas class="front-vf-glass" id="frontCanvas"></canvas>
                 </div>
@@ -612,8 +678,7 @@
         const frontShutterBtn = document.getElementById('frontShutterBtn');
         const fsViewfinder = document.getElementById('fs-viewfinder');
         const vfCloseBtn = document.getElementById('vf-close-btn');
-        
-        // [修改] 獲取裂像圓圈元素
+        const fsGuideFrame = document.getElementById('fsGuideFrame');
         const splitCircle = document.getElementById('splitCircle');
 
         const backLock = document.getElementById('backLock');
@@ -623,6 +688,8 @@
         const selfieToggle = document.getElementById('selfie-toggle');
         const backControls = document.getElementById('back-controls-group');
         const frontControls = document.getElementById('front-controls-group');
+        
+        const cablePlunger = document.getElementById('cablePlunger');
 
         const albumGrid = document.getElementById('albumGrid');
         const styleOverlay = document.getElementById('style-selector-overlay');
@@ -812,11 +879,10 @@
 
         vfCloseBtn.addEventListener('click', (e) => { e.stopPropagation(); fsViewfinder.style.display = 'none'; });
 
-        // [修改] 對焦邏輯：亮起圓圈
         fsViewfinder.addEventListener('click', (e) => {
             if(e.target.id !== 'vf-close-btn') {
                playFocusSound();
-               splitCircle.classList.add('focused'); // 讓圓圈亮起
+               splitCircle.classList.add('focused');
                fsCanvas.style.filter = 'blur(0px) contrast(1.1)';
                setTimeout(() => { 
                    splitCircle.classList.remove('focused'); 
@@ -828,6 +894,13 @@
 
         shutterBtn.addEventListener('click', handleShutter);
         frontShutterBtn.addEventListener('click', handleShutter);
+        
+        cablePlunger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            cablePlunger.classList.add('pressed');
+            setTimeout(() => cablePlunger.classList.remove('pressed'), 200);
+            handleShutter(e);
+        });
         
         function handleShutter(e) {
             if(e) e.stopPropagation();
