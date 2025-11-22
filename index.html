@@ -8,7 +8,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Retro Cam Ultimate - Balanced Grain</title>
+<title>Retro Cam Ultimate - Organic Leaks</title>
 <style>
     :root {
         --leather-color: #151515;
@@ -685,8 +685,6 @@
         const zoomOverlay = document.getElementById('zoom-overlay');
         const zoomImg = document.getElementById('zoom-img');
 
-        // [平衡修訂] 銀鹽顆粒生成
-        // 稍微增加強度(Standard Deviation)，讓顆粒在放大後有足夠的質感
         function initGrainSystem() {
             grainCanvas.width = 512;
             grainCanvas.height = 512;
@@ -694,19 +692,12 @@
             const data = imgData.data;
             
             for(let i=0; i<data.length; i+=4) {
-                // Box-Muller 變換生成高斯噪點
                 let u = 0, v = 0;
                 while(u === 0) u = Math.random();
                 while(v === 0) v = Math.random();
                 let num = Math.sqrt( -2.0 * Math.log( u ) ) * Math.cos( 2.0 * Math.PI * v );
-                
-                // Standard Deviation 設為 40，提供足夠的對比度
                 let gray = 128 + num * 40; 
-                
-                data[i] = gray;
-                data[i+1] = gray;
-                data[i+2] = gray;
-                data[i+3] = 255;
+                data[i] = gray; data[i+1] = gray; data[i+2] = gray; data[i+3] = 255;
             }
             grainCtx.putImageData(imgData, 0, 0);
         }
@@ -828,14 +819,12 @@
             initCamera(); 
         });
 
-        // [平衡修訂] 渲染循環
         function renderLoop() {
             if (!video.srcObject || !video.srcObject.active || video.paused) return;
             requestAnimationFrame(renderLoop);
 
             const mode = MODES[currentModeIdx];
             
-            // 解析度設定：960x540 提供足夠的清晰度，但不過於銳利
             let w = 960; let h = 540;
             if (mode.id === 'COLOR') { w = 320; h = 180; } 
 
@@ -847,7 +836,6 @@
             let imgData = processCtx.getImageData(0, 0, w, h);
             let data = imgData.data;
             
-            // Color Grading
             if (mode.id === 'FILM') {
                 for (let i = 0; i < data.length; i += 4) {
                     let r = data[i], g = data[i+1], b = data[i+2];
@@ -883,21 +871,17 @@
             
             processCtx.putImageData(imgData, 0, 0);
 
-            // [關鍵平衡技術] 顆粒合成
             if (mode.id !== 'CCD' && mode.id !== 'COLOR') {
                 processCtx.save();
                 processCtx.globalCompositeOperation = "overlay"; 
                 
-                // 動態不透明度：黑白軟片顆粒更強
                 let grainOpacity = 0.25;
-                if(mode.id === 'BW') grainOpacity = 0.35; // Tri-X 顆粒感明顯
-                if(mode.id === 'FILM') grainOpacity = 0.22; // 彩色負片較柔和
+                if(mode.id === 'BW') grainOpacity = 0.35; 
+                if(mode.id === 'FILM') grainOpacity = 0.22; 
                 
                 processCtx.globalAlpha = grainOpacity; 
                 processCtx.imageSmoothingEnabled = true; 
 
-                // [重要] 縮放比例：1.5x - 1.8x
-                // 這讓顆粒看起來有「體積感」(Clumping)，像銀鹽晶體，而不是像素點
                 const scale = 1.6; 
                 const offsetX = Math.random() * 128;
                 const offsetY = Math.random() * 128;
@@ -906,14 +890,10 @@
                 const pattern = processCtx.createPattern(grainCanvas, 'repeat');
                 processCtx.translate(offsetX, offsetY);
                 processCtx.fillStyle = pattern;
-                
-                // 繪製範圍需要因為 scale 而調整
                 processCtx.fillRect(-offsetX, -offsetY, (w/scale) + offsetX, (h/scale) + offsetY);
-                
                 processCtx.restore();
             }
 
-            // 傳送畫面到各個視窗
             if (!isSelfieMode) {
                 if (smallCanvas.width !== w) { smallCanvas.width = w; smallCanvas.height = h; }
                 smallCanvas.style.imageRendering = (mode.id === 'COLOR') ? 'pixelated' : 'auto';
@@ -986,6 +966,64 @@
             }, 150);
         }
 
+        // [攝影師特調] 生成式漏光引擎
+        function generateLightLeak(ctx, w, h) {
+            ctx.save();
+            ctx.globalCompositeOperation = 'screen'; // 關鍵：濾色模式，模擬光線疊加
+
+            const leakCount = Math.random() > 0.7 ? 2 : 1; // 30% 機率出現多重漏光
+
+            for(let i=0; i<leakCount; i++) {
+                const type = Math.random();
+                const opacity = 0.4 + Math.random() * 0.4; // 隨機透明度
+                
+                // 色彩生成：偏向紅橙色，偶爾有白光
+                const hue = Math.random() > 0.8 ? 40 + Math.random()*10 : 10 + Math.random()*30; 
+                const sat = 80 + Math.random()*20;
+                const light = 50 + Math.random()*20;
+                
+                const colorInner = `hsla(${hue}, ${sat}%, ${light}%, ${opacity})`;
+                const colorOuter = `hsla(${hue-10}, ${sat}%, ${light-20}%, 0)`;
+
+                if (type < 0.4) {
+                    // 1. 側邊燒灼 (Side Burn) - 模擬背蓋縫隙
+                    const isLeft = Math.random() > 0.5;
+                    const width = w * (0.15 + Math.random() * 0.3);
+                    const grad = ctx.createLinearGradient(isLeft ? 0 : w, 0, isLeft ? width : w - width, 0);
+                    grad.addColorStop(0, colorInner);
+                    grad.addColorStop(1, colorOuter);
+                    ctx.fillStyle = grad;
+                    ctx.fillRect(0, 0, w, h);
+                } 
+                else if (type < 0.7) {
+                    // 2. 角落光斑 (Corner Flare) - 模擬鏡頭進光
+                    const cx = Math.random() > 0.5 ? 0 : w;
+                    const cy = Math.random() > 0.5 ? 0 : h;
+                    const r = Math.max(w, h) * (0.4 + Math.random() * 0.4);
+                    const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+                    grad.addColorStop(0, `hsla(${hue}, 20%, 90%, ${opacity})`); // 中心偏白
+                    grad.addColorStop(0.4, colorInner);
+                    grad.addColorStop(1, `hsla(${hue}, ${sat}%, 20%, 0)`);
+                    ctx.fillStyle = grad;
+                    ctx.fillRect(0, 0, w, h);
+                } 
+                else {
+                    // 3. 隨機光束 (Random Streak) - 模擬過片時的快門縫隙光
+                    const angle = (Math.random() - 0.5) * Math.PI / 2; // 傾斜角度
+                    ctx.translate(w/2, h/2);
+                    ctx.rotate(angle);
+                    const grad = ctx.createLinearGradient(-w/2, 0, w/2, 0);
+                    grad.addColorStop(0, 'transparent');
+                    grad.addColorStop(Math.random() * 0.4 + 0.2, colorInner);
+                    grad.addColorStop(1, 'transparent');
+                    ctx.fillStyle = grad;
+                    ctx.fillRect(-w, -h, w*2, h*2);
+                    ctx.setTransform(1,0,0,1,0,0); // Reset transform
+                }
+            }
+            ctx.restore();
+        }
+
         async function performCapture() {
             const mode = MODES[currentModeIdx];
             const targetW = 1920, targetH = 1080;
@@ -1000,14 +1038,9 @@
             finalCtx.imageSmoothingEnabled = (mode.id === 'FILM' || mode.id === 'HCBW' || mode.id === 'CCD');
             finalCtx.drawImage(processCanvas, 0, 0, targetW, targetH);
 
+            // 只有在 FILM 模式下應用新的生成式漏光
             if (mode.id === 'FILM') {
-                finalCtx.globalCompositeOperation = 'screen'; finalCtx.filter = 'blur(12px) opacity(0.3)';
-                finalCtx.drawImage(processCanvas, 0, 0, targetW, targetH); 
-                finalCtx.filter = 'none'; 
-                const isLeft = Math.random() > 0.5; const leakW = targetW * (0.3 + Math.random() * 0.4);
-                const leakGrad = finalCtx.createLinearGradient(isLeft ? 0 : targetW, 0, isLeft ? leakW : targetW - leakW, 0);
-                leakGrad.addColorStop(0, 'rgba(255, 60, 20, 0.6)'); leakGrad.addColorStop(0.4, 'rgba(255, 180, 50, 0.3)'); leakGrad.addColorStop(1, 'rgba(0,0,0,0)');
-                finalCtx.fillStyle = leakGrad; finalCtx.fillRect(0, 0, targetW, targetH);
+                generateLightLeak(finalCtx, targetW, targetH);
             } 
             
             finalCtx.setTransform(1, 0, 0, 1, 0, 0);
@@ -1408,4 +1441,4 @@
 
     </script>
 </body>
-                </html>
+    </html>
