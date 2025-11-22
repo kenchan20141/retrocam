@@ -11,8 +11,8 @@
 <title>Retro Cam Ultimate</title>
 <style>
     :root {
-        /* [修改] 調整皮革底色，配合 SVG 紋理 */
-        --leather-color: #1a1a1a;
+        /* [視覺調整] 深邃但保留層次的皮革底色 */
+        --leather-color: #151515;
         --metal-grad: linear-gradient(to bottom, #f0f0f0 0%, #d0d0d0 15%, #b0b0b0 40%, #8a8a8a 100%);
         --shutter-grey: linear-gradient(to bottom, #e0e0e0, #999);
     }
@@ -31,8 +31,8 @@
     /* 相機容器 */
     #camera-container {
         width: 760px; height: 420px; position: relative; transform-origin: center;
-        /* 邊緣光 */
-        filter: drop-shadow(0 0 1px rgba(255,255,255,0.3)) drop-shadow(0 30px 60px rgba(0,0,0,0.9)); 
+        /* 邊緣光增強，確保深色機身輪廓可見 */
+        filter: drop-shadow(0 0 2px rgba(255,255,255,0.25)) drop-shadow(0 30px 60px rgba(0,0,0,0.9)); 
         display: none;
         transform-style: preserve-3d; 
     }
@@ -103,21 +103,22 @@
     .back-door-wrapper.open { transform: rotateY(-100deg); }
 
     /* 
-       [重要修訂] 使用 SVG Data URI 來模擬真實荔枝紋皮革 
-       feTurbulence 產生不規則紋理
-       feDiffuseLighting 產生立體光影
+       [視覺質感修復] 荔枝紋皮革 V3.0
+       - lighting-color: #eee (亮白光，增強對比)
+       - surfaceScale: 4.0 (深度增加，顆粒更立體)
+       - specularConstant: 1.5 (反光更強，類似油亮皮革)
+       - opacity: 0.5 (紋理疊加更明顯)
     */
     .back-door-face {
         width: 100%; height: 100%; position: absolute; top: 0; left: 0;
         background-color: var(--leather-color);
-        /* 荔枝紋皮革紋理 SVG */
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='leather'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch' result='noise'/%3E%3CfeDiffuseLighting in='noise' lighting-color='%23999' surfaceScale='1.5'%3E%3CfeDistantLight azimuth='45' elevation='50'/%3E%3C/feDiffuseLighting%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23leather)' opacity='0.35'/%3E%3C/svg%3E");
-        background-size: 150px 150px;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='leather'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='4' stitchTiles='stitch' result='noise'/%3E%3CfeSpecularLighting in='noise' specularConstant='1.5' specularExponent='30' surfaceScale='4.0' lighting-color='%23eee'%3E%3CfeDistantLight azimuth='45' elevation='50'/%3E%3C/feSpecularLighting%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23leather)' opacity='0.5'/%3E%3C/svg%3E");
+        background-size: 140px 140px;
         border-radius: 0 0 8px 8px; 
         border-left: 1px solid #333;
         border-right: 1px solid #333;
         border-bottom: 1px solid #333;
-        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05), inset 0 0 60px rgba(0,0,0,0.8);
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08), inset 0 0 50px rgba(0,0,0,0.9);
         backface-visibility: hidden;
     }
     .back-door-interior {
@@ -511,19 +512,47 @@
         function playShutterSound() {
             if (actx.state === 'suspended') actx.resume();
             const t = actx.currentTime;
-            const osc = actx.createOscillator(); const gain = actx.createGain();
-            osc.type = 'square'; osc.frequency.setValueAtTime(150, t); osc.frequency.exponentialRampToValueAtTime(40, t + 0.05);
-            gain.gain.setValueAtTime(0.3, t); gain.gain.exponentialRampToValueAtTime(0.01, t + 0.05);
-            osc.connect(gain); gain.connect(actx.destination); osc.start(t); osc.stop(t + 0.06);
-            const bufferSize = actx.sampleRate * 0.1; 
+
+            // 1. 反光鏡撞擊 (Thud) - 低頻
+            const oscLow = actx.createOscillator();
+            const gainLow = actx.createGain();
+            oscLow.frequency.setValueAtTime(150, t);
+            oscLow.frequency.exponentialRampToValueAtTime(40, t + 0.1);
+            gainLow.gain.setValueAtTime(0.5, t);
+            gainLow.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
+            oscLow.connect(gainLow).connect(actx.destination);
+            oscLow.start(t); oscLow.stop(t + 0.1);
+
+            // 2. 快門簾開啟 (Snap) - 高頻噪音
+            const bufferSize = actx.sampleRate * 0.1;
             const buffer = actx.createBuffer(1, bufferSize, actx.sampleRate);
             const data = buffer.getChannelData(0);
-            for (let i = 0; i < bufferSize; i++) { data[i] = Math.random() * 2 - 1; }
-            const noise = actx.createBufferSource(); noise.buffer = buffer;
-            const noiseFilter = actx.createBiquadFilter(); noiseFilter.type = 'lowpass'; noiseFilter.frequency.value = 1000;
-            const noiseGain = actx.createGain(); noiseGain.gain.setValueAtTime(0.8, t); noiseGain.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
-            noise.connect(noiseFilter); noiseFilter.connect(noiseGain); noiseGain.connect(actx.destination); noise.start(t);
+            for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+            
+            const noise = actx.createBufferSource();
+            noise.buffer = buffer;
+            const noiseFilter = actx.createBiquadFilter();
+            noiseFilter.type = 'highpass';
+            noiseFilter.frequency.value = 1200; // 更清脆
+            const noiseGain = actx.createGain();
+            noiseGain.gain.setValueAtTime(0.4, t);
+            noiseGain.gain.exponentialRampToValueAtTime(0.01, t + 0.08);
+            noise.connect(noiseFilter).connect(noiseGain).connect(actx.destination);
+            noise.start(t);
+
+            // 3. 機械回彈 (Clack) - 稍微延遲
+            const oscHigh = actx.createOscillator();
+            const gainHigh = actx.createGain();
+            oscHigh.type = 'triangle';
+            oscHigh.frequency.setValueAtTime(800, t + 0.04);
+            oscHigh.frequency.exponentialRampToValueAtTime(100, t + 0.1);
+            gainHigh.gain.setValueAtTime(0.0, t);
+            gainHigh.gain.setValueAtTime(0.2, t + 0.04);
+            gainHigh.gain.exponentialRampToValueAtTime(0.01, t + 0.15);
+            oscHigh.connect(gainHigh).connect(actx.destination);
+            oscHigh.start(t); oscHigh.stop(t + 0.2);
         }
+
         function playLeverSound() {
             if (actx.state === 'suspended') actx.resume();
             const t = actx.currentTime;
@@ -1167,4 +1196,4 @@
 
     </script>
 </body>
-    </html>
+</html>
