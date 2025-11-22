@@ -587,23 +587,28 @@
         function playShutterSound() {
             if (actx.state === 'suspended') actx.resume();
             const t = actx.currentTime;
+            
+            // Low frequency thud - 增加 Gain 到 3.5
             const oscLow = actx.createOscillator(); const gainLow = actx.createGain();
             oscLow.frequency.setValueAtTime(150, t); oscLow.frequency.exponentialRampToValueAtTime(40, t + 0.1);
-            gainLow.gain.setValueAtTime(0.5, t); gainLow.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
+            gainLow.gain.setValueAtTime(3.5, t); gainLow.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
             oscLow.connect(gainLow).connect(actx.destination); oscLow.start(t); oscLow.stop(t + 0.1);
 
+            // Mechanical Noise - 增加 Gain 到 3.0
             const bufferSize = actx.sampleRate * 0.1; 
             const buffer = actx.createBuffer(1, bufferSize, actx.sampleRate);
             const data = buffer.getChannelData(0);
             for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
             const noise = actx.createBufferSource(); noise.buffer = buffer;
             const noiseFilter = actx.createBiquadFilter(); noiseFilter.type = 'highpass'; noiseFilter.frequency.value = 1200;
-            const noiseGain = actx.createGain(); noiseGain.gain.setValueAtTime(0.4, t); noiseGain.gain.exponentialRampToValueAtTime(0.01, t + 0.08);
+            const noiseGain = actx.createGain(); 
+            noiseGain.gain.setValueAtTime(3.0, t); noiseGain.gain.exponentialRampToValueAtTime(0.01, t + 0.08);
             noise.connect(noiseFilter).connect(noiseGain).connect(actx.destination); noise.start(t);
 
+            // Metal Ping - 增加 Gain 到 1.5
             const oscHigh = actx.createOscillator(); const gainHigh = actx.createGain();
             oscHigh.type = 'triangle'; oscHigh.frequency.setValueAtTime(800, t + 0.04); oscHigh.frequency.exponentialRampToValueAtTime(100, t + 0.1);
-            gainHigh.gain.setValueAtTime(0.0, t); gainHigh.gain.setValueAtTime(0.2, t + 0.04); gainHigh.gain.exponentialRampToValueAtTime(0.01, t + 0.15);
+            gainHigh.gain.setValueAtTime(0.0, t); gainHigh.gain.setValueAtTime(1.5, t + 0.04); gainHigh.gain.exponentialRampToValueAtTime(0.01, t + 0.15);
             oscHigh.connect(gainHigh).connect(actx.destination); oscHigh.start(t); oscHigh.stop(t + 0.2);
         }
 
@@ -615,7 +620,7 @@
             osc.type = 'sine';
             osc.frequency.setValueAtTime(800, t);
             osc.frequency.exponentialRampToValueAtTime(1200, t + 0.1);
-            gain.gain.setValueAtTime(0.1, t);
+            gain.gain.setValueAtTime(0.2, t); // 稍微調大一點點
             gain.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
             osc.connect(gain).connect(actx.destination);
             osc.start(t); osc.stop(t + 0.15);
@@ -627,7 +632,8 @@
             for(let i=0; i<5; i++) {
                 const osc = actx.createOscillator(); const gain = actx.createGain();
                 osc.type = 'sawtooth'; osc.frequency.setValueAtTime(800, t + i*0.06); osc.frequency.exponentialRampToValueAtTime(100, t + i*0.06 + 0.03);
-                gain.gain.setValueAtTime(0.1, t + i*0.06); gain.gain.exponentialRampToValueAtTime(0.01, t + i*0.06 + 0.03);
+                // 撥桿聲 - 增加 Gain 到 1.2
+                gain.gain.setValueAtTime(1.2, t + i*0.06); gain.gain.exponentialRampToValueAtTime(0.01, t + i*0.06 + 0.03);
                 osc.connect(gain); gain.connect(actx.destination); osc.start(t + i*0.06); osc.stop(t + i*0.06 + 0.04);
             }
         }
@@ -1441,4 +1447,4 @@
 
     </script>
 </body>
-    </html>
+        </html>
