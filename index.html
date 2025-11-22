@@ -65,7 +65,6 @@
     .switch-knob { width: 18px; height: 18px; background: radial-gradient(#eee, #999); border-radius: 50%; position: absolute; top: -2px; left: 0; box-shadow: 0 1px 2px rgba(0,0,0,0.5); border: 1px solid #666; transition: left 0.3s; }
     .mode-switch-container.mode-36 .switch-knob { left: 18px; }
     
-    /* Sketch Switch Controls (保留原代碼功能) */
     .sketch-switch-container { position: absolute; top: 20px; left: 155px; display: flex; flex-direction: column; align-items: center; cursor: pointer; z-index: 20; }
     .sketch-labels { display: flex; gap: 8px; font-size: 9px; font-weight: bold; color: #444; margin-bottom: 2px; font-family: sans-serif; text-shadow: 0 1px 0 rgba(255,255,255,0.5); }
     .sketch-labels .active { color: #000; }
@@ -75,10 +74,6 @@
 
     .ready-light { position: absolute; top: 20px; right: 165px; width: 8px; height: 8px; background: #300; border-radius: 50%; box-shadow: inset 0 0 2px #000; transition: background 0.3s; z-index: 15; }
     .ready-light.active { background: #f00; box-shadow: 0 0 8px #f00, inset 0 0 2px #fff; }
-
-    /* ========================================= */
-    /* 新增：完全參照參考代碼的自拍/正面設計 CSS */
-    /* ========================================= */
 
     .front-controls-group { display: none; } 
     
@@ -98,7 +93,6 @@
     }
     .front-shutter-btn.pressed { transform: translateY(6px); }
 
-    /* Cable Release / Plunger Design from Reference */
     .cable-release-container {
         position: absolute; top: -100px; left: 0; width: 100%; height: 150%;
         pointer-events: none; z-index: 30;
@@ -108,7 +102,7 @@
     .cable-plunger-wrapper {
         position: absolute; 
         top: 320px;   
-        right: -90px; /* 確保是負數，讓它位於機身外側 */
+        right: -90px;
         width: 60px; height: 120px;
         pointer-events: auto; cursor: pointer;
         display: flex; flex-direction: column; align-items: center;
@@ -152,7 +146,6 @@
     .cable-plunger-wrapper.pressed .cable-button-head { transform: translateY(12px); }
     .cable-plunger-wrapper.pressed .cable-stem { height: 8px; transform: translateY(12px); }
 
-    /* Selfie Toggle Button from Reference */
     #selfie-toggle {
         position: absolute; top: 20px; left: 240px; width: 24px; height: 24px;
         background: radial-gradient(#ccc, #999); border: 1px solid #666; border-radius: 50%;
@@ -164,8 +157,6 @@
         transition: transform 0.3s;
     }
     #selfie-toggle:active::after { transform: rotate(180deg); }
-
-    /* ========================================= */
 
     .camera-body { width: 100%; height: 310px; position: relative; border-radius: 0 0 8px 8px; perspective: 1000px; }
 
@@ -389,14 +380,12 @@
                     </div>
                 </div>
                 
-                <!-- Sketch Switch -->
                 <div class="sketch-switch-container" id="sketchModeSwitch" title="Toggle Real/Sketch Mode">
                     <div class="sketch-labels"><span id="lbl-real" class="active">REAL</span><span id="lbl-sketch">ART</span></div>
                     <div class="sketch-switch-track"><div class="sketch-switch-knob"></div></div>
                 </div>
             </div>
 
-            <!-- Front Controls Group (完全參照文末 HTML) -->
             <div id="front-controls-group" class="front-controls-group" style="display:none;">
                 <div class="cable-release-container">
                     <div class="cable-plunger-wrapper" id="cablePlunger">
@@ -410,7 +399,6 @@
                 <div class="front-viewfinder-frame" id="frontVfTrigger">
                     <canvas class="front-vf-glass" id="frontCanvas"></canvas>
                 </div>
-                <!-- 保留這個元素以保持邏輯相容，但視覺上由 cablePlunger 取代 -->
                 <div class="front-shutter-btn" id="frontShutterBtn"></div>
             </div>
 
@@ -552,15 +540,18 @@
         
         // MODES DEFINITION
         const REAL_MODES = [
-            { id: 'BW', name: 'B&W', sub: 'TRI-X 400', color: '#000' },
+            { id: 'BW', name: 'B&W', sub: 'STREET 400', color: '#000' },
             { id: 'COLOR', name: 'COLOR', sub: 'GAME-CAM', color: '#c00' },
             { id: 'CCD', name: 'DIGI', sub: 'CCD SENSOR', color: '#0055cc' },
-            { id: 'HCBW', name: 'HC-BW', sub: 'ACROS 100', color: '#555' },
+            { id: 'HCBW', name: 'HC-BW', sub: 'FINE 100', color: '#555' },
             // Film Series
-            { id: 'FILM_TEAL', name: 'FILM: TEAL', sub: 'KYOTO 400', color: '#008080' }, // Standard Grain
-            { id: 'FILM_SUN', name: 'FILM: SUN', sub: 'CALI 200', color: '#ffcc00' },   // Fine Grain
-            { id: 'FILM_VIVID', name: 'FILM: VIVID', sub: 'SLIDE 100', color: '#ff0055' }, // Medium Grain
-            { id: 'FILM_AGED', name: 'FILM: AGED', sub: 'EURO 800', color: '#8b4513' }   // Coarse Grain + Heavy Leaks
+            { id: 'FILM_TEAL', name: 'FILM: TEAL', sub: 'KYOTO 400', color: '#008080' }, 
+            { id: 'FILM_SUN', name: 'FILM: SUN', sub: 'CALI 200', color: '#ffcc00' },   
+            { id: 'FILM_VIVID', name: 'FILM: VIVID', sub: 'SLIDE 100', color: '#ff0055' }, 
+            { id: 'FILM_AGED', name: 'FILM: AGED', sub: 'EURO 800', color: '#8b4513' },
+            
+            // NEW FILTER ADDED HERE
+            { id: 'FILM_SOFT', name: 'FILM: SOFT', sub: 'AIRY 400H', color: '#90e0ef' } 
         ];
 
         const SKETCH_MODES = [
@@ -935,7 +926,6 @@
             initCamera(); 
         });
 
-        // Sketch Mode Toggle Logic
         sketchModeSwitch.addEventListener('click', () => {
             isSketchMode = !isSketchMode;
             sketchModeSwitch.classList.toggle('mode-sketch', isSketchMode);
@@ -973,14 +963,12 @@
             if (isSketchMode) {
                 applySketchEffect(video, processCtx, w, h, mode.id);
             } else {
-                // Standard Video Feed
                 processCtx.drawImage(video, 0, 0, w, h);
             
                 let imgData = processCtx.getImageData(0, 0, w, h);
                 let data = imgData.data;
                 
                 if (mode.id === 'FILM_TEAL') {
-                    // Original Teal/Cyan Film Look - NO CHANGES
                     for (let i = 0; i < data.length; i += 4) {
                         let r = data[i], g = data[i+1], b = data[i+2];
                         r = r < 40 ? 40 + (r*0.5) : r; b = b < 50 ? 50 + (b*0.5) : b;
@@ -989,66 +977,65 @@
                     }
                 }
                 else if (mode.id === 'FILM_SUN') {
-                    // Warm/Gold Look - Differentiated from Vivid by being softer and gamma-shifted
                     for (let i = 0; i < data.length; i += 4) {
                         let r = data[i], g = data[i+1], b = data[i+2];
-                        
-                        // Gamma correction approximation to soften contrast (Lift mids)
                         r = 255 * Math.pow(r / 255, 0.9); 
                         g = 255 * Math.pow(g / 255, 0.9);
                         b = 255 * Math.pow(b / 255, 0.95);
-
-                        // Gold Tint: Push Red/Green, Pull Blue slightly
                         r = r * 1.05 + 10; 
                         g = g * 1.02 + 5; 
                         b = b * 0.92;
-
                         data[i] = r; data[i+1] = g; data[i+2] = b;
                     }
                 }
                 else if (mode.id === 'FILM_VIVID') {
-                    // Slide/Provia Look - High Saturation & Contrast Algorithm
                     for (let i = 0; i < data.length; i += 4) {
                         let r = data[i], g = data[i+1], b = data[i+2];
-                        
-                        // Saturation Boost
                         const gray = 0.2989*r + 0.5870*g + 0.1140*b;
-                        const satMult = 1.4; // 40% boost
+                        const satMult = 1.4;
                         r = gray + (r - gray) * satMult;
                         g = gray + (g - gray) * satMult;
                         b = gray + (b - gray) * satMult;
-
-                        // Crush Blacks (Contrast)
                         r = (r - 20) * 1.1;
                         g = (g - 20) * 1.1;
                         b = (b - 20) * 1.1;
-
-                        // Cool/Magenta Bias
                         b = b * 1.05;
                         r = r * 1.02;
-                        
-                        // Clamp
                         data[i] = Math.min(255, Math.max(0, r)); 
                         data[i+1] = Math.min(255, Math.max(0, g)); 
                         data[i+2] = Math.min(255, Math.max(0, b));
                     }
                 }
                 else if (mode.id === 'FILM_AGED') {
-                    // Expired Look - Heavy Fade, Dirty Green/Brown Tint
                     for (let i = 0; i < data.length; i += 4) {
                         let r = data[i], g = data[i+1], b = data[i+2];
-                        
-                        // Heavy Fade (Lift blacks way up, crush whites)
                         r = (r * 0.7) + 40;
                         g = (g * 0.7) + 40;
-                        b = (b * 0.6) + 35; // Blue channel darker = yellowing
-
-                        // Green/Sepia shift
+                        b = (b * 0.6) + 35; 
                         r += 10; g += 20; b -= 10;
-
                         data[i] = r; data[i+1] = g; data[i+2] = b;
                     }
                 }
+                // NEW: SOFT / AIRY FILTER LOGIC
+                else if (mode.id === 'FILM_SOFT') {
+    for (let i = 0; i < data.length; i += 4) {
+        let r = data[i], g = data[i+1], b = data[i+2];
+        
+        // 1. 輕微調整曲線，保留暗部細節，但讓它帶點灰 (Faded Black)
+        // 不要做太強烈的對比度壓縮，以免細節丟失
+        r = (r * 0.95) + 10;
+        g = (g * 0.95) + 10;
+        b = (b * 0.95) + 15;
+        
+        // 2. 日系空氣感色調 (Cyan/Blue Tint)
+        // 稍微抑制紅色，提升藍綠色
+        r = r * 0.96; 
+        g = g * 1.02;
+        b = b * 1.06; 
+
+        data[i] = r; data[i+1] = g; data[i+2] = b;
+    }
+}
                 else if (mode.id === 'BW') {
                     for (let i = 0; i < data.length; i += 4) {
                         let lum = data[i] * 0.3 + data[i+1] * 0.59 + data[i+2] * 0.11;
@@ -1071,23 +1058,45 @@
                 
                 processCtx.putImageData(imgData, 0, 0);
 
+                // --- 這裡是新加入的代碼，用於模擬柔焦與空氣感 ---
+    if (mode.id === 'FILM_SOFT') {
+        processCtx.save();
+        
+        // 1. 混合模式：濾色
+        // 這樣疊加的光暈只會讓畫面變亮，不會變暗
+        processCtx.globalCompositeOperation = "screen";
+        
+        // 2. 關鍵濾鏡鏈：
+        // brightness(0.6): 把整體壓暗，讓中間調變黑（保護暗部細節不被模糊）。
+        // contrast(2.5): 拉高反差，讓剩下的高光部分重新亮起來（提取高光）。
+        // blur(6px): 只針對這些提取出來的高光進行柔化（產生光暈）。
+        // opacity(0.6): 控制黑柔的濃度，0.6 類似 1/4 強度，0.4 類似 1/8 強度。
+        processCtx.filter = "brightness(0.6) contrast(2.5) blur(6px) opacity(0.6)";
+        
+        // 3. 疊加
+        processCtx.drawImage(processCanvas, 0, 0);
+        
+        processCtx.restore();
+    }
+
                 if (mode.id !== 'CCD' && mode.id !== 'COLOR') {
                     processCtx.save(); 
                     processCtx.globalCompositeOperation = "overlay"; 
                     
-                    // Variable Grain Settings
                     let grainOpacity = 0.25; 
                     let grainScale = 1.6;
 
                     if(mode.id === 'BW') grainOpacity = 0.35; 
-                    
                     if(mode.id === 'FILM_TEAL') { grainOpacity = 0.22; grainScale = 1.6; }
-                    if(mode.id === 'FILM_SUN') { grainOpacity = 0.18; grainScale = 1.3; } // Fine grain
-                    if(mode.id === 'FILM_VIVID') { grainOpacity = 0.28; grainScale = 1.5; } // Sharp grain
-                    if(mode.id === 'FILM_AGED') { grainOpacity = 0.40; grainScale = 2.5; } // Dirty/Coarse grain
+                    if(mode.id === 'FILM_SUN') { grainOpacity = 0.18; grainScale = 1.3; } 
+                    if(mode.id === 'FILM_VIVID') { grainOpacity = 0.28; grainScale = 1.5; } 
+                    if(mode.id === 'FILM_AGED') { grainOpacity = 0.40; grainScale = 2.5; } 
                     
+                    // NEW: SOFT GRAIN
+                    if(mode.id === 'FILM_SOFT') { grainOpacity = 0.15; grainScale = 1.2; } 
+
                     processCtx.globalAlpha = grainOpacity; 
-                    processCtx.imageSmoothingEnabled = true; // Important for scaling grain
+                    processCtx.imageSmoothingEnabled = true; 
 
                     const offsetX = Math.random() * 128; 
                     const offsetY = Math.random() * 128;
@@ -1149,7 +1158,6 @@
         shutterBtn.addEventListener('click', handleShutter);
         frontShutterBtn.addEventListener('click', handleShutter);
         
-        // Cable Plunger Action
         cablePlunger.addEventListener('click', (e) => { 
             e.stopPropagation(); 
             cablePlunger.classList.add('pressed'); 
@@ -1160,31 +1168,22 @@
         function handleShutter(e) {
             if(e) e.stopPropagation();
             
-            // 1. 狀態檢查：忽略關閉按鈕點擊、檢查背蓋是否開啟、檢查底片是否用完
             if (e && e.target.id === 'vf-close-btn') return;
             if (!isSelfieMode && backDoorWrapper.classList.contains('open')) return;
             if (isRollMode && currentFrame >= 36) return;
             if (!isRollMode && pendingPhoto) return;
 
-            // 2. 確定按鈕樣式 (正面手柄 vs 頂部按鈕)
             const btn = isSelfieMode ? frontShutterBtn : shutterBtn;
             btn.classList.add('pressed');
             
-            // 3. 播放快門聲音
             playShutterSound();
             
-            // 4. 處理視覺效果 (快門簾幕 / 鏡頭閃爍)
             if (isSelfieMode) {
-                // [修訂關鍵] 強制重繪 (Force Reflow)
-                // 這三行確保即使連續快速點擊，瀏覽器也會重新播放動畫
                 shutterFlash.classList.remove('flash');
-                void shutterFlash.offsetWidth; // 觸發瀏覽器重繪
+                void shutterFlash.offsetWidth; 
                 shutterFlash.classList.add('flash');
-                
-                // 動畫結束後清理 (非必須，但為了保持 DOM 乾淨)
                 setTimeout(() => shutterFlash.classList.remove('flash'), 150);
             } else {
-                // 後置鏡頭模式：生成黑色快門簾幕
                 const container = (fsViewfinder.style.display === 'block') ? fsViewfinder : vfTrigger;
                 const blind = document.createElement('div');
                 blind.className = container === fsViewfinder ? 'shutter-blind' : 'vf-shutter-blind';
@@ -1192,7 +1191,6 @@
                 setTimeout(() => blind.remove(), 150);
             }
             
-            // 5. 執行拍照 (模擬機械延遲)
             setTimeout(() => {
                 performCapture();
                 btn.classList.remove('pressed');
@@ -1201,13 +1199,11 @@
 
         function generateLightLeak(ctx, w, h, severity = 1) {
             ctx.save(); ctx.globalCompositeOperation = 'screen'; 
-            // For AGED film, leak count is higher
             const baseCount = severity > 1 ? 3 : (Math.random() > 0.7 ? 2 : 1);
             const leakCount = baseCount; 
             
             for(let i=0; i<leakCount; i++) {
                 const type = Math.random(); 
-                // AGED film has higher opacity leaks
                 const opacity = (0.4 + Math.random() * 0.4) * severity; 
                 
                 const hue = Math.random() > 0.8 ? 40 + Math.random()*10 : 10 + Math.random()*30; 
@@ -1216,7 +1212,6 @@
                 let colorInner = `hsla(${hue}, ${sat}%, ${light}%, ${opacity})`;
                 let colorOuter = `hsla(${hue-10}, ${sat}%, ${light-20}%, 0)`;
 
-                // AGED film leaks are larger
                 const sizeMult = severity > 1 ? 1.5 : 1.0;
 
                 if (type < 0.4) {
@@ -1254,9 +1249,7 @@
             finalCtx.imageSmoothingEnabled = (mode.id.startsWith('FILM_') || mode.id === 'HCBW' || mode.id === 'CCD' || mode.id.includes('SKETCH'));
             finalCtx.drawImage(processCanvas, 0, 0, targetW, targetH); 
 
-            // Apply light leaks
             if (mode.id.startsWith('FILM_')) {
-                // Severe leaks for AGED mode
                 const severity = (mode.id === 'FILM_AGED') ? 2.0 : 1.0;
                 generateLightLeak(finalCtx, targetW, targetH, severity);
             }
@@ -1297,20 +1290,15 @@
 
         let leverPulled = false;
         advanceLever.addEventListener('click', async () => {
-            // 檢查是否可以過片
             if (!readyLight.classList.contains('active') || leverPulled) return;
             
             leverPulled = true;
 
-            // [修改重點] 使用 requestAnimationFrame 包裹，確保動畫與聲音在「同一幀」觸發
             requestAnimationFrame(() => {
-                advanceLever.style.transform = 'rotate(130deg)'; // 1. 先設定動畫
-                
-                // 微調：延遲 50ms 播放聲音，配合撥桿的物理慣性 (解決聲音太快的問題)
+                advanceLever.style.transform = 'rotate(130deg)'; 
                 setTimeout(playLeverSound, 50); 
             });
 
-            // 400ms 後回彈並顯示選單
             setTimeout(() => { 
                 advanceLever.style.transform = 'rotate(10deg)'; 
                 styleOverlay.style.display = 'flex'; 
@@ -1437,18 +1425,8 @@
         function resizeElements() {
             const w = window.innerWidth;
             const h = window.innerHeight;
-            
-            // 計算螢幕長寬比
-            const aspectRatio = w / h;
-
-            // 判斷邏輯：
-            // 平板 (如 iPad) 的比例通常小於 1.6 (4:3 = 1.33) -> 需要縮小以免被切邊
-            // 手機 (如 iPhone) 的比例通常大於 1.7 (16:9 = 1.77) -> 空間夠大，保持 1.0
-            const isTablet = aspectRatio < 1.6;
-
-            // 如果是平板，縮小至 85%；如果是手機，保持 100%
+            const isTablet = (w / h) < 1.6;
             const multiplier = isTablet ? 0.85 : 1.0;
-
             const scale = Math.min(w / 800, h / 480) * multiplier;
             document.getElementById('camera-container').style.transform = `scale(${scale})`;
         }
