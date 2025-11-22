@@ -8,7 +8,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Retro Cam - Fine Sketch Edition</title>
+<title>Retrocam</title>
 <style>
     :root {
         --leather-color: #151515;
@@ -263,7 +263,6 @@
     .film-card { width: 150px; height: 70px; background: #f4e9c5; box-shadow: 1px 1px 4px rgba(0,0,0,0.5); display: flex; flex-direction: column; justify-content: center; align-items: center; transform: rotate(-1deg); transition: filter 0.3s; }
     .film-card::before, .film-card::after { content: ''; position: absolute; width: 100%; height: 6px; background: #333; transition: background 0.3s ease; }
     .film-card::before { top: 0; } .film-card::after { bottom: 0; }
-    /* Dynamic Styles for Film Card are set in JS now */
     .film-card h3 { margin: 4px 0 0; font-size: 24px; font-weight: 900; color: #000; line-height: 1; font-family: Impact, sans-serif; }
     .film-card p { margin: 2px 0; font-size: 10px; color: #333; font-weight: bold; text-transform: uppercase; }
 
@@ -366,7 +365,7 @@
                 
                 <!-- Sketch Switch -->
                 <div class="sketch-switch-container" id="sketchModeSwitch" title="Toggle Real/Sketch Mode">
-                    <div class="sketch-labels"><span id="lbl-real" class="active">REAL</span><span id="lbl-sketch">SKETCH</span></div>
+                    <div class="sketch-labels"><span id="lbl-real" class="active">REAL</span><span id="lbl-sketch">ART</span></div>
                     <div class="sketch-switch-track"><div class="sketch-switch-knob"></div></div>
                 </div>
             </div>
@@ -486,7 +485,6 @@
     <canvas id="process-canvas" style="display:none"></canvas>
     <canvas id="final-canvas" style="display:none"></canvas>
     <canvas id="grain-canvas" style="display:none"></canvas>
-    <!-- Medium Res Canvas for Smooth Sketch Effect -->
     <canvas id="sketch-canvas" style="display:none"></canvas>
 
     <script>
@@ -524,7 +522,7 @@
         let isSelfieMode = false;
         let isSketchMode = false;
         
-        // SEPARATE MODE LISTS
+        // MODES DEFINITION
         const REAL_MODES = [
             { id: 'BW', name: 'B&W', sub: 'TRI-X 400', color: '#000' },
             { id: 'COLOR', name: 'COLOR', sub: 'GAME-CAM', color: '#c00' },
@@ -535,13 +533,14 @@
 
         const SKETCH_MODES = [
             { id: 'SKETCH_BW', name: 'PENCIL', sub: '2B GRAPHITE', color: '#333' },
-            { id: 'SKETCH_COL', name: 'CRAYON', sub: 'SOFT PASTEL', color: '#d2691e' }
+            { id: 'SKETCH_COL', name: 'CRAYON', sub: 'SOFT PASTEL', color: '#d2691e' },
+            { id: 'SKETCH_INK', name: 'INK', sub: 'COMIC PEN', color: '#000' },
+            { id: 'SKETCH_OIL', name: 'OIL', sub: 'IMPASTO', color: '#8b4513' }
         ];
         
         let savedMode = localStorage.getItem('camModeIdx');
         let currentModeIdx = savedMode ? parseInt(savedMode) : 0;
         
-        // Ensure index is valid for the current state
         function getModes() { return isSketchMode ? SKETCH_MODES : REAL_MODES; }
         function validateModeIndex() {
             const modes = getModes();
@@ -549,29 +548,54 @@
         }
         validateModeIndex();
 
+        // ------------------------
+        // AUDIO SYSTEM (Updated)
+        // ------------------------
+        const shutterAudio = new Audio('https://taira-komori.net/sound_os2/electric01/camera1.mp3');
+        shutterAudio.preload = 'auto';
+
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         const actx = new AudioContext();
 
         function playShutterSound() {
-            if (actx.state === 'suspended') actx.resume();
-            const t = actx.currentTime;
-            const oscLow = actx.createOscillator(); const gainLow = actx.createGain();
-            oscLow.frequency.setValueAtTime(150, t); oscLow.frequency.exponentialRampToValueAtTime(40, t + 0.1);
-            gainLow.gain.setValueAtTime(3.5, t); gainLow.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
-            oscLow.connect(gainLow).connect(actx.destination); oscLow.start(t); oscLow.stop(t + 0.1);
-            const bufferSize = actx.sampleRate * 0.1; 
-            const buffer = actx.createBuffer(1, bufferSize, actx.sampleRate);
-            const data = buffer.getChannelData(0);
-            for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
-            const noise = actx.createBufferSource(); noise.buffer = buffer;
-            const noiseFilter = actx.createBiquadFilter(); noiseFilter.type = 'highpass'; noiseFilter.frequency.value = 1200;
-            const noiseGain = actx.createGain(); 
-            noiseGain.gain.setValueAtTime(3.0, t); noiseGain.gain.exponentialRampToValueAtTime(0.01, t + 0.08);
-            noise.connect(noiseFilter).connect(noiseGain).connect(actx.destination); noise.start(t);
-            const oscHigh = actx.createOscillator(); const gainHigh = actx.createGain();
-            oscHigh.type = 'triangle'; oscHigh.frequency.setValueAtTime(800, t + 0.04); oscHigh.frequency.exponentialRampToValueAtTime(100, t + 0.1);
-            gainHigh.gain.setValueAtTime(0.0, t); gainHigh.gain.setValueAtTime(1.5, t + 0.04); gainHigh.gain.exponentialRampToValueAtTime(0.01, t + 0.15);
-            oscHigh.connect(gainHigh).connect(actx.destination); oscHigh.start(t); oscHigh.stop(t + 0.2);
+            // Try playing the specific file
+            shutterAudio.currentTime = 0;
+            const playPromise = shutterAudio.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(error => {
+                    // Fallback to synthesized mechanical sound if file fails
+                    if (actx.state === 'suspended') actx.resume();
+                    const t = actx.currentTime;
+                    
+                    // Enhanced synth mechanical shutter
+                    const oscClick = actx.createOscillator();
+                    const gainClick = actx.createGain();
+                    oscClick.type = 'square';
+                    oscClick.frequency.setValueAtTime(800, t);
+                    oscClick.frequency.exponentialRampToValueAtTime(100, t + 0.05);
+                    gainClick.gain.setValueAtTime(0.5, t);
+                    gainClick.gain.exponentialRampToValueAtTime(0.01, t + 0.05);
+                    oscClick.connect(gainClick).connect(actx.destination);
+                    oscClick.start(t); oscClick.stop(t + 0.05);
+
+                    const bufferSize = actx.sampleRate * 0.15; 
+                    const buffer = actx.createBuffer(1, bufferSize, actx.sampleRate);
+                    const data = buffer.getChannelData(0);
+                    for (let i = 0; i < bufferSize; i++) { data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (actx.sampleRate * 0.02)); }
+                    const noise = actx.createBufferSource(); noise.buffer = buffer;
+                    const noiseFilter = actx.createBiquadFilter(); noiseFilter.type = 'lowpass'; noiseFilter.frequency.value = 2000;
+                    const gainNoise = actx.createGain(); gainNoise.gain.setValueAtTime(0.8, t);
+                    noise.connect(noiseFilter).connect(gainNoise).connect(actx.destination);
+                    noise.start(t);
+
+                    const oscThud = actx.createOscillator(); const gainThud = actx.createGain();
+                    oscThud.type = 'sine'; oscThud.frequency.setValueAtTime(200, t);
+                    oscThud.frequency.exponentialRampToValueAtTime(50, t + 0.15);
+                    gainThud.gain.setValueAtTime(0.8, t); gainThud.gain.exponentialRampToValueAtTime(0.01, t + 0.15);
+                    oscThud.connect(gainThud).connect(actx.destination);
+                    oscThud.start(t); oscThud.stop(t + 0.2);
+                });
+            }
         }
 
         function playFocusSound() {
@@ -674,14 +698,11 @@
             document.getElementById('fs-mode-text').textContent = m.name;
             
             const h3 = filmCard.querySelector('h3');
-            // Remove old data attribute styling logic
             h3.style.color = m.color;
             
-            // Force film card styling
             filmCard.className = 'film-card';
             filmCard.querySelector('h3').style.color = m.color;
             
-            // Custom film card strip color
             const styleEl = document.createElement('style');
             styleEl.innerHTML = `.film-card::before, .film-card::after { background: ${m.color} !important; }`;
             const oldStyle = document.getElementById('film-card-style');
@@ -765,17 +786,16 @@
         });
 
         // -------------------------
-        // REFINED SKETCH EFFECT (The Golden Mean)
+        // ART STUDIO EFFECTS
         // -------------------------
         
-        function applySketchEffect(sourceVideo, destCtx, width, height, useColor) {
-            // Increased resolution for smoother lines (720 width base)
+        function applySketchEffect(sourceVideo, destCtx, width, height, modeId) {
+            // Use high resolution for smooth strokes (800px wide)
             const scanW = 800; 
             const scanH = Math.floor(scanW * (height/width));
             
             if(sketchCanvas.width !== scanW) {
-                sketchCanvas.width = scanW;
-                sketchCanvas.height = scanH;
+                sketchCanvas.width = scanW; sketchCanvas.height = scanH;
             }
             
             sketchCtx.drawImage(sourceVideo, 0, 0, scanW, scanH);
@@ -784,62 +804,79 @@
             const output = sketchCtx.createImageData(scanW, scanH);
             const outData = output.data;
             
-            // Lower threshold -> More lines
-            const threshold = 15; 
+            const isColor = (modeId === 'SKETCH_COL');
+            const isInk = (modeId === 'SKETCH_INK');
+            const isOil = (modeId === 'SKETCH_OIL');
+
+            // Edge Sensitivity
+            let threshold = 15; 
+            if(isInk) threshold = 20;
+            if(isOil) threshold = 40; // Minimal lines for oil
 
             for(let y = 0; y < scanH; y++) {
                 for(let x = 0; x < scanW; x++) {
                     const i = (y * scanW + x) * 4;
                     
-                    // Current brightness
-                    const val = (data[i] + data[i+1] + data[i+2]) / 3;
+                    const r = data[i]; const g = data[i+1]; const b = data[i+2];
+                    const val = (r + g + b) / 3;
                     
-                    // Neighbor brightness (Right/Bottom)
-                    let rightVal = val;
-                    let bottomVal = val;
-                    
-                    if(x < scanW - 1) {
-                        const ir = i + 4;
-                        rightVal = (data[ir] + data[ir+1] + data[ir+2]) / 3;
-                    }
-                    if(y < scanH - 1) {
-                        const ib = i + scanW * 4;
-                        bottomVal = (data[ib] + data[ib+1] + data[ib+2]) / 3;
-                    }
+                    // Neighbors
+                    let rightVal = val; let bottomVal = val;
+                    if(x < scanW - 1) { rightVal = (data[i+4] + data[i+5] + data[i+6]) / 3; }
+                    if(y < scanH - 1) { bottomVal = (data[i+scanW*4] + data[i+scanW*4+1] + data[i+scanW*4+2]) / 3; }
                     
                     const diff = Math.abs(val - rightVal) + Math.abs(val - bottomVal);
                     
-                    // Base Paper Color (Clean, very slight noise)
-                    // Almost white: 250-255 range
-                    const basePaper = 250 + (Math.random() * 5); 
+                    let isEdge = diff > threshold;
+                    
+                    // --- FILTER LOGIC ---
 
-                    if (diff > threshold) {
-                        // Edge - Dark charcoal gray (not pure black for softness)
-                        // Intensity based on diff
-                        const intensity = Math.min(diff * 2, 150);
-                        const edgeColor = 60 - (intensity / 5); // 30 to 60 range
-                        
-                        outData[i] = edgeColor;
-                        outData[i+1] = edgeColor;
-                        outData[i+2] = edgeColor;
-                    } else {
-                        // Non-Edge area
-                        if(useColor) {
-                            // Color Sketch: Blend original color with paper white
-                            // Result is pastel-like
-                            outData[i] = Math.min(255, data[i] + 100); 
-                            outData[i+1] = Math.min(255, data[i+1] + 100);
-                            outData[i+2] = Math.min(255, data[i+2] + 100);
+                    if (isInk) {
+                        // High Contrast Black & White
+                        if (isEdge || val < 80) {
+                            outData[i] = 10; outData[i+1] = 10; outData[i+2] = 10; // Ink
                         } else {
-                            // B&W Sketch: Just paper
-                            // Extremely subtle noise (0.2% chance)
-                            if(Math.random() > 0.998) {
-                                outData[i] = 200; outData[i+1] = 200; outData[i+2] = 200;
-                            } else {
-                                outData[i] = basePaper;
-                                outData[i+1] = basePaper;
-                                outData[i+2] = basePaper;
-                            }
+                            outData[i] = 255; outData[i+1] = 255; outData[i+2] = 255; // Paper
+                        }
+                    }
+                    else if (isOil) {
+                        // Color Blocks, No Outlines
+                        // Simple color quantization
+                        const level = 40;
+                        const qr = Math.floor(r/level)*level;
+                        const qg = Math.floor(g/level)*level;
+                        const qb = Math.floor(b/level)*level;
+                        // Boost saturation slightly
+                        outData[i] = Math.min(255, qr * 1.1);
+                        outData[i+1] = Math.min(255, qg * 1.1);
+                        outData[i+2] = Math.min(255, qb * 1.1);
+                    }
+                    else if (isColor) {
+                        // Crayon / Pastel: Texture + Color
+                        const intensity = Math.min(diff * 2, 100);
+                        const edge = 50 - (intensity / 4);
+                        
+                        if(isEdge) {
+                            // Colored Edge (Darker version of color)
+                            outData[i] = r * 0.5; outData[i+1] = g * 0.5; outData[i+2] = b * 0.5;
+                        } else {
+                            // Pastel fill: Multiply original color with white paper to get "pigment on paper" look
+                            // And slight noise for wax texture
+                            const noise = (Math.random() * 10) - 5;
+                            outData[i] = Math.min(255, (r + 80) + noise);
+                            outData[i+1] = Math.min(255, (g + 80) + noise);
+                            outData[i+2] = Math.min(255, (b + 80) + noise);
+                        }
+                    }
+                    else {
+                        // Pencil (B&W)
+                        if (isEdge) {
+                            const intensity = Math.min(diff * 2, 150);
+                            const edgeColor = 60 - (intensity / 5);
+                            outData[i] = edgeColor; outData[i+1] = edgeColor; outData[i+2] = edgeColor;
+                        } else {
+                            const paper = 250 + (Math.random() * 5);
+                            outData[i] = paper; outData[i+1] = paper; outData[i+2] = paper;
                         }
                     }
                     outData[i+3] = 255;
@@ -847,8 +884,6 @@
             }
             
             sketchCtx.putImageData(output, 0, 0);
-            
-            // Draw without smoothing for crispness, but high res makes it look fine
             destCtx.imageSmoothingEnabled = true; 
             destCtx.drawImage(sketchCanvas, 0, 0, width, height);
         }
@@ -875,7 +910,6 @@
             document.getElementById('lbl-real').classList.toggle('active', !isSketchMode);
             document.getElementById('lbl-sketch').classList.toggle('active', isSketchMode);
             
-            // Reset to first mode of the new set
             currentModeIdx = 0;
             
             if (isSketchMode) {
@@ -906,8 +940,7 @@
             if (!video.srcObject || !video.srcObject.active || video.paused) return;
             
             if (isSketchMode) {
-                const useColor = (mode.id === 'SKETCH_COL');
-                applySketchEffect(video, processCtx, w, h, useColor);
+                applySketchEffect(video, processCtx, w, h, mode.id);
             } else {
                 // Standard Video Feed
                 processCtx.drawImage(video, 0, 0, w, h);
@@ -1011,7 +1044,6 @@
                        handleShutter(e);
                    }, 400);
                } else {
-                   // Instant snap in Sketch Mode
                    handleShutter(e);
                }
             }
@@ -1044,7 +1076,6 @@
             setTimeout(() => { performCapture(); btn.classList.remove('pressed'); }, 150);
         }
 
-        // Generate Light Leak (Real Mode Only)
         function generateLightLeak(ctx, w, h) {
             ctx.save(); ctx.globalCompositeOperation = 'screen'; 
             const leakCount = Math.random() > 0.7 ? 2 : 1; 
@@ -1158,16 +1189,15 @@
                     let dateX = (style === 'white') ? w - padSide - 30 : ((style === 'film') ? w - 50 : w - 60); let dateY = (style === 'white' || style === 'film') ? h - padBottom - 30 : h - 50;
                     
                     if (isSketchMode) {
-                        // Sketch: Handwritten, Dark Grey, No Glow, Slightly Tilted
+                        // Sketch: Handwritten, Dark Grey
                         ctx.save();
                         ctx.shadowBlur = 0;
                         ctx.fillStyle = 'rgba(50, 50, 50, 0.85)';
-                        // Trying standard cursive fonts available on most systems
-                        ctx.font = `normal 45px "Segoe Print", "Comic Sans MS", "Chalkboard SE", cursive`;
+                        ctx.font = `normal 45px "Segoe Print", "Comic Sans MS", cursive`;
                         ctx.textAlign = 'right'; 
                         ctx.textBaseline = 'bottom';
                         ctx.translate(dateX, dateY);
-                        ctx.rotate(-0.05); // Slight tilt
+                        ctx.rotate(-0.05);
                         ctx.fillText(dateStr, 0, 0);
                         ctx.restore();
                     } else {
