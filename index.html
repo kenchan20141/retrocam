@@ -11,7 +11,8 @@
 <title>Retro Cam Ultimate</title>
 <style>
     :root {
-        --leather-color: #181818;
+        /* [修改] 調整皮革底色，配合 SVG 紋理 */
+        --leather-color: #1a1a1a;
         --metal-grad: linear-gradient(to bottom, #f0f0f0 0%, #d0d0d0 15%, #b0b0b0 40%, #8a8a8a 100%);
         --shutter-grey: linear-gradient(to bottom, #e0e0e0, #999);
     }
@@ -27,10 +28,10 @@
     #orientation-lock svg { width: 60px; height: 60px; fill: #fff; animation: rotatePhone 2s infinite; }
     @keyframes rotatePhone { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-90deg); } }
 
-    /* 相機容器 - [修改] 增加邊緣光 drop-shadow 以區分黑色背景 */
+    /* 相機容器 */
     #camera-container {
         width: 760px; height: 420px; position: relative; transform-origin: center;
-        /* 第一層 shadow 是微弱白光(輪廓光)，第二層是原本的投影 */
+        /* 邊緣光 */
         filter: drop-shadow(0 0 1px rgba(255,255,255,0.3)) drop-shadow(0 30px 60px rgba(0,0,0,0.9)); 
         display: none;
         transform-style: preserve-3d; 
@@ -39,7 +40,6 @@
     .top-plate {
         width: 100%; height: 110px; background: var(--metal-grad);
         border-radius: 12px 12px 2px 2px; position: relative; z-index: 10;
-        /* [修改] 增加頂蓋邊框清晰度 */
         border: 1px solid rgba(255,255,255,0.3);
         border-bottom: 1px solid #555; 
         box-shadow: inset 0 1px 0 rgba(255,255,255,0.8);
@@ -81,12 +81,11 @@
         perspective: 1000px;
     }
 
-    /* 機背鎖扣 - [修改] 增加邊框 */
+    /* 機背鎖扣 */
     .back-lock {
         position: absolute; top: 40px; right: -12px; width: 12px; height: 40px;
         background: linear-gradient(to bottom, #444, #222);
         border: 1px solid #222; border-left: none; border-radius: 0 4px 4px 0;
-        /* 增加邊緣高光 */
         border-top: 1px solid #555; border-bottom: 1px solid #555; border-right: 1px solid #555;
         cursor: pointer; z-index: 20;
         box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
@@ -103,17 +102,22 @@
     }
     .back-door-wrapper.open { transform: rotateY(-100deg); }
 
+    /* 
+       [重要修訂] 使用 SVG Data URI 來模擬真實荔枝紋皮革 
+       feTurbulence 產生不規則紋理
+       feDiffuseLighting 產生立體光影
+    */
     .back-door-face {
         width: 100%; height: 100%; position: absolute; top: 0; left: 0;
         background-color: var(--leather-color);
-        background-image: radial-gradient(rgba(0,0,0,0.4) 15%, transparent 16%), radial-gradient(rgba(255,255,255,0.05) 15%, transparent 16%);
-        background-size: 6px 6px; background-position: 0 0, 3px 3px;
+        /* 荔枝紋皮革紋理 SVG */
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='leather'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch' result='noise'/%3E%3CfeDiffuseLighting in='noise' lighting-color='%23999' surfaceScale='1.5'%3E%3CfeDistantLight azimuth='45' elevation='50'/%3E%3C/feDiffuseLighting%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23leather)' opacity='0.35'/%3E%3C/svg%3E");
+        background-size: 150px 150px;
         border-radius: 0 0 8px 8px; 
-        /* [修改] 增加機身邊框線和內發光，使其從背景中分離 */
         border-left: 1px solid #333;
         border-right: 1px solid #333;
         border-bottom: 1px solid #333;
-        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.1), inset 0 0 60px rgba(0,0,0,1);
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05), inset 0 0 60px rgba(0,0,0,0.8);
         backface-visibility: hidden;
     }
     .back-door-interior {
@@ -121,7 +125,7 @@
         background: #1a1a1a; border-radius: 0 0 8px 8px; transform: rotateY(180deg);
         backface-visibility: hidden; box-shadow: inset 0 0 20px #000;
         display: flex; justify-content: center; align-items: center;
-        border: 1px solid #333; /* 內部也要有邊框 */
+        border: 1px solid #333; 
     }
     .pressure-plate { width: 90%; height: 80%; background: repeating-linear-gradient(90deg, #222, #222 20px, #111 20px, #111 22px); border: 2px solid #000; box-shadow: inset 0 0 10px #000; }
 
@@ -130,7 +134,6 @@
         width: 100%; height: 100%; background: #0a0a0a; border-radius: 0 0 8px 8px;
         box-shadow: inset 0 0 40px #000; position: absolute; top: 0; left: 0; z-index: 1;
         display: flex; flex-direction: column; overflow: hidden;
-        /* 增加邊框 */
         border-left: 1px solid #333;
         border-right: 1px solid #333;
         border-bottom: 1px solid #333;
@@ -640,7 +643,6 @@
                 video.srcObject = stream;
                 video.onloadedmetadata = () => { 
                     video.play(); 
-                    // [修復] 確保權限獲取後，更新界面狀態
                     checkOrientation();
                     renderLoop(); 
                 };
@@ -1165,4 +1167,4 @@
 
     </script>
 </body>
-</html>
+    </html>
