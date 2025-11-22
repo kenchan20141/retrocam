@@ -241,6 +241,18 @@
     }
     .export-opt-group { margin-top: 20px; display: flex; gap: 20px; }
 
+    /* [新增] 放大檢視層 */
+    #zoom-overlay {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.95); z-index: 5000; display: none;
+        justify-content: center; align-items: center; cursor: zoom-out;
+    }
+    #zoom-img {
+        max-width: 95%; max-height: 95%;
+        box-shadow: 0 0 20px #000; object-fit: contain;
+        transition: transform 0.3s ease;
+    }
+
     @keyframes pulse { 0%,100% {opacity:0.5} 50% {opacity:1}}
     
     @keyframes developProcess {
@@ -362,6 +374,11 @@
             <img id="dev-image-wrap" src="" alt="Developing">
         </div>
         <div class="dev-status-text" id="devStatus">DEVELOPING...</div>
+    </div>
+    
+    <!-- [新增] 放大檢視 -->
+    <div id="zoom-overlay">
+        <img id="zoom-img" src="" alt="Zoomed Photo">
     </div>
 
     <div id="export-modal">
@@ -534,6 +551,10 @@
         const modeTitle = document.getElementById('modeTitle');
         const modeSub = document.getElementById('modeSub');
         const fsPrompt = document.getElementById('fullscreen-prompt');
+        
+        // [新增] 放大檢視相關元素
+        const zoomOverlay = document.getElementById('zoom-overlay');
+        const zoomImg = document.getElementById('zoom-img');
 
         function updateModeUI() {
             const m = MODES[currentModeIdx];
@@ -672,7 +693,6 @@
             }
         }
 
-        // Viewfinder Event Handlers
         vfTrigger.addEventListener('click', (e) => {
             e.stopPropagation();
             if (video.readyState >= 2) {
@@ -807,7 +827,7 @@
             });
         });
 
-        // 繪製邏輯：邊框與日期 (修正版)
+        // 繪製邏輯
         function applyFrameAndDate(imgUrl, dateObj, style) {
             return new Promise(resolve => {
                 const img = new Image();
@@ -874,7 +894,7 @@
             });
         }
 
-        // 序號合成 (修正版：位置)
+        // 序號合成
         function overlaySerial(imgUrl, serialNo, style) {
             return new Promise(resolve => {
                 const img = new Image();
@@ -994,10 +1014,39 @@
                 seq.textContent = `No.${p.serial}`;
                 div.appendChild(img);
                 div.appendChild(seq);
-                div.addEventListener('click', () => toggleSelection(div, p.id));
+                
+                // [修改] 單點/雙點 邏輯
+                div.onclick = (e) => {
+                    // 如果有雙點鎖定 (例如快速點擊)
+                    if (div.getAttribute('data-dblclick-lock')) return;
+
+                    if (!div.clickTimeout) {
+                        div.clickTimeout = setTimeout(() => {
+                            div.clickTimeout = null;
+                            // 單點行為：選取
+                            toggleSelection(div, p.id);
+                        }, 250); // 250ms 延遲等待雙點
+                    } else {
+                        clearTimeout(div.clickTimeout);
+                        div.clickTimeout = null;
+                        // 雙點行為：放大
+                        showZoom(p.image);
+                    }
+                };
+                
                 albumGrid.appendChild(div);
             });
         }
+        
+        // [新增] 顯示/隱藏放大層
+        function showZoom(imgSrc) {
+            zoomImg.src = imgSrc;
+            zoomOverlay.style.display = 'flex';
+        }
+        
+        zoomOverlay.addEventListener('click', () => {
+            zoomOverlay.style.display = 'none';
+        });
 
         function toggleSelection(el, id) {
             if (selectedAlbumIds.has(id)) { selectedAlbumIds.delete(id); el.classList.remove('selected'); } 
@@ -1020,7 +1069,7 @@
             if (confirm("DELETE SELECTED PHOTOS?")) {
                 const idsToRemove = Array.from(selectedAlbumIds);
                 await deleteFromAlbum(idsToRemove);
-                await loadAlbum(); // Refresh grid only
+                await loadAlbum(); 
             }
         });
 
@@ -1078,8 +1127,6 @@
 
             const idsToRemove = selectedData.map(p => p.id);
             await deleteFromAlbum(idsToRemove);
-
-            // Auto reset to camera
             resetToCameraUI();
         }
 
@@ -1114,4 +1161,4 @@
 
     </script>
 </body>
-</html>
+    </html>
