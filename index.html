@@ -8,7 +8,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Retrocam</title>
+<title>Retrocam Ultimate Seamless</title>
 <style>
     :root {
         --leather-color: #151515;
@@ -40,98 +40,40 @@
     }
 
     /* --- LAYOUT CONFIGURATION --- */
-    
-    .viewfinder-wrap { 
-        position: absolute; top: 15px; left: 30px;
-        width: 120px; height: 80px; 
-        background: #111; border: 3px solid #666; border-radius: 4px; 
-        box-shadow: 0 2px 5px rgba(0,0,0,0.4); overflow: hidden; cursor: zoom-in; z-index: 12; transition: opacity 0.3s; 
-    }
+    .viewfinder-wrap { position: absolute; top: 15px; left: 30px; width: 120px; height: 80px; background: #111; border: 3px solid #666; border-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.4); overflow: hidden; cursor: zoom-in; z-index: 12; transition: opacity 0.3s; }
     .vf-glass { width: 100%; height: 100%; opacity: 0.9; display: block; }
-
-    /* Function Group (Right of VF) */
-    .function-group {
-        position: absolute; top: 18px; left: 170px;
-        width: 100px; height: 80px;
-        display: flex; flex-direction: column; gap: 12px;
-        z-index: 25;
-    }
-
+    .function-group { position: absolute; top: 18px; left: 170px; width: 100px; height: 80px; display: flex; flex-direction: column; gap: 12px; z-index: 25; }
     .top-row-btns { display: flex; gap: 12px; align-items: center; }
-
-    /* Lock Button */
-    .flat-lock-btn {
-        width: 50px; height: 26px;
-        background: linear-gradient(to bottom, #e0e0e0, #bbb);
-        border: 1px solid #888; border-radius: 2px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.8);
-        display: flex; justify-content: center; align-items: center;
-        cursor: pointer; position: relative;
-    }
+    .flat-lock-btn { width: 50px; height: 26px; background: linear-gradient(to bottom, #e0e0e0, #bbb); border: 1px solid #888; border-radius: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.8); display: flex; justify-content: center; align-items: center; cursor: pointer; position: relative; }
     .flat-lock-btn:active { background: #bbb; box-shadow: inset 0 1px 3px rgba(0,0,0,0.4); transform: translateY(1px); }
-    .flat-lock-btn span {
-        font-family: sans-serif; font-size: 9px; font-weight: bold; color: #555;
-        letter-spacing: 1px; transition: all 0.2s;
-    }
-    .flat-lock-btn.locked {
-        background: #333; border-color: #000;
-        box-shadow: inset 0 0 5px #000;
-    }
+    .flat-lock-btn span { font-family: sans-serif; font-size: 9px; font-weight: bold; color: #555; letter-spacing: 1px; transition: all 0.2s; }
+    .flat-lock-btn.locked { background: #333; border-color: #000; box-shadow: inset 0 0 5px #000; }
     .flat-lock-btn.locked span { color: #ff9900; text-shadow: 0 0 5px rgba(255, 153, 0, 0.8); }
-
-    /* Selfie Toggle */
-    .selfie-btn {
-        width: 26px; height: 26px;
-        background: radial-gradient(#ddd, #999);
-        border: 1px solid #777; border-radius: 50%;
-        cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.4);
-        display: flex; justify-content: center; align-items: center; z-index: 30;
-    }
+    .selfie-btn { width: 26px; height: 26px; background: radial-gradient(#ddd, #999); border: 1px solid #777; border-radius: 50%; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.4); display: flex; justify-content: center; align-items: center; z-index: 30; }
     .selfie-btn::after { content: '↻'; font-size: 14px; font-weight: bold; color: #333; transition: transform 0.3s; }
     .selfie-btn:active::after { transform: rotate(180deg); }
-
-    /* REAL/ART Switch - Modified Layout: REAL [Switch] ART */
-    .compact-switch-container {
-        display: flex; align-items: center; justify-content: center; gap: 8px;
-        background: rgba(0,0,0,0.05); padding: 4px 6px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.2);
-        cursor: pointer;
-    }
+    .compact-switch-container { display: flex; align-items: center; justify-content: center; gap: 8px; background: rgba(0,0,0,0.05); padding: 4px 6px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.2); cursor: pointer; }
     .cs-label { font-size: 9px; font-weight: bold; color: #555; font-family: sans-serif; }
     .cs-label.active { color: #000; }
     .cs-track { width: 30px; height: 8px; background: #333; border-radius: 4px; position: relative; box-shadow: inset 0 1px 2px #000; }
-    .cs-knob { 
-        width: 14px; height: 12px; background: repeating-linear-gradient(90deg, #ccc, #ccc 1px, #999 1px, #999 2px); 
-        border-radius: 2px; position: absolute; top: -2px; left: 0; 
-        box-shadow: 0 1px 2px rgba(0,0,0,0.5); border: 1px solid #555; transition: left 0.3s; 
-    }
+    .cs-knob { width: 14px; height: 12px; background: repeating-linear-gradient(90deg, #ccc, #ccc 1px, #999 1px, #999 2px); border-radius: 2px; position: absolute; top: -2px; left: 0; box-shadow: 0 1px 2px rgba(0,0,0,0.5); border: 1px solid #555; transition: left 0.3s; }
     .compact-switch-container.mode-sketch .cs-knob { left: 16px; }
 
-    /* SELFIE MODE HIDING LOGIC */
     body.is-selfie .viewfinder-wrap { display: none !important; }
     body.is-selfie .flat-lock-btn { display: none !important; }
     body.is-selfie .compact-switch-container { display: none !important; }
 
-    /* Serial Number */
-    .serial-number { 
-        position: absolute; top: 75px; left: 520px; 
-        font-size: 12px; letter-spacing: 1px; font-weight: bold; color: #444; 
-        text-shadow: 0 1px 0 rgba(255,255,255,0.6); font-family: 'Courier New', Courier, monospace; 
-        pointer-events: none; z-index: 15;
-    }
-
+    .serial-number { position: absolute; top: 75px; left: 520px; font-size: 12px; letter-spacing: 1px; font-weight: bold; color: #444; text-shadow: 0 1px 0 rgba(255,255,255,0.6); font-family: 'Courier New', Courier, monospace; pointer-events: none; z-index: 15; }
     .shutter-release-btn { position: absolute; top: -12px; right: 55px; width: 46px; height: 18px; background: var(--shutter-grey); border-radius: 4px 4px 0 0; border: 1px solid #888; border-bottom: none; cursor: pointer; z-index: 5; box-shadow: inset 0 1px 2px rgba(255,255,255,0.8), 0 -2px 5px rgba(0,0,0,0.2); transition: transform 0.1s cubic-bezier(0.1, 0.7, 1.0, 0.1); }
     .shutter-release-btn.pressed { transform: translateY(8px); transition: transform 0.05s ease-out; }
-    
     .prism-hump { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); width: 140px; height: 125px; z-index: 11; clip-path: polygon(25% 0%, 75% 0%, 100% 100%, 0% 100%); background: linear-gradient(to bottom, #d0d0d0 0%, #b0b0b0 50%, #808080 100%); box-shadow: inset 0 0 10px rgba(0,0,0,0.2); display: flex; justify-content: center; }
     .prism-hump::after { content: ''; width: 1px; height: 100%; background: rgba(0,0,0,0.1); }
     
     .lever-base { position: absolute; top: 35px; right: 100px; width: 50px; height: 50px; border-radius: 50%; background: radial-gradient(#ccc, #999); border: 1px solid #666; z-index: 5; box-shadow: inset 0 1px 2px rgba(255,255,255,0.5); }
     .lever-base.glow { box-shadow: 0 0 15px #ffaa00, inset 0 0 5px #fff; border-color: #ffaa00; animation: glowPulse 1s infinite alternate; }
     @keyframes glowPulse { from { opacity: 0.6; } to { opacity: 1; } }
-    
     .advance-lever { position: absolute; top: 48px; right: 105px; width: 120px; height: 18px; background: linear-gradient(to right, #222, #444); border-radius: 4px; transform-origin: 110px 9px; transform: rotate(10deg); cursor: grab; box-shadow: 2px 2px 4px rgba(0,0,0,0.6); z-index: 6; display: flex; align-items: center; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
     .lever-grip { width: 30px; height: 24px; background: #111; border-radius: 4px 0 0 4px; margin-left: -2px; box-shadow: inset 1px 1px 2px rgba(255,255,255,0.2); }
-    
     .right-controls { position: absolute; top: 20px; right: 20px; width: 60px; height: 80px; z-index: 15; display: flex; flex-direction: column; align-items: center; }
     .counter-window { width: 36px; height: 24px; background: #111; border: 1px solid #666; border-radius: 2px; margin-bottom: 10px; box-shadow: inset 0 0 5px #000; display: flex; justify-content: center; align-items: center; }
     .counter-digits { color: #ff9900; font-family: 'Courier New', monospace; font-weight: bold; font-size: 14px; text-shadow: 0 0 2px #ff5500; }
@@ -140,185 +82,190 @@
     .switch-track { width: 36px; height: 14px; background: #333; border-radius: 10px; position: relative; box-shadow: inset 0 1px 3px #000; }
     .switch-knob { width: 18px; height: 18px; background: radial-gradient(#eee, #999); border-radius: 50%; position: absolute; top: -2px; left: 0; box-shadow: 0 1px 2px rgba(0,0,0,0.5); border: 1px solid #666; transition: left 0.3s; }
     .mode-switch-container.mode-36 .switch-knob { left: 18px; }
-    
     .ready-light { position: absolute; top: 20px; right: 165px; width: 8px; height: 8px; background: #300; border-radius: 50%; box-shadow: inset 0 0 2px #000; transition: background 0.3s; z-index: 15; }
     .ready-light.active { background: #f00; box-shadow: 0 0 8px #f00, inset 0 0 2px #fff; }
 
     .front-controls-group { display: none; } 
-    
-    /* CABLE RELEASE (RESTORED) */
-    .cable-release-container {
-        position: absolute; top: -100px; left: 0; width: 100%; height: 150%;
-        pointer-events: none; z-index: 30;
-        overflow: visible; display: none;
-    }
+    .cable-release-container { position: absolute; top: -100px; left: 0; width: 100%; height: 150%; pointer-events: none; z-index: 30; overflow: visible; display: none; }
     body.is-selfie .cable-release-container { display: block; }
-    
-    .cable-plunger-wrapper {
-        position: absolute; 
-        top: 320px;   
-        right: -90px;
-        width: 60px; height: 120px;
-        pointer-events: auto; cursor: pointer;
-        display: flex; flex-direction: column; align-items: center;
-        transform: rotate(-10deg);
-    }
-    
-    .cable-button-head {
-        width: 28px; height: 18px;
-        background: radial-gradient(circle at 30% 30%, #ff3333, #aa0000);
-        border-radius: 50% 50% 5px 5px;
-        border: 1px solid #333; border-bottom: none;
-        position: relative; z-index: 3;
-        box-shadow: inset 0 2px 3px rgba(255,255,255,0.4);
-        transition: transform 0.1s;
-    }
-    
-    .cable-stem {
-        width: 8px; height: 20px;
-        background: linear-gradient(to right, #999, #eee, #777);
-        border: 1px solid #555;
-        margin-top: -2px; position: relative; z-index: 2;
-        transition: height 0.1s, transform 0.1s;
-    }
-    
-    .cable-disc {
-        width: 46px; height: 12px;
-        background: linear-gradient(to bottom, #ccc, #888);
-        border-radius: 50%; border: 1px solid #444;
-        margin-top: -2px; position: relative; z-index: 2;
-        box-shadow: 0 3px 5px rgba(0,0,0,0.4);
-    }
-    
-    .cable-grip-body {
-        width: 16px; height: 70px;
-        background: repeating-linear-gradient(45deg, #666, #666 2px, #888 2px, #888 4px);
-        border: 1px solid #333; border-radius: 0 0 4px 4px;
-        margin-top: -6px; position: relative; z-index: 1;
-        box-shadow: 3px 3px 8px rgba(0,0,0,0.6);
-    }
-    
+    .cable-plunger-wrapper { position: absolute; top: 320px; right: -90px; width: 60px; height: 120px; pointer-events: auto; cursor: pointer; display: flex; flex-direction: column; align-items: center; transform: rotate(-10deg); }
+    .cable-button-head { width: 28px; height: 18px; background: radial-gradient(circle at 30% 30%, #ff3333, #aa0000); border-radius: 50% 50% 5px 5px; border: 1px solid #333; border-bottom: none; position: relative; z-index: 3; box-shadow: inset 0 2px 3px rgba(255,255,255,0.4); transition: transform 0.1s; }
+    .cable-stem { width: 8px; height: 20px; background: linear-gradient(to right, #999, #eee, #777); border: 1px solid #555; margin-top: -2px; position: relative; z-index: 2; transition: height 0.1s, transform 0.1s; }
+    .cable-disc { width: 46px; height: 12px; background: linear-gradient(to bottom, #ccc, #888); border-radius: 50%; border: 1px solid #444; margin-top: -2px; position: relative; z-index: 2; box-shadow: 0 3px 5px rgba(0,0,0,0.4); }
+    .cable-grip-body { width: 16px; height: 70px; background: repeating-linear-gradient(45deg, #666, #666 2px, #888 2px, #888 4px); border: 1px solid #333; border-radius: 0 0 4px 4px; margin-top: -6px; position: relative; z-index: 1; box-shadow: 3px 3px 8px rgba(0,0,0,0.6); }
     .cable-plunger-wrapper.pressed .cable-button-head { transform: translateY(12px); }
     .cable-plunger-wrapper.pressed .cable-stem { height: 8px; transform: translateY(12px); }
 
-    .front-viewfinder-frame {
-        position: absolute; top: 15px; right: 40px; width: 90px; height: 65px;
-        background: #111; border: 2px solid #666; border-radius: 3px;
-        box-shadow: inset 0 0 5px #000, 0 1px 2px rgba(0,0,0,0.3);
-        overflow: hidden; cursor: zoom-in; z-index: 16;
-    }
+    .front-viewfinder-frame { position: absolute; top: 15px; right: 40px; width: 90px; height: 65px; background: #111; border: 2px solid #666; border-radius: 3px; box-shadow: inset 0 0 5px #000, 0 1px 2px rgba(0,0,0,0.3); overflow: hidden; cursor: zoom-in; z-index: 16; }
     .front-vf-glass { width: 100%; height: 100%; transform: scaleX(-1); }
-
     .camera-body { width: 100%; height: 310px; position: relative; border-radius: 0 0 8px 8px; perspective: 1000px; transform-style: preserve-3d; }
 
-    .back-lock {
-        position: absolute; top: 40px; right: -12px; width: 12px; height: 40px;
-        background: linear-gradient(to bottom, #444, #222);
-        border: 1px solid #222; border-left: none; border-radius: 0 4px 4px 0;
-        border-top: 1px solid #555; border-bottom: 1px solid #555; border-right: 1px solid #555;
-        cursor: pointer; z-index: 20; box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
-        display: flex; flex-direction: column; justify-content: center; align-items: center;
-    }
+    .back-lock { position: absolute; top: 40px; right: -12px; width: 12px; height: 40px; background: linear-gradient(to bottom, #444, #222); border: 1px solid #222; border-left: none; border-radius: 0 4px 4px 0; border-top: 1px solid #555; border-bottom: 1px solid #555; border-right: 1px solid #555; cursor: pointer; z-index: 20; box-shadow: 2px 2px 5px rgba(0,0,0,0.5); display: flex; flex-direction: column; justify-content: center; align-items: center; }
     .back-lock::after { content: ''; width: 4px; height: 20px; background: #111; border-radius: 2px; }
     .back-lock:active { transform: translateX(2px); }
 
-    .back-door-wrapper {
-        width: 100%; height: 100%; position: absolute; top: 0; left: 0;
-        transform-origin: left center; transform-style: preserve-3d;
-        transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1); z-index: 5;
-    }
+    .back-door-wrapper { width: 100%; height: 100%; position: absolute; top: 0; left: 0; transform-origin: left center; transform-style: preserve-3d; transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1); z-index: 5; }
     .back-door-wrapper.open { transform: rotateY(-100deg); }
-
-    .back-door-face {
-        width: 100%; height: 100%; position: absolute; top: 0; left: 0;
-        background-color: var(--leather-color);
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='leather'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='4' stitchTiles='stitch' result='noise'/%3E%3CfeSpecularLighting in='noise' specularConstant='1.5' specularExponent='30' surfaceScale='4.0' lighting-color='%23eee'%3E%3CfeDistantLight azimuth='45' elevation='50'/%3E%3C/feSpecularLighting%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23leather)' opacity='0.5'/%3E%3C/svg%3E");
-        background-size: 140px 140px;
-        border-radius: 0 0 8px 8px; 
-        border-left: 1px solid #333; border-right: 1px solid #333; border-bottom: 1px solid #333;
-        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08), inset 0 0 50px rgba(0,0,0,0.9);
-        backface-visibility: hidden;
-    }
-    .back-door-interior {
-        width: 100%; height: 100%; position: absolute; top: 0; left: 0;
-        background: #1a1a1a; border-radius: 0 0 8px 8px; transform: rotateY(180deg);
-        backface-visibility: hidden; box-shadow: inset 0 0 20px #000;
-        display: flex; justify-content: center; align-items: center; border: 1px solid #333; 
-    }
+    .back-door-face { width: 100%; height: 100%; position: absolute; top: 0; left: 0; background-color: var(--leather-color); background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='leather'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='4' stitchTiles='stitch' result='noise'/%3E%3CfeSpecularLighting in='noise' specularConstant='1.5' specularExponent='30' surfaceScale='4.0' lighting-color='%23eee'%3E%3CfeDistantLight azimuth='45' elevation='50'/%3E%3C/feSpecularLighting%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23leather)' opacity='0.5'/%3E%3C/svg%3E"); background-size: 140px 140px; border-radius: 0 0 8px 8px; border-left: 1px solid #333; border-right: 1px solid #333; border-bottom: 1px solid #333; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08), inset 0 0 50px rgba(0,0,0,0.9); backface-visibility: hidden; }
+    .back-door-interior { width: 100%; height: 100%; position: absolute; top: 0; left: 0; background: #1a1a1a; border-radius: 0 0 8px 8px; transform: rotateY(180deg); backface-visibility: hidden; box-shadow: inset 0 0 20px #000; display: flex; justify-content: center; align-items: center; border: 1px solid #333; }
     .pressure-plate { width: 90%; height: 80%; background: repeating-linear-gradient(90deg, #222, #222 20px, #111 20px, #111 22px); border: 2px solid #000; box-shadow: inset 0 0 10px #000; }
-
-    .camera-front-face {
-        width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 6;
-        background-color: var(--leather-color);
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='leather'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='4' stitchTiles='stitch' result='noise'/%3E%3CfeSpecularLighting in='noise' specularConstant='1.5' specularExponent='30' surfaceScale='4.0' lighting-color='%23eee'%3E%3CfeDistantLight azimuth='45' elevation='50'/%3E%3C/feSpecularLighting%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23leather)' opacity='0.5'/%3E%3C/svg%3E");
-        background-size: 140px 140px;
-        border-radius: 0 0 8px 8px;
-        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08), inset 0 0 50px rgba(0,0,0,0.9);
-        display: none;
-        justify-content: center; align-items: center;
-    }
-
-    .realistic-lens {
-        width: 220px; height: 220px; border-radius: 50%;
-        background: linear-gradient(135deg, #333 0%, #111 100%);
-        border: 4px solid #222;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.8), inset 0 2px 5px rgba(255,255,255,0.1);
-        display: flex; justify-content: center; align-items: center;
-        position: relative;
-    }
-    .lens-barrel {
-        width: 200px; height: 200px; border-radius: 50%;
-        border: 8px solid #111; background: #000;
-        display: flex; justify-content: center; align-items: center;
-        position: relative;
-    }
-    
-    .lens-glass-element {
-        width: 160px; height: 160px; border-radius: 50%;
-        background: radial-gradient(circle at 50% 50%, #1a0b2e 0%, #000 80%);
-        position: relative; overflow: hidden;
-        box-shadow: inset 0 0 40px #000;
-    }
-    .lens-glass-element::before {
-        content: ''; position: absolute; top: -30%; left: -30%; width: 160%; height: 160%;
-        background: radial-gradient(circle at 35% 35%, rgba(138, 43, 226, 0.25) 0%, transparent 50%);
-        filter: blur(8px); pointer-events: none;
-    }
-    .lens-reflection {
-        position: absolute; top: 25%; left: 25%; width: 30px; height: 15px;
-        background: rgba(255,255,255,0.3); border-radius: 50%;
-        transform: rotate(-45deg); filter: blur(4px); pointer-events: none; z-index: 2;
-    }
-
-    .shutter-flash-overlay {
-        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-        background: #fff; border-radius: 50%; opacity: 0; pointer-events: none;
-        z-index: 5;
-    }
+    .camera-front-face { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 6; background-color: var(--leather-color); background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='leather'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='4' stitchTiles='stitch' result='noise'/%3E%3CfeSpecularLighting in='noise' specularConstant='1.5' specularExponent='30' surfaceScale='4.0' lighting-color='%23eee'%3E%3CfeDistantLight azimuth='45' elevation='50'/%3E%3C/feSpecularLighting%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23leather)' opacity='0.5'/%3E%3C/svg%3E"); background-size: 140px 140px; border-radius: 0 0 8px 8px; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08), inset 0 0 50px rgba(0,0,0,0.9); display: none; justify-content: center; align-items: center; }
+    .realistic-lens { width: 220px; height: 220px; border-radius: 50%; background: linear-gradient(135deg, #333 0%, #111 100%); border: 4px solid #222; box-shadow: 0 10px 25px rgba(0,0,0,0.8), inset 0 2px 5px rgba(255,255,255,0.1); display: flex; justify-content: center; align-items: center; position: relative; }
+    .lens-barrel { width: 200px; height: 200px; border-radius: 50%; border: 8px solid #111; background: #000; display: flex; justify-content: center; align-items: center; position: relative; }
+    .lens-glass-element { width: 160px; height: 160px; border-radius: 50%; background: radial-gradient(circle at 50% 50%, #1a0b2e 0%, #000 80%); position: relative; overflow: hidden; box-shadow: inset 0 0 40px #000; }
+    .lens-glass-element::before { content: ''; position: absolute; top: -30%; left: -30%; width: 160%; height: 160%; background: radial-gradient(circle at 35% 35%, rgba(138, 43, 226, 0.25) 0%, transparent 50%); filter: blur(8px); pointer-events: none; }
+    .lens-reflection { position: absolute; top: 25%; left: 25%; width: 30px; height: 15px; background: rgba(255,255,255,0.3); border-radius: 50%; transform: rotate(-45deg); filter: blur(4px); pointer-events: none; z-index: 2; }
+    .shutter-flash-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #fff; border-radius: 50%; opacity: 0; pointer-events: none; z-index: 5; }
     .shutter-flash-overlay.flash { animation: lensFlash 0.15s ease-out; }
     @keyframes lensFlash { 0% { opacity: 0.8; } 100% { opacity: 0; } }
+    .camera-interior { width: 100%; height: 100%; background: #0a0a0a; border-radius: 0 0 8px 8px; box-shadow: inset 0 0 40px #000; position: absolute; top: 0; left: 0; z-index: 1; display: flex; flex-direction: column; overflow: hidden; border-left: 1px solid #333; border-right: 1px solid #333; border-bottom: 1px solid #333; }
 
-    .camera-interior {
-        width: 100%; height: 100%; background: #0a0a0a; border-radius: 0 0 8px 8px;
-        box-shadow: inset 0 0 40px #000; position: absolute; top: 0; left: 0; z-index: 1;
-        display: flex; flex-direction: column; overflow: hidden;
-        border-left: 1px solid #333; border-right: 1px solid #333; border-bottom: 1px solid #333;
-    }
-    .album-container { flex: 1; padding: 20px; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 15px; align-content: flex-start; }
+    /* --- ALBUM GRID VIEW (Small Thumbnails) --- */
+    .album-container { flex: 1; padding: 20px; overflow-y: auto; display: none; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 15px; align-content: flex-start; }
+    .album-container.active { display: grid; }
     .album-container::-webkit-scrollbar { width: 8px; }
     .album-container::-webkit-scrollbar-track { background: #111; }
     .album-container::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
 
-    .album-photo { position: relative; border: 2px solid #333; cursor: pointer; transition: transform 0.2s, border-color 0.2s; aspect-ratio: 16 / 9; background: #000; }
-    .album-photo img { width: 100%; height: 100%; object-fit: contain; display: block; }
+    .album-photo { position: relative; border: 2px solid #333; cursor: pointer; transition: transform 0.2s, border-color 0.2s; aspect-ratio: 16 / 9; background: #000; width: 100%; }
+    .album-photo img { width: 100%; height: 100%; object-fit: cover; }
     .album-photo.selected { border-color: #c00; transform: scale(0.95); }
     .album-photo.selected::after { content: '✔'; position: absolute; top: 2px; right: 2px; background: #c00; color: white; font-size: 12px; padding: 2px 4px; }
     .album-seq { position: absolute; top: 2px; left: 2px; font-family: 'Courier New'; font-size: 10px; color: #ff9900; background: rgba(0,0,0,0.7); padding: 1px 3px; }
 
-    .album-controls { height: 50px; background: #181818; border-top: 1px solid #333; display: flex; justify-content: flex-end; align-items: center; padding: 0 20px; gap: 15px; }
-    .album-btn { background: transparent; border: 1px solid #666; color: #888; font-family: 'Courier New', monospace; padding: 5px 10px; cursor: pointer; font-size: 12px; }
+    /* --- SEAMLESS FILM STRIP VIEW (No Slices) --- */
+    .film-strip-view {
+        flex: 1;
+        display: none;
+        flex-direction: row;
+        overflow-x: auto;
+        overflow-y: hidden;
+        white-space: nowrap;
+        background: #050505;
+        align-items: center;
+        scroll-behavior: auto;
+        perspective: none; 
+        padding-left: 85px; 
+        position: relative;
+        z-index: 5;
+        /* Masking for the "entering canister" effect */
+        mask-image: linear-gradient(to right, transparent 0%, transparent 84px, black 86px);
+        -webkit-mask-image: linear-gradient(to right, transparent 0%, transparent 84px, black 86px);
+    }
+    .film-strip-view.active { display: flex; }
+    .film-strip-view::-webkit-scrollbar { height: 8px; display: none; }
+    
+    .static-canister-overlay {
+        position: absolute; 
+        left: 15px; top: 46%; /* Moved up slightly */
+        transform: translateY(-50%);
+        width: 65px; height: 210px; z-index: 50 !important;
+        pointer-events: none;
+        filter: drop-shadow(5px 0 10px rgba(0,0,0,0.8));
+    }
+    
+    .canister-cylinder {
+        width: 100%; height: 100%;
+        background: linear-gradient(90deg, #222 0%, #555 30%, #222 60%, #111 100%);
+        border-radius: 4px; box-shadow: 8px 0 20px rgba(0,0,0,1);
+        border: 1px solid #333;
+        position: relative;
+        display: flex; flex-direction: column; justify-content: center; align-items: center;
+    }
+    .canister-cylinder::before { content: ''; position: absolute; top: -12px; width: 100%; height: 12px; background: #333; border-radius: 50% 50% 0 0; border: 1px solid #444; background: radial-gradient(circle at 30% 30%, #666, #222); }
+    .canister-cylinder::after { content: ''; position: absolute; bottom: -12px; width: 100%; height: 12px; background: #333; border-radius: 0 0 50% 50%; border: 1px solid #444; background: radial-gradient(circle at 30% 30%, #666, #222); }
+    .canister-slot {
+        position: absolute; right: -2px; top: 15%; height: 70%; width: 6px; background: #000;
+        border-left: 1px solid #444; box-shadow: inset 2px 0 4px #000;
+    }
+    
+    .film-frame-container {
+        display: inline-flex;
+        align-items: center;
+        height: 180px;
+        flex-shrink: 0;
+        margin: 0; 
+        position: relative;
+        background: transparent;
+        border: none;
+        padding: 0;
+        transform-style: flat;
+        width: auto; 
+    }
+    
+    .film-block {
+        position: relative;
+        height: 100%;
+        width: 100%;
+        display: block;
+        background: #000;
+        margin-right: -1px;
+    }
+    
+    /* Sprocket holes */
+    .film-block::before, .film-block::after {
+        content: ''; position: absolute; left: 0; width: 100%; height: 14px;
+        background-color: #000;
+        background-image: linear-gradient(90deg, #111 60%, transparent 60%);
+        background-size: 18px 100%; 
+        background-repeat: repeat-x; 
+        z-index: 5;
+    }
+    .film-block::before { top: 0; border-bottom: 1px solid #333; }
+    .film-block::after { bottom: 0; border-top: 1px solid #333; }
+    
+    /* SELECTION GLOW EFFECT (FILM STRIP) */
+    .film-frame-container.selected .film-block::before,
+    .film-frame-container.selected .film-block::after {
+        /* 背景改為深褐色 */
+        background-color: #8a5a00; 
+        /* 漸層改為柔和的橙色 */
+        background-image: linear-gradient(90deg, #cc8800 60%, transparent 60%);
+        /* 光暈改為較弱的橙光 */
+        box-shadow: 0 0 8px rgba(255, 170, 0, 0.6);
+    }
+
+    .film-block-img {
+        position: absolute; 
+        top: 14px; bottom: 14px; 
+        left: 0; right: 0;
+        width: 100%; height: auto;
+        background-repeat: no-repeat;
+        background-size: cover; 
+        background-position: center;
+        background-color: #000;
+        z-index: 1; 
+        image-rendering: high-quality; 
+    }
+    
+     .film-meta-label { 
+        position: absolute; 
+        
+        /* [修改點] 從 top 改為 bottom */
+        /* 底部齒孔高 14px，設定 18px 讓文字剛好浮在齒孔上方 */
+        bottom: 18px;  
+        left: 8px; 
+        
+        /* 樣式保持不變 */
+        color: rgba(255, 255, 255, 0.85); 
+        font-family: 'Courier New', monospace; 
+        font-size: 12px; 
+        font-weight: bold; 
+        z-index: 20; 
+        text-shadow: 0 1px 2px rgba(0,0,0,0.9); 
+        pointer-events: none; 
+    }
+
+    .album-controls { height: 50px; background: #181818; border-top: 1px solid #333; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; gap: 10px; }
+    .ac-left-group { display: flex; gap: 10px; }
+    .ac-right-group { display: flex; gap: 10px; }
+    .album-btn { background: transparent; border: 1px solid #666; color: #888; font-family: 'Courier New', monospace; padding: 5px 10px; cursor: pointer; font-size: 12px; display: flex; align-items: center; justify-content: center; }
     .album-btn.action { border-color: #c00; color: #c00; }
     .album-btn.action:hover { background: #c00; color: #fff; }
+    .view-toggle-btn { width: 30px; height: 30px; border-radius: 4px; padding: 0; }
+    .view-toggle-btn svg { fill: #888; width: 16px; height: 16px; }
+    .view-toggle-btn.active { border-color: #fff; background: #333; }
+    .view-toggle-btn.active svg { fill: #fff; }
 
     .copyright-mark { position: absolute; bottom: 14px; right: 22px; font-family: 'Arial', sans-serif; font-weight: bold; font-size: 12px; letter-spacing: 0.5px; color: rgba(255, 255, 255, 0.25); text-shadow: -1px -1px 1px rgba(0,0,0,0.9), 1px 1px 0 rgba(255,255,255,0.05); pointer-events: none; z-index: 5; text-transform: uppercase; }
     .film-door { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 200px; height: 120px; border: 4px solid #000; background: #1a1a1a; box-shadow: 0 1px 0 rgba(255,255,255,0.1), inset 0 0 10px #000; border-radius: 2px; display: flex; justify-content: center; align-items: center; cursor: pointer; z-index: 2; transition: transform 0.1s; }
@@ -330,84 +277,34 @@
     .film-card h3 { margin: 4px 0 0; font-size: 24px; font-weight: 900; color: #000; line-height: 1; font-family: Impact, sans-serif; }
     .film-card p { margin: 2px 0; font-size: 10px; color: #333; font-weight: bold; text-transform: uppercase; }
 
-    /* 3D FILM ROLL SELECTOR */
-    #film-roll-overlay {
-        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0,0,0,0.85); z-index: 6000;
-        display: none; flex-direction: column; justify-content: center; align-items: center;
-        perspective: 1000px; opacity: 0; transition: opacity 0.3s;
-    }
+    #film-roll-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 6000; display: none; flex-direction: column; justify-content: center; align-items: center; perspective: 1000px; opacity: 0; transition: opacity 0.3s; }
     #film-roll-overlay.visible { opacity: 1; }
-
-    .film-roll-container {
-        display: flex; gap: 40px; padding: 40px;
-        overflow-x: auto; max-width: 90vw;
-        align-items: center; scroll-behavior: smooth;
-        -webkit-overflow-scrolling: touch;
-    }
+    .film-roll-container { display: flex; gap: 40px; padding: 40px; overflow-x: auto; max-width: 90vw; align-items: center; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; }
     .film-roll-container::-webkit-scrollbar { display: none; }
-
-    .film-canister {
-        width: 80px; height: 140px; position: relative; flex-shrink: 0;
-        transform-style: preserve-3d; cursor: pointer;
-        transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        transform: rotateX(-10deg) scale(0.9);
-    }
+    .film-canister { width: 80px; height: 140px; position: relative; flex-shrink: 0; transform-style: preserve-3d; cursor: pointer; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform: rotateX(-10deg) scale(0.9); }
     .film-canister:hover, .film-canister.active { transform: rotateX(0deg) scale(1.1); }
-    
-    .canister-body {
-        position: absolute; top: 10px; left: 0; width: 100%; height: 120px;
-        background: linear-gradient(90deg, #333 0%, #888 20%, #333 40%, #111 100%);
-        border-radius: 4px; box-shadow: 5px 5px 15px rgba(0,0,0,0.8);
-        display: flex; flex-direction: column; justify-content: center; align-items: center;
-        border: 1px solid rgba(255,255,255,0.1);
-    }
-    
-    .canister-cap {
-        position: absolute; width: 84px; height: 16px; background: #444;
-        border-radius: 50%; left: -2px;
-        background: radial-gradient(circle at 30% 30%, #888, #222);
-        box-shadow: 0 2px 4px rgba(0,0,0,0.8);
-    }
+    .canister-body { position: absolute; top: 10px; left: 0; width: 100%; height: 120px; background: linear-gradient(90deg, #333 0%, #888 20%, #333 40%, #111 100%); border-radius: 4px; box-shadow: 5px 5px 15px rgba(0,0,0,0.8); display: flex; flex-direction: column; justify-content: center; align-items: center; border: 1px solid rgba(255,255,255,0.1); }
+    .canister-cap { position: absolute; width: 84px; height: 16px; background: #444; border-radius: 50%; left: -2px; background: radial-gradient(circle at 30% 30%, #888, #222); box-shadow: 0 2px 4px rgba(0,0,0,0.8); }
     .cap-top { top: 0; } .cap-bottom { bottom: 0; }
-    .sprocket-lip {
-        position: absolute; top: 10px; right: -10px; width: 15px; height: 100px;
-        background: #111; transform: rotateY(60deg); border-left: 2px solid #444;
-    }
-    
-    .canister-label {
-        width: 90%; height: 70%; 
-        display: flex; flex-direction: column; justify-content: center; align-items: center;
-        text-align: center; padding: 5px; box-shadow: 0 0 2px rgba(0,0,0,0.5);
-    }
+    .sprocket-lip { position: absolute; top: 10px; right: -10px; width: 15px; height: 100px; background: #111; transform: rotateY(60deg); border-left: 2px solid #444; }
+    .canister-label { width: 90%; height: 70%; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 5px; box-shadow: 0 0 2px rgba(0,0,0,0.5); }
     .cl-name { font-family: Impact, sans-serif; font-size: 18px; line-height: 1; margin-bottom: 4px; }
     .cl-sub { font-family: sans-serif; font-size: 7px; font-weight: bold; text-transform: uppercase; color:#333; }
     .cl-iso { font-family: 'Courier New'; font-weight: bold; font-size: 12px; margin-top: 5px; border: 1px solid #000; padding: 1px 3px; border-radius: 2px; color:#333; }
 
-
     #fs-viewfinder { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 10000; display: none; cursor: crosshair; touch-action: none; }
     #fs-canvas { width: 100%; height: 100%; object-fit: contain; }
     .fs-ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; box-shadow: inset 0 0 150px rgba(0,0,0,0.7); }
-    
     .fs-guide-frame { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 85%; height: 85%; border: 1px solid rgba(255,255,255,0.3); transition: opacity 0.3s; }
-    
-    .split-image-circle { 
-        position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
-        width: 60px; height: 60px; border: 3px solid rgba(255,255,255,0.4); border-radius: 50%; 
-        transition: border-color 0.2s, box-shadow 0.2s;
-    }
+    .split-image-circle { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 60px; height: 60px; border: 3px solid rgba(255,255,255,0.4); border-radius: 50%; transition: border-color 0.2s, box-shadow 0.2s; }
     .split-image-circle.focused { border-color: #0f0; box-shadow: 0 0 20px #0f0, inset 0 0 10px #0f0; }
-
     .fs-data { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); color: #0f0; font-family: 'Courier New', monospace; font-size: 20px; text-shadow: 0 0 5px #0f0; display: flex; gap: 30px; background: rgba(0,0,0,0.5); padding: 5px 15px; border-radius: 4px; }
     #vf-close-btn { position: absolute; top: 20px; left: 20px; pointer-events: auto; color: #fff; font-size: 40px; cursor: pointer; opacity: 0.6; font-family: Arial, sans-serif; line-height: 0.5; text-shadow: 0 0 4px #000; z-index: 10001; }
     #vf-close-btn:hover { opacity: 1; }
 
     .shutter-blind { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 1500; animation: shutterAction 0.15s ease-in-out forwards; }
-    .flash-effect { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; z-index: 9999; opacity: 0.8; animation: flashFade 0.2s ease-out forwards; }
     .vf-shutter-blind { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 20; animation: shutterAction 0.15s ease-in-out forwards; pointer-events: none; }
-    .vf-flash-effect { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #fff; z-index: 21; opacity: 0.8; animation: flashFade 0.2s ease-out forwards; pointer-events: none; }
     @keyframes shutterAction { 0% { opacity: 0; } 10% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; } }
-    @keyframes flashFade { from { opacity: 0.8; } to { opacity: 0; } }
 
     #review-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15,15,15,0.98); z-index: 2000; display: none; flex-direction: column; justify-content: center; align-items: center; }
     #review-img { max-width: 90%; max-height: 70%; border: 10px solid #fff; box-shadow: 0 10px 50px rgba(0,0,0,1); }
@@ -468,30 +365,22 @@
     <!-- 3D FILM ROLL SELECTOR -->
     <div id="film-roll-overlay">
         <h2 style="color:white; font-family:'Courier New'; margin-bottom:30px; text-shadow:0 0 5px #fff;">SELECT FILM STOCK</h2>
-        <div class="film-roll-container" id="filmRollContainer">
-            <!-- Generated by JS -->
-        </div>
+        <div class="film-roll-container" id="filmRollContainer"></div>
         <p style="color:#666; font-size:12px; margin-top:20px; font-family:sans-serif;">TAP TO LOAD</p>
     </div>
 
     <div id="camera-container">
         <div class="top-plate">
-            <!-- GROUPED LEFT CONTROLS -->
             <div class="viewfinder-wrap" id="vfTrigger" title="Live View">
                 <canvas class="vf-glass" id="smallCanvas"></canvas>
             </div>
 
             <div class="function-group">
                 <div class="top-row-btns">
-                    <!-- LOCK BTN -->
-                    <div class="flat-lock-btn" id="orientationBtn" title="Lock Orientation">
-                        <span>LOCK</span>
-                    </div>
-                    <!-- SELFIE BTN -->
+                    <div class="flat-lock-btn" id="orientationBtn" title="Lock Orientation"><span>LOCK</span></div>
                     <div class="selfie-btn" id="selfie-toggle" title="Selfie Mode"></div>
                 </div>
                 
-                <!-- MOVED REAL/ART SWITCH HERE - ORDER: REAL | SWITCH | ART -->
                 <div class="compact-switch-container" id="sketchModeSwitch" title="Real/Art Mode">
                     <span id="lbl-real" class="cs-label active">REAL</span>
                     <div class="cs-track"><div class="cs-knob"></div></div>
@@ -499,7 +388,6 @@
                 </div>
             </div>
 
-            <!-- RIGHT CONTROLS -->
             <div id="back-controls-group">
                 <div class="lever-base" id="leverBase"></div>
                 <div class="advance-lever" id="advanceLever"><div class="lever-grip"></div></div>
@@ -526,12 +414,10 @@
                 <div class="front-viewfinder-frame" id="frontVfTrigger">
                     <canvas class="front-vf-glass" id="frontCanvas"></canvas>
                 </div>
-                <!-- Standard front button also exists as fallback -->
                 <div class="front-shutter-btn" id="frontShutterBtn"></div>
             </div>
 
             <div class="serial-number">NO. 854021</div>
-            
             <div class="prism-hump"></div>
             <div class="ready-light" id="readyLight"></div>
         </div>
@@ -539,11 +425,35 @@
         <div class="camera-body">
             <div class="camera-interior">
                 <div class="album-container" id="albumGrid"></div>
+                
+                <!-- STATIC CANISTER OVERLAY -->
+                <div class="static-canister-overlay" id="staticCanister">
+                    <div class="canister-cylinder">
+                         <div class="canister-slot"></div>
+                    </div>
+                </div>
+
+                <!-- SCROLLABLE STRIP -->
+                <div class="film-strip-view active" id="filmStripView">
+                    <!-- Frames Populated by JS -->
+                </div>
+                
                 <div class="album-controls">
-                    <button class="album-btn" id="alb-sel-all">SELECT ALL</button>
-                    <button class="album-btn action" id="alb-delete" style="border-color:#c00; color:#c00;">DELETE</button>
-                    <button class="album-btn action" id="alb-download">DOWNLOAD</button>
-                    <button class="album-btn action" id="alb-share">SHARE</button>
+                    <div class="ac-left-group">
+                         <button class="view-toggle-btn active" id="view-film" title="Film View">
+                             <svg viewBox="0 0 24 24"><path d="M20 4h-2V2h-2v2H8V2H6v2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zM8 18H6v-2h2v2zm0-4H6v-2h2v2zm0-4H6V8h2v2zm10 8h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V8h2v2z"/></svg>
+                         </button>
+                         <button class="view-toggle-btn" id="view-grid" title="Grid View">
+                             <svg viewBox="0 0 24 24"><path d="M4 4h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 10h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 16h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4z"/></svg>
+                         </button>
+                    </div>
+                    
+                    <div class="ac-right-group">
+                        <button class="album-btn" id="alb-sel-all">ALL</button>
+                        <button class="album-btn action" id="alb-delete" style="border-color:#c00; color:#c00;">DEL</button>
+                        <button class="album-btn action" id="alb-download">SAVE</button>
+                        <button class="album-btn action" id="alb-share">SHARE</button>
+                    </div>
                 </div>
             </div>
             
@@ -578,52 +488,11 @@
         </div>
     </div>
 
-    <div id="style-selector-overlay">
-        <h2 style="color:white; font-family:'Courier New'; text-align:center;">SELECT PRINT STYLE</h2>
-        <div class="style-options">
-            <div class="style-btn" data-style="standard">
-                <div class="style-preview sp-std"></div>
-                STANDARD
-            </div>
-            <div class="style-btn" data-style="white">
-                <div class="style-preview sp-white"></div>
-                INSTANT
-            </div>
-            <div class="style-btn" data-style="film">
-                <div class="style-preview sp-film"></div>
-                FILM
-            </div>
-        </div>
-    </div>
-
-    <div id="review-overlay">
-        <img id="review-img" src="" alt="Review">
-        <div class="review-controls">
-            <button class="btn-retro" id="btn-discard">DISCARD</button>
-            <button class="btn-retro" id="btn-keep">KEEP</button>
-        </div>
-    </div>
-
-    <div id="developing-overlay">
-        <div class="photo-paper-container">
-            <img id="dev-image-wrap" src="" alt="Developing">
-        </div>
-        <div class="dev-status-text" id="devStatus">DEVELOPING...</div>
-    </div>
-    
-    <div id="zoom-overlay">
-        <img id="zoom-img" src="" alt="Zoomed Photo">
-    </div>
-
-    <div id="export-modal">
-        <h2 style="color:#c00; font-family:'Courier New'">EXPORT OPTIONS</h2>
-        <p style="color:#fff; font-family:sans-serif">Include Serial Number?</p>
-        <div class="export-opt-group">
-            <button class="btn-retro" id="exp-no-serial">NO SERIAL</button>
-            <button class="btn-retro" id="exp-with-serial" style="border-color:#c00; color:#c00">WITH SERIAL</button>
-        </div>
-        <button class="btn-retro" id="exp-cancel" style="margin-top:30px; border:none; opacity:0.5">CANCEL</button>
-    </div>
+    <div id="style-selector-overlay"><h2 style="color:white; font-family:'Courier New'; text-align:center;">SELECT PRINT STYLE</h2><div class="style-options"><div class="style-btn" data-style="standard"><div class="style-preview sp-std"></div>STANDARD</div><div class="style-btn" data-style="white"><div class="style-preview sp-white"></div>INSTANT</div><div class="style-btn" data-style="film"><div class="style-preview sp-film"></div>FILM</div></div></div>
+    <div id="review-overlay"><img id="review-img" src="" alt="Review"><div class="review-controls"><button class="btn-retro" id="btn-discard">DISCARD</button><button class="btn-retro" id="btn-keep">KEEP</button></div></div>
+    <div id="developing-overlay"><div class="photo-paper-container"><img id="dev-image-wrap" src="" alt="Developing"></div><div class="dev-status-text" id="devStatus">DEVELOPING...</div></div>
+    <div id="zoom-overlay"><img id="zoom-img" src="" alt="Zoomed Photo"></div>
+    <div id="export-modal"><h2 style="color:#c00; font-family:'Courier New'">EXPORT OPTIONS</h2><p style="color:#fff; font-family:sans-serif">Include Serial Number?</p><div class="export-opt-group"><button class="btn-retro" id="exp-no-serial">NO SERIAL</button><button class="btn-retro" id="exp-with-serial" style="border-color:#c00; color:#c00">WITH SERIAL</button></div><button class="btn-retro" id="exp-cancel" style="margin-top:30px; border:none; opacity:0.5">CANCEL</button></div>
 
     <video id="video-source" autoplay playsinline style="display:none"></video>
     <canvas id="process-canvas" style="display:none"></canvas>
@@ -632,24 +501,9 @@
     <canvas id="sketch-canvas" style="display:none"></canvas>
 
     <script>
-        const DB_NAME = "RetroCamDB_ProMax";
-        const TEMP_STORE = "temp_roll"; 
-        const ALBUM_STORE = "user_album";
-        let db;
-
-        function initDB() {
-            return new Promise((resolve, reject) => {
-                const request = indexedDB.open(DB_NAME, 3);
-                request.onupgradeneeded = (e) => {
-                    db = e.target.result;
-                    if (!db.objectStoreNames.contains(TEMP_STORE)) { db.createObjectStore(TEMP_STORE, { autoIncrement: true }); }
-                    if (!db.objectStoreNames.contains(ALBUM_STORE)) { db.createObjectStore(ALBUM_STORE, { keyPath: "id", autoIncrement: true }); }
-                };
-                request.onsuccess = (e) => { db = e.target.result; resolve(db); };
-                request.onerror = () => reject("DB Error");
-            });
-        }
-
+        /* --- DATABASE & INIT --- */
+        const DB_NAME = "RetroCamDB_ProMax"; const TEMP_STORE = "temp_roll"; const ALBUM_STORE = "user_album"; let db;
+        function initDB() { return new Promise((resolve, reject) => { const request = indexedDB.open(DB_NAME, 3); request.onupgradeneeded = (e) => { db = e.target.result; if (!db.objectStoreNames.contains(TEMP_STORE)) db.createObjectStore(TEMP_STORE, { autoIncrement: true }); if (!db.objectStoreNames.contains(ALBUM_STORE)) db.createObjectStore(ALBUM_STORE, { keyPath: "id", autoIncrement: true }); }; request.onsuccess = (e) => { db = e.target.result; resolve(db); }; request.onerror = () => reject("DB Error"); }); }
         function saveToTemp(dataUrl) { return new Promise((resolve) => { const tx = db.transaction([TEMP_STORE], "readwrite"); tx.objectStore(TEMP_STORE).add({ image: dataUrl, date: new Date() }).onsuccess = () => resolve(true); }); }
         function getTempCount() { return new Promise((resolve) => { const tx = db.transaction([TEMP_STORE], "readonly"); tx.objectStore(TEMP_STORE).count().onsuccess = (e) => resolve(e.target.result); }); }
         function getTempPhotos() { return new Promise((resolve) => { const tx = db.transaction([TEMP_STORE], "readonly"); tx.objectStore(TEMP_STORE).getAll().onsuccess = (e) => resolve(e.target.result); }); }
@@ -658,880 +512,244 @@
         function getAlbumPhotos() { return new Promise(resolve => { const tx = db.transaction([ALBUM_STORE], "readonly"); tx.objectStore(ALBUM_STORE).getAll().onsuccess = (e) => resolve(e.target.result); }); }
         function deleteFromAlbum(ids) { return new Promise(resolve => { const tx = db.transaction([ALBUM_STORE], "readwrite"); const store = tx.objectStore(ALBUM_STORE); ids.forEach(id => store.delete(id)); tx.oncomplete = resolve; }); }
 
-        // State Variables
-        let isRollMode = localStorage.getItem('rollMode') === 'true';
-        let currentFrame = 0;
-        let pendingPhoto = null;
-        let globalSerialCounter = parseInt(localStorage.getItem('global_serial_counter') || '1');
-        let isSelfieMode = false;
-        let isSketchMode = false;
-        let isOrientationLocked = localStorage.getItem('orientationLocked') === 'true';
+        /* --- VARS --- */
+        let isRollMode = localStorage.getItem('rollMode') === 'true'; let currentFrame = 0; let pendingPhoto = null; let globalSerialCounter = parseInt(localStorage.getItem('global_serial_counter') || '1'); let isSelfieMode = false; let isSketchMode = false; let isOrientationLocked = localStorage.getItem('orientationLocked') === 'true'; let isFilmViewMode = true;
         
-        // MODES DEFINITION
-        const REAL_MODES = [
-            { id: 'BW', name: 'B&W', sub: 'STREET 400', color: '#000' },
-            { id: 'COLOR', name: 'COLOR', sub: 'GAME-CAM', color: '#c00' },
-            { id: 'CCD', name: 'DIGI', sub: 'CCD SENSOR', color: '#0055cc' },
-            { id: 'HCBW', name: 'HC-BW', sub: 'FINE 100', color: '#555' },
-            { id: 'FILM_TEAL', name: 'FILM: TEAL', sub: 'KYOTO 400', color: '#008080' }, 
-            { id: 'FILM_SUN', name: 'FILM: SUN', sub: 'CALI 200', color: '#ffcc00' },   
-            { id: 'FILM_VIVID', name: 'FILM: VIVID', sub: 'SLIDE 100', color: '#ff0055' }, 
-            { id: 'FILM_AGED', name: 'FILM: AGED', sub: 'EURO 800', color: '#8b4513' },
-            { id: 'FILM_SOFT', name: 'FILM: SOFT', sub: 'AIRY 400H', color: '#90e0ef' } 
-        ];
-
-        const SKETCH_MODES = [
-            { id: 'SKETCH_BW', name: 'PENCIL', sub: '2B GRAPHITE', color: '#333' },
-            { id: 'SKETCH_COL', name: 'CRAYON', sub: 'SOFT PASTEL', color: '#d2691e' },
-            { id: 'SKETCH_INK', name: 'INK', sub: 'COMIC PEN', color: '#000' },
-            { id: 'SKETCH_OIL', name: 'OIL', sub: 'IMPASTO', color: '#8b4513' },
-            { id: 'SKETCH_CYBER', name: 'CYBER', sub: 'NEON GRID', color: '#0f0' },
-            { id: 'SKETCH_BLUE', name: 'BLUE', sub: 'BLUEPRINT', color: '#4169e1' },
-            { id: 'SKETCH_HK_NEON', name: 'HK NEON', sub: 'NIGHT LIGHTS', color: '#ff00cc' },
-            { id: 'SKETCH_SHUIMO', name: 'SHUIMO', sub: 'INK WASH', color: '#111' }
-        ];
-        
-        let savedMode = localStorage.getItem('camModeIdx');
-        let currentModeIdx = savedMode ? parseInt(savedMode) : 0;
-        
+        const REAL_MODES = [ { id: 'BW', name: 'B&W', sub: 'STREET 400', color: '#000' }, { id: 'COLOR', name: 'COLOR', sub: 'GAME-CAM', color: '#c00' }, { id: 'CCD', name: 'DIGI', sub: 'CCD SENSOR', color: '#0055cc' }, { id: 'HCBW', name: 'HC-BW', sub: 'FINE 100', color: '#555' }, { id: 'FILM_TEAL', name: 'FILM: TEAL', sub: 'KYOTO 400', color: '#008080' }, { id: 'FILM_SUN', name: 'FILM: SUN', sub: 'CALI 200', color: '#ffcc00' }, { id: 'FILM_VIVID', name: 'FILM: VIVID', sub: 'SLIDE 100', color: '#ff0055' }, { id: 'FILM_AGED', name: 'FILM: AGED', sub: 'EURO 800', color: '#8b4513' }, { id: 'FILM_SOFT', name: 'FILM: SOFT', sub: 'AIRY 400H', color: '#90e0ef' } ];
+        const SKETCH_MODES = [ { id: 'SKETCH_BW', name: 'PENCIL', sub: '2B GRAPHITE', color: '#333' }, { id: 'SKETCH_COL', name: 'CRAYON', sub: 'SOFT PASTEL', color: '#d2691e' }, { id: 'SKETCH_INK', name: 'INK', sub: 'COMIC PEN', color: '#000' }, { id: 'SKETCH_OIL', name: 'OIL', sub: 'IMPASTO', color: '#8b4513' }, { id: 'SKETCH_CYBER', name: 'CYBER', sub: 'NEON GRID', color: '#0f0' }, { id: 'SKETCH_BLUE', name: 'BLUE', sub: 'BLUEPRINT', color: '#4169e1' }, { id: 'SKETCH_HK_NEON', name: 'HK NEON', sub: 'NIGHT LIGHTS', color: '#ff00cc' }, { id: 'SKETCH_SHUIMO', name: 'SHUIMO', sub: 'INK WASH', color: '#111' } ];
+        let savedMode = localStorage.getItem('camModeIdx'); let currentModeIdx = savedMode ? parseInt(savedMode) : 0;
         function getModes() { return isSketchMode ? SKETCH_MODES : REAL_MODES; }
-        function validateModeIndex() {
-            const modes = getModes();
-            if (currentModeIdx < 0 || currentModeIdx >= modes.length) currentModeIdx = 0;
-        }
+        function validateModeIndex() { const modes = getModes(); if (currentModeIdx < 0 || currentModeIdx >= modes.length) currentModeIdx = 0; }
         validateModeIndex();
 
-        // Audio
-        const shutterAudio = new Audio('https://taira-komori.net/sound_os2/electric01/camera1.mp3');
-        shutterAudio.preload = 'auto';
-        
-        const latchAudio = new Audio('https://taira-komori.net/sound_os2/electric01/fluorescent_switch1.mp3');
-        latchAudio.volume = 1.0;
-        latchAudio.preload = 'auto';
+        /* --- AUDIO --- */
+        const shutterAudio = new Audio('https://taira-komori.net/sound_os2/electric01/camera1.mp3'); shutterAudio.preload = 'auto';
+        const latchAudio = new Audio('https://taira-komori.net/sound_os2/electric01/fluorescent_switch1.mp3'); latchAudio.volume = 1.0; latchAudio.preload = 'auto';
+        const AudioContext = window.AudioContext || window.webkitAudioContext; const actx = new AudioContext();
+        function playShutterSound() { shutterAudio.currentTime = 0; const playPromise = shutterAudio.play(); if (playPromise !== undefined) { playPromise.catch(error => { if (actx.state === 'suspended') actx.resume(); const t = actx.currentTime; const oscClick = actx.createOscillator(); const gainClick = actx.createGain(); oscClick.type = 'square'; oscClick.frequency.setValueAtTime(800, t); oscClick.frequency.exponentialRampToValueAtTime(100, t + 0.05); gainClick.gain.setValueAtTime(0.5, t); gainClick.gain.exponentialRampToValueAtTime(0.01, t + 0.05); oscClick.connect(gainClick).connect(actx.destination); oscClick.start(t); oscClick.stop(t + 0.05); }); } }
+        function playLeverSound() { if (actx.state === 'suspended') actx.resume(); const t = actx.currentTime; for(let i=0; i<5; i++) { const osc = actx.createOscillator(); const gain = actx.createGain(); osc.type = 'sawtooth'; osc.frequency.setValueAtTime(800, t + i*0.06); osc.frequency.exponentialRampToValueAtTime(100, t + i*0.06 + 0.03); gain.gain.setValueAtTime(1.2, t + i*0.06); gain.gain.exponentialRampToValueAtTime(0.01, t + i*0.06 + 0.03); osc.connect(gain); gain.connect(actx.destination); osc.start(t + i*0.06); osc.stop(t + i*0.06 + 0.04); } }
 
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        const actx = new AudioContext();
-
-        function playShutterSound() {
-            shutterAudio.currentTime = 0;
-            const playPromise = shutterAudio.play();
-            if (playPromise !== undefined) {
-                playPromise.catch(error => {
-                    if (actx.state === 'suspended') actx.resume();
-                    const t = actx.currentTime;
-                    const oscClick = actx.createOscillator(); const gainClick = actx.createGain();
-                    oscClick.type = 'square'; oscClick.frequency.setValueAtTime(800, t); oscClick.frequency.exponentialRampToValueAtTime(100, t + 0.05);
-                    gainClick.gain.setValueAtTime(0.5, t); gainClick.gain.exponentialRampToValueAtTime(0.01, t + 0.05);
-                    oscClick.connect(gainClick).connect(actx.destination); oscClick.start(t); oscClick.stop(t + 0.05);
-                });
-            }
-        }
-        function playLeverSound() {
-            if (actx.state === 'suspended') actx.resume();
-            const t = actx.currentTime;
-            for(let i=0; i<5; i++) {
-                const osc = actx.createOscillator(); const gain = actx.createGain();
-                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(800, t + i*0.06); osc.frequency.exponentialRampToValueAtTime(100, t + i*0.06 + 0.03);
-                gain.gain.setValueAtTime(1.2, t + i*0.06); gain.gain.exponentialRampToValueAtTime(0.01, t + i*0.06 + 0.03);
-                osc.connect(gain); gain.connect(actx.destination); osc.start(t + i*0.06); osc.stop(t + i*0.06 + 0.04);
-            }
-        }
-
-        // DOM Elements
+        /* --- DOM & CANVAS --- */
         const video = document.getElementById('video-source');
-        const smallCanvas = document.getElementById('smallCanvas');
-        const smallCtx = smallCanvas.getContext('2d', { alpha: false });
-        const frontCanvas = document.getElementById('frontCanvas');
-        const frontCtx = frontCanvas.getContext('2d', { alpha: false });
-        const fsCanvas = document.getElementById('fs-canvas');
-        const fsCtx = fsCanvas.getContext('2d', { alpha: false });
-        const processCanvas = document.getElementById('process-canvas');
-        const processCtx = processCanvas.getContext('2d', { willReadFrequently: true });
-        const finalCanvas = document.getElementById('final-canvas');
-        const finalCtx = finalCanvas.getContext('2d');
-        const grainCanvas = document.getElementById('grain-canvas');
-        const grainCtx = grainCanvas.getContext('2d');
-        const sketchCanvas = document.getElementById('sketch-canvas');
-        const sketchCtx = sketchCanvas.getContext('2d', { willReadFrequently: true });
+        const smallCanvas = document.getElementById('smallCanvas'); const smallCtx = smallCanvas.getContext('2d', { alpha: false });
+        const frontCanvas = document.getElementById('frontCanvas'); const frontCtx = frontCanvas.getContext('2d', { alpha: false });
+        const fsCanvas = document.getElementById('fs-canvas'); const fsCtx = fsCanvas.getContext('2d', { alpha: false });
+        const processCanvas = document.getElementById('process-canvas'); const processCtx = processCanvas.getContext('2d', { willReadFrequently: true });
+        const finalCanvas = document.getElementById('final-canvas'); const finalCtx = finalCanvas.getContext('2d');
+        const grainCanvas = document.getElementById('grain-canvas'); const grainCtx = grainCanvas.getContext('2d');
+        const sketchCanvas = document.getElementById('sketch-canvas'); const sketchCtx = sketchCanvas.getContext('2d', { willReadFrequently: true });
         
-        const rollModeSwitch = document.getElementById('rollModeSwitch');
-        const sketchModeSwitch = document.getElementById('sketchModeSwitch');
-        const orientationBtn = document.getElementById('orientationBtn');
-        
-        const frameCounterUI = document.getElementById('frameCounter');
-        const fsCounter = document.getElementById('fs-counter');
-        const readyLight = document.getElementById('readyLight');
-        const leverBase = document.getElementById('leverBase');
-        const advanceLever = document.getElementById('advanceLever');
-        const shutterBtn = document.getElementById('shutterBtn');
-        const frontShutterBtn = document.getElementById('frontShutterBtn');
-        const cablePlunger = document.getElementById('cablePlunger');
-        
-        const vfTrigger = document.getElementById('vfTrigger');
-        const frontVfTrigger = document.getElementById('frontVfTrigger');
-        const fsViewfinder = document.getElementById('fs-viewfinder');
-        const vfCloseBtn = document.getElementById('vf-close-btn');
-        const fsGuideFrame = document.getElementById('fsGuideFrame');
-        const splitCircle = document.getElementById('splitCircle');
+        const rollModeSwitch = document.getElementById('rollModeSwitch'); const sketchModeSwitch = document.getElementById('sketchModeSwitch'); const orientationBtn = document.getElementById('orientationBtn');
+        const frameCounterUI = document.getElementById('frameCounter'); const fsCounter = document.getElementById('fs-counter'); const readyLight = document.getElementById('readyLight'); const leverBase = document.getElementById('leverBase'); const advanceLever = document.getElementById('advanceLever'); const shutterBtn = document.getElementById('shutterBtn'); const frontShutterBtn = document.getElementById('frontShutterBtn'); const cablePlunger = document.getElementById('cablePlunger');
+        const vfTrigger = document.getElementById('vfTrigger'); const frontVfTrigger = document.getElementById('frontVfTrigger'); const fsViewfinder = document.getElementById('fs-viewfinder'); const vfCloseBtn = document.getElementById('vf-close-btn'); const fsGuideFrame = document.getElementById('fsGuideFrame'); const splitCircle = document.getElementById('splitCircle');
+        const backLock = document.getElementById('backLock'); const backDoorWrapper = document.getElementById('backDoorWrapper'); const frontFace = document.getElementById('frontFace'); const shutterFlash = document.getElementById('shutterFlash'); const selfieToggle = document.getElementById('selfie-toggle'); const backControls = document.getElementById('back-controls-group'); const frontControls = document.getElementById('front-controls-group');
+        const albumGrid = document.getElementById('albumGrid'); const filmStripView = document.getElementById('filmStripView'); const btnViewFilm = document.getElementById('view-film'); const btnViewGrid = document.getElementById('view-grid');
+        const styleOverlay = document.getElementById('style-selector-overlay'); const devOverlay = document.getElementById('developing-overlay'); const devImageWrap = document.getElementById('dev-image-wrap'); const devStatus = document.getElementById('devStatus'); const filmCard = document.querySelector('.film-card'); const modeTitle = document.getElementById('modeTitle'); const modeSub = document.getElementById('modeSub'); const fsPrompt = document.getElementById('fullscreen-prompt'); const zoomOverlay = document.getElementById('zoom-overlay'); const zoomImg = document.getElementById('zoom-img');
+        const filmRollOverlay = document.getElementById('film-roll-overlay'); const filmRollContainer = document.getElementById('filmRollContainer'); const filmDoor = document.getElementById('filmDoor');
+        const staticCanister = document.getElementById('staticCanister');
 
-        const backLock = document.getElementById('backLock');
-        const backDoorWrapper = document.getElementById('backDoorWrapper');
-        const frontFace = document.getElementById('frontFace');
-        const shutterFlash = document.getElementById('shutterFlash');
-        const selfieToggle = document.getElementById('selfie-toggle');
-        const backControls = document.getElementById('back-controls-group');
-        const frontControls = document.getElementById('front-controls-group');
-        
-        const albumGrid = document.getElementById('albumGrid');
-        const styleOverlay = document.getElementById('style-selector-overlay');
-        const devOverlay = document.getElementById('developing-overlay');
-        const devImageWrap = document.getElementById('dev-image-wrap');
-        const devStatus = document.getElementById('devStatus');
-        const filmCard = document.querySelector('.film-card');
-        const modeTitle = document.getElementById('modeTitle');
-        const modeSub = document.getElementById('modeSub');
-        const fsPrompt = document.getElementById('fullscreen-prompt');
-        const zoomOverlay = document.getElementById('zoom-overlay');
-        const zoomImg = document.getElementById('zoom-img');
+        function initGrainSystem() { grainCanvas.width = 512; grainCanvas.height = 512; const imgData = grainCtx.createImageData(512, 512); const data = imgData.data; for(let i=0; i<data.length; i+=4) { let u = 0, v = 0; while(u === 0) u = Math.random(); while(v === 0) v = Math.random(); let num = Math.sqrt( -2.0 * Math.log( u ) ) * Math.cos( 2.0 * Math.PI * v ); let gray = 128 + num * 40; data[i] = gray; data[i+1] = gray; data[i+2] = gray; data[i+3] = 255; } grainCtx.putImageData(imgData, 0, 0); }
 
-        // Film Roll Overlay Elements
-        const filmRollOverlay = document.getElementById('film-roll-overlay');
-        const filmRollContainer = document.getElementById('filmRollContainer');
-        const filmDoor = document.getElementById('filmDoor');
-
-        // Grain System
-        function initGrainSystem() {
-            grainCanvas.width = 512; grainCanvas.height = 512;
-            const imgData = grainCtx.createImageData(512, 512); const data = imgData.data;
-            for(let i=0; i<data.length; i+=4) {
-                let u = 0, v = 0; while(u === 0) u = Math.random(); while(v === 0) v = Math.random();
-                let num = Math.sqrt( -2.0 * Math.log( u ) ) * Math.cos( 2.0 * Math.PI * v );
-                let gray = 128 + num * 40; 
-                data[i] = gray; data[i+1] = gray; data[i+2] = gray; data[i+3] = 255;
-            }
-            grainCtx.putImageData(imgData, 0, 0);
-        }
-
-        function updateModeUI() {
-            const modes = getModes();
-            if(currentModeIdx >= modes.length) currentModeIdx = 0;
-            const m = modes[currentModeIdx];
-            
-            modeTitle.textContent = m.name; 
-            modeSub.textContent = m.sub; 
-            document.getElementById('fs-mode-text').textContent = m.name;
-            
-            const h3 = filmCard.querySelector('h3');
-            h3.style.color = m.color;
-            
-            const styleEl = document.createElement('style');
-            styleEl.innerHTML = `.film-card::before, .film-card::after { background: ${m.color} !important; }`;
-            const oldStyle = document.getElementById('film-card-style');
-            if(oldStyle) oldStyle.remove();
-            styleEl.id = 'film-card-style';
-            document.head.appendChild(styleEl);
-        }
+        function updateModeUI() { const modes = getModes(); if(currentModeIdx >= modes.length) currentModeIdx = 0; const m = modes[currentModeIdx]; modeTitle.textContent = m.name; modeSub.textContent = m.sub; document.getElementById('fs-mode-text').textContent = m.name; const h3 = filmCard.querySelector('h3'); h3.style.color = m.color; const styleEl = document.createElement('style'); styleEl.innerHTML = `.film-card::before, .film-card::after { background: ${m.color} !important; }`; const oldStyle = document.getElementById('film-card-style'); if(oldStyle) oldStyle.remove(); styleEl.id = 'film-card-style'; document.head.appendChild(styleEl); }
         updateModeUI();
 
-        async function initSystem() {
-            await initDB();
-            initGrainSystem(); 
-            if (isRollMode) {
-                rollModeSwitch.classList.add('mode-36');
-                currentFrame = await getTempCount();
-            } else {
-                rollModeSwitch.classList.remove('mode-36');
-                currentFrame = 0;
-            }
-            checkLeverState();
-            updateCounterDisplay();
-
-            if(isOrientationLocked) {
-                orientationBtn.classList.add('locked');
-                try {
-                    if (screen.orientation && screen.orientation.lock) {
-                    }
-                } catch(e){}
-            }
-        }
-
-        function updateCounterDisplay() {
-            if (!isRollMode) {
-                frameCounterUI.textContent = "S"; fsCounter.textContent = "1";
-            } else {
-                if (currentFrame === 0) frameCounterUI.textContent = "S";
-                else if (currentFrame >= 36) frameCounterUI.textContent = "E";
-                else frameCounterUI.textContent = currentFrame;
-                fsCounter.textContent = (36 - currentFrame) + " LEFT";
-            }
-        }
-
-        function checkLeverState() {
-            if ((isRollMode && currentFrame >= 36) || (!isRollMode && pendingPhoto)) {
-                readyLight.classList.add('active'); leverBase.classList.add('glow');
-            } else {
-                readyLight.classList.remove('active'); leverBase.classList.remove('glow');
-            }
-        }
-
+        async function initSystem() { await initDB(); initGrainSystem(); if (isRollMode) { rollModeSwitch.classList.add('mode-36'); currentFrame = await getTempCount(); } else { rollModeSwitch.classList.remove('mode-36'); currentFrame = 0; } checkLeverState(); updateCounterDisplay(); if(isOrientationLocked) { orientationBtn.classList.add('locked'); try { if (screen.orientation && screen.orientation.lock) {} } catch(e){} } }
+        function updateCounterDisplay() { if (!isRollMode) { frameCounterUI.textContent = "S"; fsCounter.textContent = "1"; } else { if (currentFrame === 0) frameCounterUI.textContent = "S"; else if (currentFrame >= 36) frameCounterUI.textContent = "E"; else frameCounterUI.textContent = currentFrame; fsCounter.textContent = (36 - currentFrame) + " LEFT"; } }
+        function checkLeverState() { if ((isRollMode && currentFrame >= 36) || (!isRollMode && pendingPhoto)) { readyLight.classList.add('active'); leverBase.classList.add('glow'); } else { readyLight.classList.remove('active'); leverBase.classList.remove('glow'); } }
         document.getElementById('enter-fs-btn').addEventListener('click', () => { startFullscreenAndCamera(); });
+        function startFullscreenAndCamera() { const el = document.documentElement; const rfs = el.requestFullscreen || el.webkitRequestFullScreen; if (rfs) { rfs.call(el).then(() => { initSystem().then(initCamera); if(isOrientationLocked && screen.orientation && screen.orientation.lock) { screen.orientation.lock('landscape').catch(()=>{}); } }).catch(() => { initSystem().then(initCamera); }); } }
+        async function initCamera() { try { if(video.srcObject) { video.srcObject.getTracks().forEach(track => track.stop()); } const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: isSelfieMode ? 'user' : 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false }); video.srcObject = stream; video.onloadedmetadata = () => { video.play(); renderLoop(); }; } catch (err) { console.error("Camera Error", err); } }
+        function enforceFullscreen() { if (!document.fullscreenElement) { fsPrompt.style.display = 'flex'; document.getElementById('camera-container').style.display = 'none'; fsViewfinder.style.display = 'none'; } }
+        document.addEventListener('fullscreenchange', enforceFullscreen); document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { enforceFullscreen(); if(video.srcObject && video.paused) video.play(); } });
+        orientationBtn.addEventListener('click', async () => { isOrientationLocked = !isOrientationLocked; orientationBtn.classList.toggle('locked', isOrientationLocked); localStorage.setItem('orientationLocked', isOrientationLocked); if (isOrientationLocked) { try { if (screen.orientation && screen.orientation.lock) { await screen.orientation.lock('landscape'); } } catch (e) { console.log("Orientation Lock not supported or failed", e); } } else { try { if (screen.orientation && screen.orientation.unlock) { screen.orientation.unlock(); } } catch (e) {} } });
 
-        function startFullscreenAndCamera() {
-            const el = document.documentElement;
-            const rfs = el.requestFullscreen || el.webkitRequestFullScreen;
-            if (rfs) {
-                rfs.call(el).then(() => { 
-                    initSystem().then(initCamera); 
-                    if(isOrientationLocked && screen.orientation && screen.orientation.lock) {
-                        screen.orientation.lock('landscape').catch(()=>{});
-                    }
-                }).catch(() => { initSystem().then(initCamera); });
-            }
-        }
-
-        async function initCamera() {
-            try {
-                if(video.srcObject) { video.srcObject.getTracks().forEach(track => track.stop()); }
-                const stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { facingMode: isSelfieMode ? 'user' : 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }, 
-                    audio: false 
-                });
-                video.srcObject = stream;
-                video.onloadedmetadata = () => { video.play(); renderLoop(); };
-            } catch (err) { console.error("Camera Error", err); }
-        }
-
-        function enforceFullscreen() {
-            if (!document.fullscreenElement) {
-                fsPrompt.style.display = 'flex';
-                document.getElementById('camera-container').style.display = 'none';
-                fsViewfinder.style.display = 'none';
-            }
-        }
-
-        document.addEventListener('fullscreenchange', enforceFullscreen);
-        document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'visible') {
-                enforceFullscreen();
-                if(video.srcObject && video.paused) video.play();
-            }
-        });
-
-        // Orientation Lock Logic
-        orientationBtn.addEventListener('click', async () => {
-            isOrientationLocked = !isOrientationLocked;
-            orientationBtn.classList.toggle('locked', isOrientationLocked);
-            localStorage.setItem('orientationLocked', isOrientationLocked);
-            
-            if (isOrientationLocked) {
-                try {
-                    if (screen.orientation && screen.orientation.lock) {
-                        await screen.orientation.lock('landscape');
-                    }
-                } catch (e) { console.log("Orientation Lock not supported or failed", e); }
-            } else {
-                try {
-                    if (screen.orientation && screen.orientation.unlock) {
-                        screen.orientation.unlock();
-                    }
-                } catch (e) {}
-            }
-        });
-
-        // Render Filters as 3D Rolls
-        function renderFilmSelector() {
-            const modes = getModes();
-            filmRollContainer.innerHTML = '';
-            
-            modes.forEach((m, index) => {
-                const canister = document.createElement('div');
-                canister.className = 'film-canister';
-                if (index === currentModeIdx) canister.classList.add('active');
-                
-                const labelStyle = `border: 4px solid ${m.color}; background: #f4e9c5;`;
-                const nameStyle = `color: ${m.color};`;
-                
-                canister.innerHTML = `
-                    <div class="canister-cap cap-top"></div>
-                    <div class="canister-body">
-                        <div class="canister-label" style="${labelStyle}">
-                            <div class="cl-name" style="${nameStyle}">${m.name}</div>
-                            <div class="cl-sub">${m.sub}</div>
-                            <div class="cl-iso">ISO</div>
-                        </div>
-                    </div>
-                    <div class="sprocket-lip"></div>
-                    <div class="canister-cap cap-bottom"></div>
-                `;
-                
-                canister.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    selectModeFromRoll(index);
-                });
-                
-                filmRollContainer.appendChild(canister);
-            });
-        }
-
-        function openFilmSelector() {
-            if (backDoorWrapper.classList.contains('open')) return;
-            renderFilmSelector();
-            filmRollOverlay.style.display = 'flex';
-            void filmRollOverlay.offsetWidth;
-            filmRollOverlay.classList.add('visible');
-        }
-
-        function selectModeFromRoll(index) {
-            currentModeIdx = index;
-            localStorage.setItem('camModeIdx', currentModeIdx);
-            
-            // Animation Sequence
-            filmRollOverlay.classList.remove('visible');
-            setTimeout(() => {
-                filmRollOverlay.style.display = 'none';
-                
-                filmCard.style.filter = 'blur(10px)';
-                processCanvas.style.filter = 'blur(10px)';
-                
-                updateModeUI();
-                
-                setTimeout(() => {
-                    filmCard.style.filter = 'none';
-                    processCanvas.style.filter = 'none';
-                }, 400);
-                
-            }, 300);
-        }
-
-        // Trigger Film Selector on Door Click
-        filmDoor.addEventListener('click', openFilmSelector);
-        
-        filmRollOverlay.addEventListener('click', (e) => {
-            if(e.target === filmRollOverlay) {
-                filmRollOverlay.classList.remove('visible');
-                setTimeout(() => filmRollOverlay.style.display = 'none', 300);
-            }
-        });
-
+        function renderFilmSelector() { const modes = getModes(); filmRollContainer.innerHTML = ''; modes.forEach((m, index) => { const canister = document.createElement('div'); canister.className = 'film-canister'; if (index === currentModeIdx) canister.classList.add('active'); const labelStyle = `border: 4px solid ${m.color}; background: #f4e9c5;`; const nameStyle = `color: ${m.color};`; canister.innerHTML = `<div class="canister-cap cap-top"></div><div class="canister-body"><div class="canister-label" style="${labelStyle}"><div class="cl-name" style="${nameStyle}">${m.name}</div><div class="cl-sub">${m.sub}</div><div class="cl-iso">ISO</div></div></div><div class="sprocket-lip"></div><div class="canister-cap cap-bottom"></div>`; canister.addEventListener('click', (e) => { e.stopPropagation(); selectModeFromRoll(index); }); filmRollContainer.appendChild(canister); }); }
+        function openFilmSelector() { if (backDoorWrapper.classList.contains('open')) return; renderFilmSelector(); filmRollOverlay.style.display = 'flex'; void filmRollOverlay.offsetWidth; filmRollOverlay.classList.add('visible'); }
+        function selectModeFromRoll(index) { currentModeIdx = index; localStorage.setItem('camModeIdx', currentModeIdx); filmRollOverlay.classList.remove('visible'); setTimeout(() => { filmRollOverlay.style.display = 'none'; filmCard.style.filter = 'blur(10px)'; processCanvas.style.filter = 'blur(10px)'; updateModeUI(); setTimeout(() => { filmCard.style.filter = 'none'; processCanvas.style.filter = 'none'; }, 400); }, 300); }
+        filmDoor.addEventListener('click', openFilmSelector); filmRollOverlay.addEventListener('click', (e) => { if(e.target === filmRollOverlay) { filmRollOverlay.classList.remove('visible'); setTimeout(() => filmRollOverlay.style.display = 'none', 300); } });
 
         function applySketchEffect(sourceVideo, destCtx, width, height, modeId) {
-            const scanW = 800; 
-            const scanH = Math.floor(scanW * (height/width));
-            
-            if(sketchCanvas.width !== scanW) {
-                sketchCanvas.width = scanW; sketchCanvas.height = scanH;
-            }
-            
+            const scanW = 800; const scanH = Math.floor(scanW * (height/width));
+            if(sketchCanvas.width !== scanW) { sketchCanvas.width = scanW; sketchCanvas.height = scanH; }
             sketchCtx.drawImage(sourceVideo, 0, 0, scanW, scanH);
-            const frame = sketchCtx.getImageData(0, 0, scanW, scanH);
-            const data = frame.data;
-            const output = sketchCtx.createImageData(scanW, scanH);
-            const outData = output.data;
-            
-            const isColor = (modeId === 'SKETCH_COL');
-            const isInk = (modeId === 'SKETCH_INK');
-            const isOil = (modeId === 'SKETCH_OIL');
-            const isCyber = (modeId === 'SKETCH_CYBER');
-            const isBlueprint = (modeId === 'SKETCH_BLUE');
-            const isHKNeon = (modeId === 'SKETCH_HK_NEON');
-            const isShuimo = (modeId === 'SKETCH_SHUIMO');
-
-            let threshold = 15; 
-            if(isInk || isHKNeon) threshold = 20;
-            if(isOil) threshold = 40; 
-            if(isCyber || isBlueprint) threshold = 25;
-            if(isShuimo) threshold = 12;
-
-            for(let y = 0; y < scanH; y++) {
-                for(let x = 0; x < scanW; x++) {
-                    const i = (y * scanW + x) * 4;
-                    
-                    const r = data[i]; const g = data[i+1]; const b = data[i+2];
-                    const val = (r + g + b) / 3;
-                    
-                    let rightVal = val; let bottomVal = val;
-                    if(x < scanW - 1) { rightVal = (data[i+4] + data[i+5] + data[i+6]) / 3; }
-                    if(y < scanH - 1) { bottomVal = (data[i+scanW*4] + data[i+scanW*4+1] + data[i+scanW*4+2]) / 3; }
-                    
-                    const diff = Math.abs(val - rightVal) + Math.abs(val - bottomVal);
-                    let isEdge = diff > threshold;
-                    
-                    if (isHKNeon) {
-                        if(isEdge) {
-                            let nr = r, ng = g, nb = b;
-                            if(r > g && r > b) { if(g > b) { nr = 255; ng = 220; nb = 0; } else { nr = 255; ng = 0; nb = 80; } } 
-                            else if(g > r && g > b) { if(b > g * 0.5) { nr = 0; ng = 150; nb = 255; } else { nr = 0; ng = 255; nb = 50; } } 
-                            else { if(r > b * 0.5) { nr = 180; ng = 0; nb = 255; } else { nr = 0; ng = 80; nb = 255; } }
-                            if(diff > 60) { nr = 255; ng = 255; nb = 255; }
-                            outData[i] = nr; outData[i+1] = ng; outData[i+2] = nb;
-                        } else { outData[i] = 10; outData[i+1] = 5; outData[i+2] = 15; }
-                    }
-                    else if (isCyber) {
-                        if(isEdge) { outData[i] = 0; outData[i+1] = 255; outData[i+2] = 50; } 
-                        else { let dim = (y % 4 === 0) ? 30 : 10; outData[i] = 0; outData[i+1] = dim; outData[i+2] = 0; }
-                    }
-                    else if (isBlueprint) {
-                        if(isEdge) { outData[i] = 240; outData[i+1] = 245; outData[i+2] = 255; } 
-                        else { if(x % 50 === 0 || y % 50 === 0) { outData[i] = 30; outData[i+1] = 80; outData[i+2] = 180; } else { outData[i] = 0; outData[i+1] = 50; outData[i+2] = 120; } }
-                    }
-                    else if (isShuimo) {
-                        let ink = 255;
-                        if (isEdge) { ink = 10; } 
-                        else {
-                            const wetness = Math.random() * 15;
-                            if (val < 50) ink = 40 + wetness; else if (val < 100) ink = 100 + wetness; else if (val < 160) ink = 180 + wetness; else ink = 250 + (Math.random() * 5);    
-                            if (diff > 5 && diff <= threshold) { ink -= 50; }
-                        }
-                        ink = Math.max(0, Math.min(255, ink));
-                        outData[i] = ink; outData[i+1] = ink; outData[i+2] = ink;
-                    }
-                    else if (isInk) {
-                        if (isEdge || val < 80) { outData[i] = 10; outData[i+1] = 10; outData[i+2] = 10; } else { outData[i] = 255; outData[i+1] = 255; outData[i+2] = 255; }
-                    }
-                    else if (isOil) {
-                        const level = 40;
-                        const qr = Math.floor(r/level)*level; const qg = Math.floor(g/level)*level; const qb = Math.floor(b/level)*level;
-                        outData[i] = Math.min(255, qr * 1.1); outData[i+1] = Math.min(255, qg * 1.1); outData[i+2] = Math.min(255, qb * 1.1);
-                    }
-                    else if (isColor) {
-                        if(isEdge) { outData[i] = r * 0.5; outData[i+1] = g * 0.5; outData[i+2] = b * 0.5; } 
-                        else { const noise = (Math.random() * 10) - 5; outData[i] = Math.min(255, (r + 80) + noise); outData[i+1] = Math.min(255, (g + 80) + noise); outData[i+2] = Math.min(255, (b + 80) + noise); }
-                    }
-                    else {
-                        if (isEdge) { const intensity = Math.min(diff * 2, 150); const edgeColor = 60 - (intensity / 5); outData[i] = edgeColor; outData[i+1] = edgeColor; outData[i+2] = edgeColor; } 
-                        else { const paper = 250 + (Math.random() * 5); outData[i] = paper; outData[i+1] = paper; outData[i+2] = paper; }
-                    }
-                    outData[i+3] = 255;
-                }
-            }
-            
-            sketchCtx.putImageData(output, 0, 0);
-            destCtx.imageSmoothingEnabled = true; 
-            destCtx.drawImage(sketchCanvas, 0, 0, width, height);
+            const frame = sketchCtx.getImageData(0, 0, scanW, scanH); const data = frame.data; const output = sketchCtx.createImageData(scanW, scanH); const outData = output.data;
+            const isColor = (modeId === 'SKETCH_COL'); const isInk = (modeId === 'SKETCH_INK'); const isOil = (modeId === 'SKETCH_OIL'); const isCyber = (modeId === 'SKETCH_CYBER'); const isBlueprint = (modeId === 'SKETCH_BLUE'); const isHKNeon = (modeId === 'SKETCH_HK_NEON'); const isShuimo = (modeId === 'SKETCH_SHUIMO');
+            let threshold = 15; if(isInk || isHKNeon) threshold = 20; if(isOil) threshold = 40; if(isCyber || isBlueprint) threshold = 25; if(isShuimo) threshold = 12;
+            for(let y = 0; y < scanH; y++) { for(let x = 0; x < scanW; x++) { const i = (y * scanW + x) * 4; const r = data[i]; const g = data[i+1]; const b = data[i+2]; const val = (r + g + b) / 3; let rightVal = val; let bottomVal = val; if(x < scanW - 1) { rightVal = (data[i+4] + data[i+5] + data[i+6]) / 3; } if(y < scanH - 1) { bottomVal = (data[i+scanW*4] + data[i+scanW*4+1] + data[i+scanW*4+2]) / 3; } const diff = Math.abs(val - rightVal) + Math.abs(val - bottomVal); let isEdge = diff > threshold; if (isHKNeon) { if(isEdge) { let nr = r, ng = g, nb = b; if(r > g && r > b) { if(g > b) { nr = 255; ng = 220; nb = 0; } else { nr = 255; ng = 0; nb = 80; } } else if(g > r && g > b) { if(b > g * 0.5) { nr = 0; ng = 150; nb = 255; } else { nr = 0; ng = 255; nb = 50; } } else { if(r > b * 0.5) { nr = 180; ng = 0; nb = 255; } else { nr = 0; ng = 80; nb = 255; } } if(diff > 60) { nr = 255; ng = 255; nb = 255; } outData[i] = nr; outData[i+1] = ng; outData[i+2] = nb; } else { outData[i] = 10; outData[i+1] = 5; outData[i+2] = 15; } } else if (isCyber) { if(isEdge) { outData[i] = 0; outData[i+1] = 255; outData[i+2] = 50; } else { let dim = (y % 4 === 0) ? 30 : 10; outData[i] = 0; outData[i+1] = dim; outData[i+2] = 0; } } else if (isBlueprint) { if(isEdge) { outData[i] = 240; outData[i+1] = 245; outData[i+2] = 255; } else { if(x % 50 === 0 || y % 50 === 0) { outData[i] = 30; outData[i+1] = 80; outData[i+2] = 180; } else { outData[i] = 0; outData[i+1] = 50; outData[i+2] = 120; } } } else if (isShuimo) { let ink = 255; if (isEdge) { ink = 10; } else { const wetness = Math.random() * 15; if (val < 50) ink = 40 + wetness; else if (val < 100) ink = 100 + wetness; else if (val < 160) ink = 180 + wetness; else ink = 250 + (Math.random() * 5); if (diff > 5 && diff <= threshold) { ink -= 50; } } ink = Math.max(0, Math.min(255, ink)); outData[i] = ink; outData[i+1] = ink; outData[i+2] = ink; } else if (isInk) { if (isEdge || val < 80) { outData[i] = 10; outData[i+1] = 10; outData[i+2] = 10; } else { outData[i] = 255; outData[i+1] = 255; outData[i+2] = 255; } } else if (isOil) { const level = 40; const qr = Math.floor(r/level)*level; const qg = Math.floor(g/level)*level; const qb = Math.floor(b/level)*level; outData[i] = Math.min(255, qr * 1.1); outData[i+1] = Math.min(255, qg * 1.1); outData[i+2] = Math.min(255, qb * 1.1); } else if (isColor) { if(isEdge) { outData[i] = r * 0.5; outData[i+1] = g * 0.5; outData[i+2] = b * 0.5; } else { const noise = (Math.random() * 10) - 5; outData[i] = Math.min(255, (r + 80) + noise); outData[i+1] = Math.min(255, (g + 80) + noise); outData[i+2] = Math.min(255, (b + 80) + noise); } } else { if (isEdge) { const intensity = Math.min(diff * 2, 150); const edgeColor = 60 - (intensity / 5); outData[i] = edgeColor; outData[i+1] = edgeColor; outData[i+2] = edgeColor; } else { const paper = 250 + (Math.random() * 5); outData[i] = paper; outData[i+1] = paper; outData[i+2] = paper; } } outData[i+3] = 255; } }
+            sketchCtx.putImageData(output, 0, 0); destCtx.imageSmoothingEnabled = true; destCtx.drawImage(sketchCanvas, 0, 0, width, height);
         }
 
         selfieToggle.addEventListener('click', () => {
-            // REMOVED CHECK FOR SKETCH MODE so it works in ART too
             isSelfieMode = !isSelfieMode;
-            if (isSelfieMode) {
-                document.body.classList.add('is-selfie');
-                backDoorWrapper.style.display = 'none'; frontFace.style.display = 'flex';
-                backControls.style.display = 'none'; frontControls.style.display = 'block';
-            } else {
-                document.body.classList.remove('is-selfie');
-                backDoorWrapper.style.display = 'block'; frontFace.style.display = 'none';
-                backControls.style.display = 'block'; frontControls.style.display = 'none';
-            }
+            if (isSelfieMode) { document.body.classList.add('is-selfie'); backDoorWrapper.style.display = 'none'; frontFace.style.display = 'flex'; backControls.style.display = 'none'; frontControls.style.display = 'block'; } else { document.body.classList.remove('is-selfie'); backDoorWrapper.style.display = 'block'; frontFace.style.display = 'none'; backControls.style.display = 'block'; frontControls.style.display = 'none'; }
             initCamera(); 
         });
 
         sketchModeSwitch.addEventListener('click', () => {
-            isSketchMode = !isSketchMode;
-            sketchModeSwitch.classList.toggle('mode-sketch', isSketchMode);
-            document.getElementById('lbl-real').classList.toggle('active', !isSketchMode);
-            document.getElementById('lbl-sketch').classList.toggle('active', isSketchMode);
-            
-            currentModeIdx = 0;
-            
-            // Allow selfie toggle click even in sketch mode now
-            // Just update filter UI
-            openFilmSelector();
+            isSketchMode = !isSketchMode; sketchModeSwitch.classList.toggle('mode-sketch', isSketchMode); document.getElementById('lbl-real').classList.toggle('active', !isSketchMode); document.getElementById('lbl-sketch').classList.toggle('active', isSketchMode); currentModeIdx = 0; openFilmSelector();
         });
 
         function renderLoop() {
             requestAnimationFrame(renderLoop);
-
-            const modes = getModes();
-            validateModeIndex();
-            const mode = modes[currentModeIdx];
-            
-            let w = 640; let h = 360; 
-            
-            if (!isSketchMode && (mode.id === 'COLOR' || mode.id === 'BW')) { w = 320; h = 180; } 
-            
+            const modes = getModes(); validateModeIndex(); const mode = modes[currentModeIdx];
+            let w = 640; let h = 360; if (!isSketchMode && (mode.id === 'COLOR' || mode.id === 'BW')) { w = 320; h = 180; } 
             if (processCanvas.width !== w) { processCanvas.width = w; processCanvas.height = h; }
-            
             processCtx.filter = "none";
             if (!video.srcObject || !video.srcObject.active || video.paused) return;
-            
-            if (isSketchMode) {
-                applySketchEffect(video, processCtx, w, h, mode.id);
-            } else {
-                processCtx.drawImage(video, 0, 0, w, h);
-            
-                let imgData = processCtx.getImageData(0, 0, w, h);
-                let data = imgData.data;
-                
-                if (mode.id === 'FILM_TEAL') {
-                    for (let i = 0; i < data.length; i += 4) {
-                        let r = data[i], g = data[i+1], b = data[i+2];
-                        r = r < 40 ? 40 + (r*0.5) : r; b = b < 50 ? 50 + (b*0.5) : b;
-                        r = r * 0.96; g = g * 1.01; b = b * 1.04; 
-                        data[i] = r; data[i+1] = g; data[i+2] = b;
-                    }
-                }
-                else if (mode.id === 'FILM_SUN') {
-                    for (let i = 0; i < data.length; i += 4) {
-                        let r = data[i], g = data[i+1], b = data[i+2];
-                        r = 255 * Math.pow(r / 255, 0.9); g = 255 * Math.pow(g / 255, 0.9); b = 255 * Math.pow(b / 255, 0.95);
-                        r = r * 1.05 + 10; g = g * 1.02 + 5; b = b * 0.92;
-                        data[i] = r; data[i+1] = g; data[i+2] = b;
-                    }
-                }
-                else if (mode.id === 'FILM_VIVID') {
-                    for (let i = 0; i < data.length; i += 4) {
-                        let r = data[i], g = data[i+1], b = data[i+2];
-                        const gray = 0.2989*r + 0.5870*g + 0.1140*b;
-                        r = gray + (r - gray) * 1.4; g = gray + (g - gray) * 1.4; b = gray + (b - gray) * 1.4;
-                        r = (r - 20) * 1.1; g = (g - 20) * 1.1; b = (b - 20) * 1.1; b = b * 1.05; r = r * 1.02;
-                        data[i] = Math.min(255, Math.max(0, r)); data[i+1] = Math.min(255, Math.max(0, g)); data[i+2] = Math.min(255, Math.max(0, b));
-                    }
-                }
-                else if (mode.id === 'FILM_AGED') {
-                    for (let i = 0; i < data.length; i += 4) {
-                        let r = data[i], g = data[i+1], b = data[i+2];
-                        r = (r * 0.7) + 50; g = (g * 0.7) + 60; b = (b * 0.6) + 25; 
-                        data[i] = r; data[i+1] = g; data[i+2] = b;
-                    }
-                }
-                else if (mode.id === 'FILM_SOFT') {
-                    for (let i = 0; i < data.length; i += 4) {
-                        let r = data[i], g = data[i+1], b = data[i+2];
-                        r = (r * 0.95) + 10; g = (g * 0.95) + 10; b = (b * 0.95) + 15;
-                        r = r * 0.96; g = g * 1.02; b = b * 1.06; 
-                        data[i] = r; data[i+1] = g; data[i+2] = b;
-                    }
-                }
-                else if (mode.id === 'BW') {
-                    for (let i = 0; i < data.length; i += 4) {
-                        let lum = data[i] * 0.3 + data[i+1] * 0.59 + data[i+2] * 0.11;
-                        if (lum < 128) lum = Math.pow(lum/128, 1.15) * 128; else lum = 128 + Math.pow((lum-128)/128, 0.9) * 128;
-                        data[i] = data[i+1] = data[i+2] = lum;
-                    }
-                }
-                else if (mode.id === 'COLOR') {
-                    for (let i = 0; i < data.length; i += 4) {
-                        data[i] = Math.round(data[i] / 50) * 50; data[i+1] = Math.round(data[i+1] / 50) * 50; data[i+2] = Math.round(data[i+2] / 50) * 50;
-                    }
-                }
-                else if (mode.id === 'HCBW') {
-                    for (let i = 0; i < data.length; i += 4) {
-                        let lum = data[i] * 0.299 + data[i+1] * 0.587 + data[i+2] * 0.114;
-                        lum = (lum - 40) * 1.25; if(lum < 0) lum = 0; if(lum > 255) lum = 255;
-                        data[i] = data[i+1] = data[i+2] = lum;
-                    }
-                }
-                
-                processCtx.putImageData(imgData, 0, 0);
-
-                if (mode.id === 'FILM_SOFT') {
-                    processCtx.save();
-                    processCtx.globalCompositeOperation = "screen";
-                    processCtx.filter = "brightness(0.6) contrast(2.5) blur(6px) opacity(0.6)";
-                    processCtx.drawImage(processCanvas, 0, 0);
-                    processCtx.restore();
-                }
-
-                if (mode.id !== 'CCD' && mode.id !== 'COLOR') {
-                    processCtx.save(); 
-                    processCtx.globalCompositeOperation = "overlay"; 
-                    
-                    let grainOpacity = 0.25; let grainScale = 1.6;
-                    if(mode.id === 'BW') grainOpacity = 0.35; 
-                    if(mode.id === 'FILM_TEAL') { grainOpacity = 0.22; grainScale = 1.6; }
-                    if(mode.id === 'FILM_SUN') { grainOpacity = 0.18; grainScale = 1.3; } 
-                    if(mode.id === 'FILM_VIVID') { grainOpacity = 0.28; grainScale = 1.5; } 
-                    if(mode.id === 'FILM_AGED') { grainOpacity = 0.40; grainScale = 2.5; } 
-                    if(mode.id === 'FILM_SOFT') { grainOpacity = 0.15; grainScale = 1.2; } 
-
-                    processCtx.globalAlpha = grainOpacity; 
-                    processCtx.imageSmoothingEnabled = true; 
-
-                    const offsetX = Math.random() * 128; const offsetY = Math.random() * 128;
-                    processCtx.scale(grainScale, grainScale); processCtx.translate(offsetX, offsetY);
-                    processCtx.fillStyle = processCtx.createPattern(grainCanvas, 'repeat');
-                    processCtx.fillRect(-offsetX, -offsetY, (w/grainScale) + offsetX, (h/grainScale) + offsetY);
-                    processCtx.restore();
-                }
-            }
-
+            if (isSketchMode) { applySketchEffect(video, processCtx, w, h, mode.id); } else { processCtx.drawImage(video, 0, 0, w, h); let imgData = processCtx.getImageData(0, 0, w, h); let data = imgData.data; if (mode.id === 'FILM_TEAL') { for (let i = 0; i < data.length; i += 4) { let r = data[i], g = data[i+1], b = data[i+2]; r = r < 40 ? 40 + (r*0.5) : r; b = b < 50 ? 50 + (b*0.5) : b; r = r * 0.96; g = g * 1.01; b = b * 1.04; data[i] = r; data[i+1] = g; data[i+2] = b; } } else if (mode.id === 'FILM_SUN') { for (let i = 0; i < data.length; i += 4) { let r = data[i], g = data[i+1], b = data[i+2]; r = 255 * Math.pow(r / 255, 0.9); g = 255 * Math.pow(g / 255, 0.9); b = 255 * Math.pow(b / 255, 0.95); r = r * 1.05 + 10; g = g * 1.02 + 5; b = b * 0.92; data[i] = r; data[i+1] = g; data[i+2] = b; } } else if (mode.id === 'FILM_VIVID') { for (let i = 0; i < data.length; i += 4) { let r = data[i], g = data[i+1], b = data[i+2]; const gray = 0.2989*r + 0.5870*g + 0.1140*b; r = gray + (r - gray) * 1.4; g = gray + (g - gray) * 1.4; b = gray + (b - gray) * 1.4; r = (r - 20) * 1.1; g = (g - 20) * 1.1; b = (b - 20) * 1.1; b = b * 1.05; r = r * 1.02; data[i] = Math.min(255, Math.max(0, r)); data[i+1] = Math.min(255, Math.max(0, g)); data[i+2] = Math.min(255, Math.max(0, b)); } } else if (mode.id === 'FILM_AGED') { for (let i = 0; i < data.length; i += 4) { let r = data[i], g = data[i+1], b = data[i+2]; r = (r * 0.7) + 50; g = (g * 0.7) + 60; b = (b * 0.6) + 25; data[i] = r; data[i+1] = g; data[i+2] = b; } } else if (mode.id === 'FILM_SOFT') { for (let i = 0; i < data.length; i += 4) { let r = data[i], g = data[i+1], b = data[i+2]; r = (r * 0.95) + 10; g = (g * 0.95) + 10; b = (b * 0.95) + 15; r = r * 0.96; g = g * 1.02; b = b * 1.06; data[i] = r; data[i+1] = g; data[i+2] = b; } } else if (mode.id === 'BW') { for (let i = 0; i < data.length; i += 4) { let lum = data[i] * 0.3 + data[i+1] * 0.59 + data[i+2] * 0.11; if (lum < 128) lum = Math.pow(lum/128, 1.15) * 128; else lum = 128 + Math.pow((lum-128)/128, 0.9) * 128; data[i] = data[i+1] = data[i+2] = lum; } } else if (mode.id === 'COLOR') { for (let i = 0; i < data.length; i += 4) { data[i] = Math.round(data[i] / 50) * 50; data[i+1] = Math.round(data[i+1] / 50) * 50; data[i+2] = Math.round(data[i+2] / 50) * 50; } } else if (mode.id === 'HCBW') { for (let i = 0; i < data.length; i += 4) { let lum = data[i] * 0.299 + data[i+1] * 0.587 + data[i+2] * 0.114; lum = (lum - 40) * 1.25; if(lum < 0) lum = 0; if(lum > 255) lum = 255; data[i] = data[i+1] = data[i+2] = lum; } } processCtx.putImageData(imgData, 0, 0); if (mode.id === 'FILM_SOFT') { processCtx.save(); processCtx.globalCompositeOperation = "screen"; processCtx.filter = "brightness(0.6) contrast(2.5) blur(6px) opacity(0.6)"; processCtx.drawImage(processCanvas, 0, 0); processCtx.restore(); } if (mode.id !== 'CCD' && mode.id !== 'COLOR') { processCtx.save(); processCtx.globalCompositeOperation = "overlay"; let grainOpacity = 0.25; let grainScale = 1.6; if(mode.id === 'BW') grainOpacity = 0.35; if(mode.id === 'FILM_TEAL') { grainOpacity = 0.22; grainScale = 1.6; } if(mode.id === 'FILM_SUN') { grainOpacity = 0.18; grainScale = 1.3; } if(mode.id === 'FILM_VIVID') { grainOpacity = 0.28; grainScale = 1.5; } if(mode.id === 'FILM_AGED') { grainOpacity = 0.40; grainScale = 2.5; } if(mode.id === 'FILM_SOFT') { grainOpacity = 0.15; grainScale = 1.2; } processCtx.globalAlpha = grainOpacity; processCtx.imageSmoothingEnabled = true; const offsetX = Math.random() * 128; const offsetY = Math.random() * 128; processCtx.scale(grainScale, grainScale); processCtx.translate(offsetX, offsetY); processCtx.fillStyle = processCtx.createPattern(grainCanvas, 'repeat'); processCtx.fillRect(-offsetX, -offsetY, (w/grainScale) + offsetX, (h/grainScale) + offsetY); processCtx.restore(); } }
             const isPixelated = (!isSketchMode && (mode.id === 'COLOR' || mode.id === 'BW'));
-            
-            if (!isSelfieMode) {
-                if (smallCanvas.width !== w) { smallCanvas.width = w; smallCanvas.height = h; }
-                smallCanvas.style.imageRendering = isPixelated ? 'pixelated' : 'auto';
-                smallCtx.drawImage(processCanvas, 0, 0);
-            } else {
-                if (frontCanvas.width !== w) { frontCanvas.width = w; frontCanvas.height = h; }
-                frontCanvas.style.imageRendering = isPixelated ? 'pixelated' : 'auto';
-                // Apply mirror effect for front cam
-                frontCtx.save();
-                frontCtx.translate(w, 0);
-                frontCtx.scale(-1, 1);
-                frontCtx.drawImage(processCanvas, 0, 0);
-                frontCtx.restore();
-            }
-
-            if (fsViewfinder.style.display === 'block') {
-                if (fsCanvas.width !== w) { fsCanvas.width = w; fsCanvas.height = h; }
-                fsCanvas.style.imageRendering = isPixelated ? 'pixelated' : 'auto';
-                // For viewfinder, if selfie, needs mirror
-                if (isSelfieMode) {
-                   fsCtx.save();
-                   fsCtx.translate(w, 0);
-                   fsCtx.scale(-1, 1);
-                   fsCtx.drawImage(processCanvas, 0, 0);
-                   fsCtx.restore();
-                } else {
-                   fsCtx.drawImage(processCanvas, 0, 0);
-                }
-            }
+            if (!isSelfieMode) { if (smallCanvas.width !== w) { smallCanvas.width = w; smallCanvas.height = h; } smallCanvas.style.imageRendering = isPixelated ? 'pixelated' : 'auto'; smallCtx.drawImage(processCanvas, 0, 0); } else { if (frontCanvas.width !== w) { frontCanvas.width = w; frontCanvas.height = h; } frontCanvas.style.imageRendering = isPixelated ? 'pixelated' : 'auto'; frontCtx.save(); frontCtx.translate(w, 0); frontCtx.scale(-1, 1); frontCtx.drawImage(processCanvas, 0, 0); frontCtx.restore(); }
+            if (fsViewfinder.style.display === 'block') { if (fsCanvas.width !== w) { fsCanvas.width = w; fsCanvas.height = h; } fsCanvas.style.imageRendering = isPixelated ? 'pixelated' : 'auto'; if (isSelfieMode) { fsCtx.save(); fsCtx.translate(w, 0); fsCtx.scale(-1, 1); fsCtx.drawImage(processCanvas, 0, 0); fsCtx.restore(); } else { fsCtx.drawImage(processCanvas, 0, 0); } }
         }
 
-        // Viewfinder & Shutter
-        vfTrigger.addEventListener('click', (e) => { e.stopPropagation(); fsViewfinder.style.display = 'block'; 
-            if(isSketchMode) { splitCircle.style.display = 'none'; fsGuideFrame.style.display = 'none'; } else { splitCircle.style.display = 'block'; fsGuideFrame.style.display = 'block'; }
-        });
+        vfTrigger.addEventListener('click', (e) => { e.stopPropagation(); fsViewfinder.style.display = 'block'; if(isSketchMode) { splitCircle.style.display = 'none'; fsGuideFrame.style.display = 'none'; } else { splitCircle.style.display = 'block'; fsGuideFrame.style.display = 'block'; } });
         frontVfTrigger.addEventListener('click', (e) => { e.stopPropagation(); if (video.readyState >= 2) fsViewfinder.style.display = 'block'; });
         vfCloseBtn.addEventListener('click', (e) => { e.stopPropagation(); fsViewfinder.style.display = 'none'; });
         fsViewfinder.addEventListener('click', (e) => { if(e.target.id !== 'vf-close-btn') handleShutter(e); });
-        
         shutterBtn.addEventListener('click', handleShutter);
         frontShutterBtn.addEventListener('click', handleShutter);
-        cablePlunger.addEventListener('click', (e) => { 
-            e.stopPropagation(); 
-            cablePlunger.classList.add('pressed'); 
-            setTimeout(() => cablePlunger.classList.remove('pressed'), 200); 
-            handleShutter(e); 
-        });
-        
-        function handleShutter(e) {
-            if(e) e.stopPropagation();
-            if (e && e.target.id === 'vf-close-btn') return;
-            // Removed check for backDoorWrapper so you can click shutter when door is open if you really want, or keep logic.
-            // But user said "After developing cannot click shutter", which means the state wasn't resetting.
-            if (!isSelfieMode && backDoorWrapper.classList.contains('open')) return;
-            if (isRollMode && currentFrame >= 36) return;
-            if (!isRollMode && pendingPhoto) return;
+        cablePlunger.addEventListener('click', (e) => { e.stopPropagation(); cablePlunger.classList.add('pressed'); setTimeout(() => cablePlunger.classList.remove('pressed'), 200); handleShutter(e); });
+        function handleShutter(e) { if(e) e.stopPropagation(); if (e && e.target.id === 'vf-close-btn') return; if (!isSelfieMode && backDoorWrapper.classList.contains('open')) return; if (isRollMode && currentFrame >= 36) return; if (!isRollMode && pendingPhoto) return; const btn = isSelfieMode ? frontShutterBtn : shutterBtn; btn.classList.add('pressed'); playShutterSound(); if (isSelfieMode) { shutterFlash.classList.remove('flash'); void shutterFlash.offsetWidth; shutterFlash.classList.add('flash'); setTimeout(() => shutterFlash.classList.remove('flash'), 150); } else { const container = (fsViewfinder.style.display === 'block') ? fsViewfinder : vfTrigger; const blind = document.createElement('div'); blind.className = container === fsViewfinder ? 'shutter-blind' : 'vf-shutter-blind'; container.appendChild(blind); setTimeout(() => blind.remove(), 150); } setTimeout(() => { performCapture(); btn.classList.remove('pressed'); }, 150); }
 
-            const btn = isSelfieMode ? frontShutterBtn : shutterBtn;
-            btn.classList.add('pressed');
-            playShutterSound();
-            
-            if (isSelfieMode) {
-                shutterFlash.classList.remove('flash'); void shutterFlash.offsetWidth; shutterFlash.classList.add('flash'); setTimeout(() => shutterFlash.classList.remove('flash'), 150);
-            } else {
-                const container = (fsViewfinder.style.display === 'block') ? fsViewfinder : vfTrigger;
-                const blind = document.createElement('div'); blind.className = container === fsViewfinder ? 'shutter-blind' : 'vf-shutter-blind';
-                container.appendChild(blind); setTimeout(() => blind.remove(), 150);
-            }
-            setTimeout(() => { performCapture(); btn.classList.remove('pressed'); }, 150);
-        }
+        function generateLightLeak(ctx, w, h, severity = 1) { ctx.save(); ctx.globalCompositeOperation = 'screen'; const baseCount = severity > 1 ? 3 : (Math.random() > 0.7 ? 2 : 1); for(let i=0; i<baseCount; i++) { const type = Math.random(); const opacity = (0.4 + Math.random() * 0.4) * severity; const hue = Math.random() > 0.8 ? 40 + Math.random()*10 : 10 + Math.random()*30; let colorInner = `hsla(${hue}, 90%, 60%, ${opacity})`; let colorOuter = `hsla(${hue-10}, 90%, 40%, 0)`; if (type < 0.4) { const isLeft = Math.random() > 0.5; const width = w * (0.15 + Math.random() * 0.3); const grad = ctx.createLinearGradient(isLeft ? 0 : w, 0, isLeft ? width : w - width, 0); grad.addColorStop(0, colorInner); grad.addColorStop(1, colorOuter); ctx.fillStyle = grad; ctx.fillRect(0, 0, w, h); } else { const cx = Math.random() > 0.5 ? 0 : w; const cy = Math.random() > 0.5 ? 0 : h; const r = Math.max(w, h) * (0.4 + Math.random() * 0.4); const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r); grad.addColorStop(0, `hsla(${hue}, 20%, 90%, ${opacity})`); grad.addColorStop(1, `hsla(${hue}, 90%, 20%, 0)`); ctx.fillStyle = grad; ctx.fillRect(0, 0, w, h); } } ctx.restore(); }
+        async function performCapture() { const modes = getModes(); const mode = modes[currentModeIdx]; const targetW = 1920, targetH = 1080; finalCanvas.width = targetW; finalCanvas.height = targetH; finalCtx.filter = 'none'; finalCtx.globalCompositeOperation = 'source-over'; if (isSelfieMode) { finalCtx.translate(targetW, 0); finalCtx.scale(-1, 1); } finalCtx.imageSmoothingEnabled = (mode.id.startsWith('FILM_') || mode.id === 'HCBW' || mode.id === 'CCD' || mode.id.includes('SKETCH')); finalCtx.drawImage(processCanvas, 0, 0, targetW, targetH); if (mode.id.startsWith('FILM_')) { const severity = (mode.id === 'FILM_AGED') ? 2.0 : 1.0; generateLightLeak(finalCtx, targetW, targetH, severity); } finalCtx.setTransform(1, 0, 0, 1, 0, 0); const highRes = finalCanvas.toDataURL('image/jpeg', 0.92); if (isRollMode) { await saveToTemp(highRes); currentFrame++; updateCounterDisplay(); checkLeverState(); } else { pendingPhoto = highRes; document.getElementById('review-img').src = highRes; document.getElementById('review-overlay').style.display = 'flex'; fsViewfinder.style.display = 'none'; } }
+        document.getElementById('btn-discard').addEventListener('click', () => { pendingPhoto = null; document.getElementById('review-overlay').style.display = 'none'; }); document.getElementById('btn-keep').addEventListener('click', () => { document.getElementById('review-overlay').style.display = 'none'; checkLeverState(); });
+        rollModeSwitch.addEventListener('click', async () => { if(pendingPhoto || (isRollMode && currentFrame > 0 && currentFrame < 36)) { if(!confirm("Switching modes will clear current roll. Continue?")) return; await clearTemp(); pendingPhoto = null; } isRollMode = !isRollMode; localStorage.setItem('rollMode', isRollMode); rollModeSwitch.classList.toggle('mode-36', isRollMode); currentFrame = 0; updateCounterDisplay(); checkLeverState(); });
+        let leverPulled = false; advanceLever.addEventListener('click', async () => { if (!readyLight.classList.contains('active') || leverPulled) return; leverPulled = true; requestAnimationFrame(() => { advanceLever.style.transform = 'rotate(130deg)'; setTimeout(playLeverSound, 50); }); setTimeout(() => { advanceLever.style.transform = 'rotate(10deg)'; styleOverlay.style.display = 'flex'; leverPulled = false; }, 400); });
+        document.querySelectorAll('.style-btn').forEach(btn => { btn.addEventListener('click', async (e) => { const style = e.currentTarget.dataset.style; styleOverlay.style.display = 'none'; readyLight.classList.remove('active'); leverBase.classList.remove('glow'); let photosToProcess = []; if (isRollMode) photosToProcess = await getTempPhotos(); else if (pendingPhoto) photosToProcess = [{ image: pendingPhoto, date: new Date() }]; if(photosToProcess.length > 0) await startDevelopingAnimation(photosToProcess, style); }); });
+        function applyFrameAndDate(imgUrl, dateObj, style) { return new Promise(resolve => { const img = new Image(); img.onload = () => { let w = 1920, h = 1080; let padTop = 0, padSide = 0, padBottom = 0; if (style === 'white') { padTop = 50; padSide = 50; padBottom = 150; w = 1200; h = Math.floor(w * (9/16)) + padTop + padBottom; } else if (style === 'film') { padTop = 80; padSide = 0; padBottom = 80; } finalCanvas.width = w; finalCanvas.height = h; const ctx = finalCanvas.getContext('2d'); ctx.filter = 'none'; if (style === 'white') { ctx.fillStyle = '#fff'; ctx.fillRect(0,0,w,h); ctx.drawImage(img, padSide, padTop, w - padSide*2, h - padTop - padBottom); } else if (style === 'film') { ctx.drawImage(img, 0, padTop, w, h - padTop*2); ctx.fillStyle = '#111'; ctx.fillRect(0, 0, w, padTop); ctx.fillRect(0, h - padBottom, w, padBottom); ctx.fillStyle = '#fff'; const holeW = 30, gap = 20; for(let x = 30; x < w; x += (holeW + gap)) { ctx.fillRect(x, 20, holeW, 40); ctx.fillRect(x, h - 60, holeW, 40); } } else { ctx.drawImage(img, 0, 0, w, h); } const d = new Date(dateObj); const dateStr = `'${d.getFullYear().toString().slice(-2)} ${(d.getMonth()+1).toString().padStart(2,'0')} ${d.getDate().toString().padStart(2,'0')}`; let dateX = (style === 'white') ? w - padSide - 30 : ((style === 'film') ? w - 50 : w - 60); let dateY = (style === 'white' || style === 'film') ? h - padBottom - 30 : h - 50; if (isSketchMode) { ctx.save(); ctx.shadowBlur = 0; const m = SKETCH_MODES[currentModeIdx]; if(m.id === 'SKETCH_CYBER') ctx.fillStyle = '#0f0'; else if(m.id === 'SKETCH_BLUE') ctx.fillStyle = '#fff'; else if(m.id === 'SKETCH_HK_NEON') ctx.fillStyle = '#ff00cc'; else ctx.fillStyle = 'rgba(50, 50, 50, 0.85)'; ctx.font = `normal 45px "Segoe Print", "Comic Sans MS", cursive`; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom'; ctx.translate(dateX, dateY); ctx.rotate(-0.05); ctx.fillText(dateStr, 0, 0); ctx.restore(); } else { ctx.shadowColor = '#ff5500'; ctx.shadowBlur = 15; ctx.fillStyle = 'rgba(255, 170, 50, 0.9)'; const fontSize = style === 'white' ? 40 : 50; ctx.font = `bold ${fontSize}px "Courier New", monospace`; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom'; ctx.fillText(dateStr, dateX, dateY); } resolve(finalCanvas.toDataURL('image/jpeg', 0.9)); }; img.src = imgUrl; }); }
+        function overlaySerial(imgUrl, serialNo, style) { return new Promise(resolve => { const img = new Image(); img.onload = () => { finalCanvas.width = img.width; finalCanvas.height = img.height; const ctx = finalCanvas.getContext('2d'); ctx.drawImage(img, 0, 0); let x = 30, y = 30, color = '#fff'; if (style === 'white') { x = 50; y = img.height - 80; color = '#333'; } else if (style === 'film') { x = 40; y = 100; color = 'rgba(255,255,255,0.8)'; } else { color = 'rgba(255,255,255,0.8)'; } ctx.shadowColor = style === 'white' ? 'transparent' : '#000'; ctx.shadowBlur = 2; ctx.fillStyle = color; ctx.font = `bold 36px "Courier New", monospace`; ctx.textAlign = 'left'; ctx.textBaseline = 'top'; ctx.fillText(`No.${serialNo}`, x, y); resolve(finalCanvas.toDataURL('image/jpeg', 0.9)); }; img.src = imgUrl; }); }
+        async function startDevelopingAnimation(photos, style) { devOverlay.style.display = 'flex'; devStatus.textContent = "PREPARING..."; const processed = []; for (let p of photos) { const thisSerial = globalSerialCounter++; localStorage.setItem('global_serial_counter', globalSerialCounter); const finalImg = await applyFrameAndDate(p.image, p.date, style); processed.push({ img: finalImg, serial: thisSerial, style: style }); } for (let i = 0; i < processed.length; i++) { devStatus.textContent = `DEVELOPING ${i+1}/${processed.length}`; devImageWrap.src = processed[i].img; devImageWrap.style.border = style === 'white' ? 'none' : '8px solid white'; devImageWrap.style.animation = 'none'; devImageWrap.offsetHeight; devImageWrap.style.animation = 'developProcess 3s forwards'; await new Promise(r => setTimeout(r, 3200)); await saveToAlbum(processed[i].img, processed[i].serial, processed[i].style); } devStatus.textContent = "FINISHED"; await new Promise(r => setTimeout(r, 800)); devOverlay.style.display = 'none'; if (isRollMode) { await clearTemp(); currentFrame = 0; updateCounterDisplay(); } else { pendingPhoto = null; } checkLeverState(); }
 
-        function generateLightLeak(ctx, w, h, severity = 1) {
-            ctx.save(); ctx.globalCompositeOperation = 'screen'; 
-            const baseCount = severity > 1 ? 3 : (Math.random() > 0.7 ? 2 : 1);
-            for(let i=0; i<baseCount; i++) {
-                const type = Math.random(); const opacity = (0.4 + Math.random() * 0.4) * severity; 
-                const hue = Math.random() > 0.8 ? 40 + Math.random()*10 : 10 + Math.random()*30; 
-                let colorInner = `hsla(${hue}, 90%, 60%, ${opacity})`; let colorOuter = `hsla(${hue-10}, 90%, 40%, 0)`;
-                if (type < 0.4) {
-                    const isLeft = Math.random() > 0.5; const width = w * (0.15 + Math.random() * 0.3);
-                    const grad = ctx.createLinearGradient(isLeft ? 0 : w, 0, isLeft ? width : w - width, 0);
-                    grad.addColorStop(0, colorInner); grad.addColorStop(1, colorOuter); ctx.fillStyle = grad; ctx.fillRect(0, 0, w, h);
-                } else {
-                    const cx = Math.random() > 0.5 ? 0 : w; const cy = Math.random() > 0.5 ? 0 : h;
-                    const r = Math.max(w, h) * (0.4 + Math.random() * 0.4);
-                    const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
-                    grad.addColorStop(0, `hsla(${hue}, 20%, 90%, ${opacity})`); grad.addColorStop(1, `hsla(${hue}, 90%, 20%, 0)`);
-                    ctx.fillStyle = grad; ctx.fillRect(0, 0, w, h);
-                }
-            }
-            ctx.restore();
-        }
-
-        async function performCapture() {
-            const modes = getModes(); const mode = modes[currentModeIdx];
-            const targetW = 1920, targetH = 1080;
-            finalCanvas.width = targetW; finalCanvas.height = targetH;
-            finalCtx.filter = 'none'; finalCtx.globalCompositeOperation = 'source-over';
-
-            if (isSelfieMode) { finalCtx.translate(targetW, 0); finalCtx.scale(-1, 1); }
-            finalCtx.imageSmoothingEnabled = (mode.id.startsWith('FILM_') || mode.id === 'HCBW' || mode.id === 'CCD' || mode.id.includes('SKETCH'));
-            finalCtx.drawImage(processCanvas, 0, 0, targetW, targetH); 
-
-            if (mode.id.startsWith('FILM_')) {
-                const severity = (mode.id === 'FILM_AGED') ? 2.0 : 1.0;
-                generateLightLeak(finalCtx, targetW, targetH, severity);
-            }
-            
-            finalCtx.setTransform(1, 0, 0, 1, 0, 0);
-            const highRes = finalCanvas.toDataURL('image/jpeg', 0.92);
-
-            if (isRollMode) {
-                await saveToTemp(highRes); currentFrame++; updateCounterDisplay(); checkLeverState();
-            } else {
-                pendingPhoto = highRes; document.getElementById('review-img').src = highRes;
-                document.getElementById('review-overlay').style.display = 'flex'; fsViewfinder.style.display = 'none';
-            }
-        }
-
-        document.getElementById('btn-discard').addEventListener('click', () => { pendingPhoto = null; document.getElementById('review-overlay').style.display = 'none'; });
-        document.getElementById('btn-keep').addEventListener('click', () => { document.getElementById('review-overlay').style.display = 'none'; checkLeverState(); });
-        
-        rollModeSwitch.addEventListener('click', async () => {
-            if(pendingPhoto || (isRollMode && currentFrame > 0 && currentFrame < 36)) {
-                if(!confirm("Switching modes will clear current roll. Continue?")) return;
-                await clearTemp(); pendingPhoto = null;
-            }
-            isRollMode = !isRollMode; localStorage.setItem('rollMode', isRollMode);
-            rollModeSwitch.classList.toggle('mode-36', isRollMode);
-            currentFrame = 0; updateCounterDisplay(); checkLeverState();
-        });
-
-        let leverPulled = false;
-        advanceLever.addEventListener('click', async () => {
-            if (!readyLight.classList.contains('active') || leverPulled) return;
-            leverPulled = true;
-            requestAnimationFrame(() => { advanceLever.style.transform = 'rotate(130deg)'; setTimeout(playLeverSound, 50); });
-            setTimeout(() => { advanceLever.style.transform = 'rotate(10deg)'; styleOverlay.style.display = 'flex'; leverPulled = false; }, 400);
-        });
-
-        document.querySelectorAll('.style-btn').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-                const style = e.currentTarget.dataset.style; styleOverlay.style.display = 'none'; readyLight.classList.remove('active'); leverBase.classList.remove('glow');
-                let photosToProcess = [];
-                if (isRollMode) photosToProcess = await getTempPhotos(); else if (pendingPhoto) photosToProcess = [{ image: pendingPhoto, date: new Date() }];
-                if(photosToProcess.length > 0) await startDevelopingAnimation(photosToProcess, style);
-            });
-        });
-
-        function applyFrameAndDate(imgUrl, dateObj, style) {
-            return new Promise(resolve => {
-                const img = new Image();
-                img.onload = () => {
-                    let w = 1920, h = 1080; let padTop = 0, padSide = 0, padBottom = 0;
-                    if (style === 'white') { padTop = 50; padSide = 50; padBottom = 150; w = 1200; h = Math.floor(w * (9/16)) + padTop + padBottom; } else if (style === 'film') { padTop = 80; padSide = 0; padBottom = 80; }
-                    finalCanvas.width = w; finalCanvas.height = h; const ctx = finalCanvas.getContext('2d'); ctx.filter = 'none';
-                    if (style === 'white') { ctx.fillStyle = '#fff'; ctx.fillRect(0,0,w,h); ctx.drawImage(img, padSide, padTop, w - padSide*2, h - padTop - padBottom); } 
-                    else if (style === 'film') {
-                        ctx.drawImage(img, 0, padTop, w, h - padTop*2); ctx.fillStyle = '#111'; ctx.fillRect(0, 0, w, padTop); ctx.fillRect(0, h - padBottom, w, padBottom); ctx.fillStyle = '#fff'; const holeW = 30, gap = 20;
-                        for(let x = 30; x < w; x += (holeW + gap)) { ctx.fillRect(x, 20, holeW, 40); ctx.fillRect(x, h - 60, holeW, 40); }
-                    } else { ctx.drawImage(img, 0, 0, w, h); }
-                    
-                    const d = new Date(dateObj); const dateStr = `'${d.getFullYear().toString().slice(-2)} ${(d.getMonth()+1).toString().padStart(2,'0')} ${d.getDate().toString().padStart(2,'0')}`;
-                    let dateX = (style === 'white') ? w - padSide - 30 : ((style === 'film') ? w - 50 : w - 60); let dateY = (style === 'white' || style === 'film') ? h - padBottom - 30 : h - 50;
-                    
-                    if (isSketchMode) {
-                        ctx.save(); ctx.shadowBlur = 0;
-                        const m = SKETCH_MODES[currentModeIdx];
-                        if(m.id === 'SKETCH_CYBER') ctx.fillStyle = '#0f0';
-                        else if(m.id === 'SKETCH_BLUE') ctx.fillStyle = '#fff';
-                        else if(m.id === 'SKETCH_HK_NEON') ctx.fillStyle = '#ff00cc';
-                        else ctx.fillStyle = 'rgba(50, 50, 50, 0.85)';
-                        ctx.font = `normal 45px "Segoe Print", "Comic Sans MS", cursive`;
-                        ctx.textAlign = 'right'; ctx.textBaseline = 'bottom'; ctx.translate(dateX, dateY); ctx.rotate(-0.05); ctx.fillText(dateStr, 0, 0); ctx.restore();
-                    } else {
-                        ctx.shadowColor = '#ff5500'; ctx.shadowBlur = 15; ctx.fillStyle = 'rgba(255, 170, 50, 0.9)'; const fontSize = style === 'white' ? 40 : 50; ctx.font = `bold ${fontSize}px "Courier New", monospace`; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom'; ctx.fillText(dateStr, dateX, dateY); 
-                    }
-                    resolve(finalCanvas.toDataURL('image/jpeg', 0.9));
-                }; img.src = imgUrl;
-            });
-        }
-
-        function overlaySerial(imgUrl, serialNo, style) {
-            return new Promise(resolve => {
-                const img = new Image();
-                img.onload = () => {
-                    finalCanvas.width = img.width; finalCanvas.height = img.height; const ctx = finalCanvas.getContext('2d'); ctx.drawImage(img, 0, 0);
-                    let x = 30, y = 30, color = '#fff';
-                    if (style === 'white') { x = 50; y = img.height - 80; color = '#333'; } else if (style === 'film') { x = 40; y = 100; color = 'rgba(255,255,255,0.8)'; } else { color = 'rgba(255,255,255,0.8)'; }
-                    ctx.shadowColor = style === 'white' ? 'transparent' : '#000'; ctx.shadowBlur = 2; ctx.fillStyle = color; ctx.font = `bold 36px "Courier New", monospace`; ctx.textAlign = 'left'; ctx.textBaseline = 'top'; ctx.fillText(`No.${serialNo}`, x, y); resolve(finalCanvas.toDataURL('image/jpeg', 0.9));
-                }; img.src = imgUrl;
-            });
-        }
-
-        async function startDevelopingAnimation(photos, style) {
-            devOverlay.style.display = 'flex'; 
-            devStatus.textContent = "PREPARING...";
-            const processed = [];
-            
-            for (let p of photos) { 
-                const thisSerial = globalSerialCounter++; 
-                localStorage.setItem('global_serial_counter', globalSerialCounter); 
-                const finalImg = await applyFrameAndDate(p.image, p.date, style); 
-                processed.push({ img: finalImg, serial: thisSerial, style: style }); 
-            }
-            
-            for (let i = 0; i < processed.length; i++) {
-                devStatus.textContent = `DEVELOPING ${i+1}/${processed.length}`; 
-                devImageWrap.src = processed[i].img; 
-                devImageWrap.style.border = style === 'white' ? 'none' : '8px solid white';
-                devImageWrap.style.animation = 'none'; 
-                devImageWrap.offsetHeight; 
-                devImageWrap.style.animation = 'developProcess 3s forwards'; 
-                
-                await new Promise(r => setTimeout(r, 3200)); 
-                await saveToAlbum(processed[i].img, processed[i].serial, processed[i].style);
-            }
-            
-            devStatus.textContent = "FINISHED"; 
-            await new Promise(r => setTimeout(r, 800));
-            devOverlay.style.display = 'none'; 
-            
-            if (isRollMode) { 
-                await clearTemp(); 
-                currentFrame = 0; 
-                updateCounterDisplay(); 
-            } else { 
-                pendingPhoto = null; 
-            } 
-            checkLeverState();
-        }
-
-        backLock.addEventListener('click', () => { 
-            const isOpen = backDoorWrapper.classList.contains('open'); 
-            if (!isOpen) { 
-                latchAudio.currentTime = 0;
-                latchAudio.play();
-                backDoorWrapper.classList.add('open'); 
-                backLock.style.transform = 'translateX(5px)'; 
-                loadAlbum(); 
-            } else { 
-                closeBackDoor(); 
-            } 
-        });
-        
-        function closeBackDoor() { 
-            backDoorWrapper.classList.remove('open'); 
-            backLock.style.transform = 'translateX(0)';
-            // Delay sound for 0.5s to match animation close
-            setTimeout(() => {
-                latchAudio.currentTime = 0;
-                latchAudio.play();
-            }, 250);
-        }
+        backLock.addEventListener('click', () => { const isOpen = backDoorWrapper.classList.contains('open'); if (!isOpen) { latchAudio.currentTime = 0; latchAudio.play(); backDoorWrapper.classList.add('open'); backLock.style.transform = 'translateX(5px)'; loadAlbum(); } else { closeBackDoor(); } });
+        function closeBackDoor() { backDoorWrapper.classList.remove('open'); backLock.style.transform = 'translateX(0)'; setTimeout(() => { latchAudio.currentTime = 0; latchAudio.play(); }, 250); }
         
         let selectedAlbumIds = new Set(); let currentAlbumData = [];
-        async function loadAlbum() {
-            albumGrid.innerHTML = ''; selectedAlbumIds.clear(); currentAlbumData = await getAlbumPhotos(); currentAlbumData.sort((a,b) => b.timestamp - a.timestamp);
-            if(currentAlbumData.length === 0) { albumGrid.innerHTML = '<p style="color:#555; width:100%; text-align:center; margin-top:50px; font-family:monospace;">ALBUM EMPTY</p>'; return; }
-            currentAlbumData.forEach(p => {
-                const div = document.createElement('div'); div.className = 'album-photo'; div.dataset.id = p.id;
-                const img = document.createElement('img'); img.src = p.image;
-                const seq = document.createElement('div'); seq.className = 'album-seq'; seq.textContent = `No.${p.serial}`;
-                div.appendChild(img); div.appendChild(seq);
-                div.onclick = (e) => { if (div.clickTimeout) { clearTimeout(div.clickTimeout); div.clickTimeout = null; showZoom(p.image); } else { div.clickTimeout = setTimeout(() => { div.clickTimeout = null; toggleSelection(div, p.id); }, 250); } };
-                albumGrid.appendChild(div);
-            });
+        function updateViewVisibility() {
+            if (isFilmViewMode) { albumGrid.classList.remove('active'); filmStripView.classList.add('active'); btnViewFilm.classList.add('active'); btnViewGrid.classList.remove('active'); staticCanister.style.display = 'block'; } 
+            else { filmStripView.classList.remove('active'); albumGrid.classList.add('active'); btnViewGrid.classList.add('active'); btnViewFilm.classList.remove('active'); staticCanister.style.display = 'none'; }
+        }
+        btnViewFilm.addEventListener('click', () => { isFilmViewMode = true; updateViewVisibility(); });
+        btnViewGrid.addEventListener('click', () => { isFilmViewMode = false; updateViewVisibility(); });
+
+       async function loadAlbum() {
+            // 1. 初始化與清理
+            albumGrid.innerHTML = ''; 
+            filmStripView.innerHTML = ''; 
+            selectedAlbumIds.clear(); 
+            
+            // 2. 獲取並排序數據 (新到舊)
+            currentAlbumData = await getAlbumPhotos(); 
+            currentAlbumData.sort((a,b) => b.timestamp - a.timestamp); 
+            
+            // 3. 處理空相簿狀態
+            if(currentAlbumData.length === 0) { 
+                const emptyMsg = '<p style="color:#555; width:100%; text-align:center; margin-top:50px; font-family:monospace;">ALBUM EMPTY</p>';
+                albumGrid.innerHTML = emptyMsg; filmStripView.innerHTML = emptyMsg;
+            } else {
+                // 4. 生成照片內容
+                for (const p of currentAlbumData) {
+                    // --- A. Grid View (網格視圖 - 小圖模式) ---
+                    const div = document.createElement('div'); 
+                    div.className = 'album-photo'; 
+                    div.dataset.id = p.id;
+                    
+                    const img = document.createElement('img'); 
+                    img.src = p.image;
+                    
+                    const seq = document.createElement('div'); 
+                    seq.className = 'album-seq'; 
+                    seq.textContent = `No.${p.serial}`;
+                    
+                    div.appendChild(img); 
+                    div.appendChild(seq);
+                    
+                    // 點擊邏輯：短按選取，長按/雙擊放大 (或是透過 Timeout 區分)
+                    div.onclick = (e) => { 
+                        if (div.clickTimeout) { 
+                            clearTimeout(div.clickTimeout); 
+                            div.clickTimeout = null; 
+                            showZoom(p.image); 
+                        } else { 
+                            div.clickTimeout = setTimeout(() => { 
+                                div.clickTimeout = null; 
+                                toggleSelectionAll(p.id); 
+                            }, 250); 
+                        } 
+                    };
+                    albumGrid.appendChild(div);
+
+                    // --- B. Film Strip View (菲林視圖 - 無縫平移模式) ---
+                    
+                    // B1. 預讀取圖片以計算正確的長寬比
+                    const tempImg = new Image();
+                    tempImg.src = p.image;
+                    // 等待解碼，確保 width/height 可用
+                    await tempImg.decode().catch(() => {}); 
+                    
+                    // B2. 計算顯示尺寸
+                    const visibleHeight = 152; // 180px 總高 - 28px (上下齒孔)
+                    const naturalRatio = tempImg.width / tempImg.height;
+                    const totalWidth = visibleHeight * naturalRatio; 
+
+                    // B3. 創建外層容器
+                    const frameContainer = document.createElement('div'); 
+                    frameContainer.className = 'film-frame-container'; 
+                    frameContainer.dataset.id = p.id;
+                    frameContainer.style.width = `${totalWidth}px`; // 由內容撐開寬度
+                    
+                    // B4. 創建菲林區塊 (Wrapper)
+                    const block = document.createElement('div');
+                    block.className = 'film-block';
+                    
+                    // B5. 創建照片圖層
+                    const blockImg = document.createElement('div');
+                    blockImg.className = 'film-block-img';
+                    blockImg.style.backgroundImage = `url(${p.image})`;
+                    
+                    // B6. 創建序號標籤 (與導出樣式一致)
+                    const meta = document.createElement('div'); 
+                    meta.className = 'film-meta-label'; 
+                    meta.textContent = `No.${p.serial}`;
+                    
+                    // [關鍵修訂] 將圖片和序號都放入 block 中
+                    // 這樣序號會定位於 block 的左上角，與照片一起移動
+                    block.appendChild(blockImg);
+                    block.appendChild(meta);
+                    
+                    // 將區塊放入容器
+                    frameContainer.appendChild(block);
+                    
+                    // B7. 綁定事件
+                    frameContainer.onclick = (e) => { 
+                        // 自動捲動到置中
+                        frameContainer.scrollIntoView({behavior: "smooth", block: "center", inline: "center"}); 
+                        
+                        if (frameContainer.clickTimeout) { 
+                            clearTimeout(frameContainer.clickTimeout); 
+                            frameContainer.clickTimeout = null; 
+                            showZoom(p.image); 
+                        } else { 
+                            frameContainer.clickTimeout = setTimeout(() => { 
+                                frameContainer.clickTimeout = null; 
+                                toggleSelectionAll(p.id); 
+                            }, 250); 
+                        } 
+                    };
+                    
+                    filmStripView.appendChild(frameContainer);
+                }
+            }
+            // 5. 更新視圖顯示狀態
+            updateViewVisibility();
         }
         
         function showZoom(imgSrc) { zoomImg.src = imgSrc; zoomOverlay.style.display = 'flex'; }
         zoomOverlay.addEventListener('click', () => { zoomOverlay.style.display = 'none'; });
-        function toggleSelection(el, id) { if (selectedAlbumIds.has(id)) { selectedAlbumIds.delete(id); el.classList.remove('selected'); } else { selectedAlbumIds.add(id); el.classList.add('selected'); } }
-        document.getElementById('alb-sel-all').addEventListener('click', () => { const allEls = document.querySelectorAll('.album-photo'); const allSelected = selectedAlbumIds.size === currentAlbumData.length; allEls.forEach(el => { const id = parseInt(el.dataset.id); if (allSelected) { selectedAlbumIds.delete(id); el.classList.remove('selected'); } else { selectedAlbumIds.add(id); el.classList.add('selected'); } }); });
+        function toggleSelectionAll(id) { if (selectedAlbumIds.has(id)) { selectedAlbumIds.delete(id); } else { selectedAlbumIds.add(id); } syncSelectionUI(); }
+        function syncSelectionUI() { document.querySelectorAll('.album-photo').forEach(el => { const pid = parseInt(el.dataset.id); if(selectedAlbumIds.has(pid)) el.classList.add('selected'); else el.classList.remove('selected'); }); document.querySelectorAll('.film-frame-container').forEach(el => { const pid = parseInt(el.dataset.id); if(selectedAlbumIds.has(pid)) el.classList.add('selected'); else el.classList.remove('selected'); }); }
+        document.getElementById('alb-sel-all').addEventListener('click', () => { const allSelected = selectedAlbumIds.size === currentAlbumData.length; if (allSelected) selectedAlbumIds.clear(); else currentAlbumData.forEach(p => selectedAlbumIds.add(p.id)); syncSelectionUI(); });
         document.getElementById('alb-delete').addEventListener('click', async () => { if (!checkSelection()) return; if (confirm("DELETE SELECTED PHOTOS?")) { const idsToRemove = Array.from(selectedAlbumIds); await deleteFromAlbum(idsToRemove); await loadAlbum(); } });
-
         const exportModal = document.getElementById('export-modal'); let exportActionType = ''; 
         function checkSelection() { if (selectedAlbumIds.size === 0) { alert("SELECT PHOTOS FIRST"); return false; } return true; }
         document.getElementById('alb-download').addEventListener('click', () => { if(!checkSelection()) return; exportActionType = 'download'; exportModal.style.display = 'flex'; });
@@ -1539,31 +757,11 @@
         document.getElementById('exp-cancel').addEventListener('click', () => exportModal.style.display = 'none');
         document.getElementById('exp-no-serial').addEventListener('click', () => processExport(false));
         document.getElementById('exp-with-serial').addEventListener('click', () => processExport(true));
-
-        async function processExport(addSerial) {
-            const selectedData = currentAlbumData.filter(p => selectedAlbumIds.has(p.id)); const filesToShare = [];
-            for (let p of selectedData) {
-                let finalDataUrl = p.image; if (addSerial) finalDataUrl = await overlaySerial(p.image, p.serial, p.style);
-                const fileName = `RETRO_No${p.serial}_${Date.now()}.jpg`;
-                if (exportActionType === 'download') { const link = document.createElement('a'); link.download = fileName; link.href = finalDataUrl; link.click(); await new Promise(r => setTimeout(r, 200)); } 
-                else { const blob = await (await fetch(finalDataUrl)).blob(); filesToShare.push(new File([blob], fileName, { type: 'image/jpeg' })); }
-            }
-            if (exportActionType === 'share' && filesToShare.length > 0) { try { await navigator.share({ files: filesToShare }); } catch (e) {} }
-            const idsToRemove = selectedData.map(p => p.id); await deleteFromAlbum(idsToRemove); resetToCameraUI();
-        }
-
+        async function processExport(addSerial) { const selectedData = currentAlbumData.filter(p => selectedAlbumIds.has(p.id)); const filesToShare = []; for (let p of selectedData) { let finalDataUrl = p.image; if (addSerial) finalDataUrl = await overlaySerial(p.image, p.serial, p.style); const fileName = `RETRO_No${p.serial}_${Date.now()}.jpg`; if (exportActionType === 'download') { const link = document.createElement('a'); link.download = fileName; link.href = finalDataUrl; link.click(); await new Promise(r => setTimeout(r, 200)); } else { const blob = await (await fetch(finalDataUrl)).blob(); filesToShare.push(new File([blob], fileName, { type: 'image/jpeg' })); } } if (exportActionType === 'share' && filesToShare.length > 0) { try { await navigator.share({ files: filesToShare }); } catch (e) {} } const idsToRemove = selectedData.map(p => p.id); await deleteFromAlbum(idsToRemove); resetToCameraUI(); }
         function resetToCameraUI() { exportModal.style.display = 'none'; closeBackDoor(); document.getElementById('review-overlay').style.display = 'none'; pendingPhoto = null; checkLeverState(); }
         function checkOrientation() { if (window.innerHeight > window.innerWidth) { document.getElementById('orientation-lock').style.display = 'flex'; document.getElementById('camera-container').style.display = 'none'; fsPrompt.style.display = 'none'; } else { document.getElementById('orientation-lock').style.display = 'none'; if (document.fullscreenElement) { document.getElementById('camera-container').style.display = 'block'; document.getElementById('fullscreen-prompt').style.display = 'none'; resizeElements(); } else { enforceFullscreen(); } } }
-        function resizeElements() {
-            const w = window.innerWidth;
-            const h = window.innerHeight;
-            const isTablet = (w / h) < 1.6;
-            const multiplier = isTablet ? 0.85 : 1.0;
-            const scale = Math.min(w / 800, h / 480) * multiplier;
-            document.getElementById('camera-container').style.transform = `scale(${scale})`;
-        }
+        function resizeElements() { const w = window.innerWidth; const h = window.innerHeight; const isTablet = (w / h) < 1.6; const multiplier = isTablet ? 0.85 : 1.0; const scale = Math.min(w / 800, h / 480) * multiplier; document.getElementById('camera-container').style.transform = `scale(${scale})`; }
         window.addEventListener('resize', () => { checkOrientation(); resizeElements(); });
-
     </script>
 </body>
 </html>
