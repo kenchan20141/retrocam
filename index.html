@@ -8,7 +8,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Retro Cam Ultimate</title>
+<title>Retro Cam Ultimate - Balanced Grain</title>
 <style>
     :root {
         --leather-color: #151515;
@@ -39,7 +39,6 @@
         box-shadow: inset 0 1px 0 rgba(255,255,255,0.8);
     }
 
-    /* Controls - Back */
     .shutter-release-btn { position: absolute; top: -12px; right: 55px; width: 46px; height: 18px; background: var(--shutter-grey); border-radius: 4px 4px 0 0; border: 1px solid #888; border-bottom: none; cursor: pointer; z-index: 5; box-shadow: inset 0 1px 2px rgba(255,255,255,0.8), 0 -2px 5px rgba(0,0,0,0.2); transition: transform 0.1s cubic-bezier(0.1, 0.7, 1.0, 0.1); }
     .shutter-release-btn.pressed { transform: translateY(8px); transition: transform 0.05s ease-out; }
     
@@ -69,7 +68,6 @@
     .ready-light { position: absolute; top: 20px; right: 165px; width: 8px; height: 8px; background: #300; border-radius: 50%; box-shadow: inset 0 0 2px #000; transition: background 0.3s; z-index: 15; }
     .ready-light.active { background: #f00; box-shadow: 0 0 8px #f00, inset 0 0 2px #fff; }
 
-    /* 正面控件 */
     .front-controls-group { display: none; } 
     
     .front-viewfinder-frame {
@@ -88,14 +86,12 @@
     }
     .front-shutter-btn.pressed { transform: translateY(6px); }
 
-    /* [修訂] 移除線纜 SVG，保留手柄按鈕 */
     .cable-release-container {
         position: absolute; top: -100px; left: 0; width: 100%; height: 150%;
         pointer-events: none; z-index: 30;
         overflow: visible;
     }
     
-    /* 專業快門手柄 (Pro Plunger) - 懸浮於右側 */
     .cable-plunger-wrapper {
         position: absolute; 
         top: 320px; right: -90px; 
@@ -104,7 +100,6 @@
         display: flex; flex-direction: column; align-items: center;
         transform: rotate(-10deg);
     }
-    /* 頂部按鈕 (紅色) */
     .cable-button-head {
         width: 28px; height: 18px;
         background: radial-gradient(circle at 30% 30%, #ff3333, #aa0000);
@@ -114,7 +109,6 @@
         box-shadow: inset 0 2px 3px rgba(255,255,255,0.4);
         transition: transform 0.1s;
     }
-    /* 按鈕頸部 (連桿) */
     .cable-stem {
         width: 8px; height: 20px;
         background: linear-gradient(to right, #999, #eee, #777);
@@ -122,7 +116,6 @@
         margin-top: -2px; position: relative; z-index: 2;
         transition: height 0.1s, transform 0.1s;
     }
-    /* 指托盤 (金屬圓盤) */
     .cable-disc {
         width: 46px; height: 12px;
         background: linear-gradient(to bottom, #ccc, #888);
@@ -130,25 +123,15 @@
         margin-top: -2px; position: relative; z-index: 2;
         box-shadow: 0 3px 5px rgba(0,0,0,0.4);
     }
-    /* 主握柄 (滾花紋理模擬) */
     .cable-grip-body {
         width: 16px; height: 70px;
-        background: repeating-linear-gradient(
-            45deg,
-            #666,
-            #666 2px,
-            #888 2px,
-            #888 4px
-        );
+        background: repeating-linear-gradient(45deg, #666, #666 2px, #888 2px, #888 4px);
         border: 1px solid #333; border-radius: 0 0 4px 4px;
         margin-top: -6px; position: relative; z-index: 1;
         box-shadow: 3px 3px 8px rgba(0,0,0,0.6);
     }
-
-    /* 按壓動畫 */
     .cable-plunger-wrapper.pressed .cable-button-head { transform: translateY(12px); }
     .cable-plunger-wrapper.pressed .cable-stem { height: 8px; transform: translateY(12px); }
-
 
     #selfie-toggle {
         position: absolute; top: 20px; left: 170px; width: 24px; height: 24px;
@@ -226,7 +209,6 @@
         position: relative;
     }
     
-    /* 仿真鍍膜玻璃 */
     .lens-glass-element {
         width: 160px; height: 160px; border-radius: 50%;
         background: radial-gradient(circle at 50% 50%, #1a0b2e 0%, #000 80%);
@@ -293,14 +275,12 @@
     .film-card h3 { margin: 4px 0 0; font-size: 24px; font-weight: 900; color: #000; line-height: 1; font-family: Impact, sans-serif; }
     .film-card p { margin: 2px 0; font-size: 10px; color: #333; font-weight: bold; text-transform: uppercase; }
 
-    /* 全屏 UI */
     #fs-viewfinder { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 10000; display: none; cursor: crosshair; }
     #fs-canvas { width: 100%; height: 100%; object-fit: contain; }
     .fs-ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; box-shadow: inset 0 0 150px rgba(0,0,0,0.7); }
     
     .fs-guide-frame { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 85%; height: 85%; border: 1px solid rgba(255,255,255,0.3); }
     
-    /* 對焦時，圓圈亮綠色 */
     .split-image-circle { 
         position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
         width: 60px; height: 60px; border: 1px solid rgba(255,255,255,0.4); border-radius: 50%; 
@@ -394,9 +374,7 @@
             </div>
 
             <div id="front-controls-group" class="front-controls-group" style="display:none;">
-                <!-- [修訂] 移除 SVG 線纜，僅保留按鈕容器 -->
                 <div class="cable-release-container">
-                    <!-- 手柄 (連接到線尾) -->
                     <div class="cable-plunger-wrapper" id="cablePlunger">
                         <div class="cable-button-head"></div>
                         <div class="cable-stem"></div>
@@ -509,6 +487,7 @@
     <video id="video-source" autoplay playsinline style="display:none"></video>
     <canvas id="process-canvas" style="display:none"></canvas>
     <canvas id="final-canvas" style="display:none"></canvas>
+    <canvas id="grain-canvas" style="display:none"></canvas>
 
     <script>
         const DB_NAME = "RetroCamDB_ProMax";
@@ -664,6 +643,8 @@
         const processCtx = processCanvas.getContext('2d', { willReadFrequently: true });
         const finalCanvas = document.getElementById('final-canvas');
         const finalCtx = finalCanvas.getContext('2d');
+        const grainCanvas = document.getElementById('grain-canvas');
+        const grainCtx = grainCanvas.getContext('2d');
         
         const rollModeSwitch = document.getElementById('rollModeSwitch');
         const frameCounterUI = document.getElementById('frameCounter');
@@ -704,6 +685,32 @@
         const zoomOverlay = document.getElementById('zoom-overlay');
         const zoomImg = document.getElementById('zoom-img');
 
+        // [平衡修訂] 銀鹽顆粒生成
+        // 稍微增加強度(Standard Deviation)，讓顆粒在放大後有足夠的質感
+        function initGrainSystem() {
+            grainCanvas.width = 512;
+            grainCanvas.height = 512;
+            const imgData = grainCtx.createImageData(512, 512);
+            const data = imgData.data;
+            
+            for(let i=0; i<data.length; i+=4) {
+                // Box-Muller 變換生成高斯噪點
+                let u = 0, v = 0;
+                while(u === 0) u = Math.random();
+                while(v === 0) v = Math.random();
+                let num = Math.sqrt( -2.0 * Math.log( u ) ) * Math.cos( 2.0 * Math.PI * v );
+                
+                // Standard Deviation 設為 40，提供足夠的對比度
+                let gray = 128 + num * 40; 
+                
+                data[i] = gray;
+                data[i+1] = gray;
+                data[i+2] = gray;
+                data[i+3] = 255;
+            }
+            grainCtx.putImageData(imgData, 0, 0);
+        }
+
         function updateModeUI() {
             const m = MODES[currentModeIdx];
             modeTitle.textContent = m.name; modeSub.textContent = m.sub; 
@@ -720,6 +727,7 @@
 
         async function initSystem() {
             await initDB();
+            initGrainSystem(); 
             if (isRollMode) {
                 rollModeSwitch.classList.add('mode-36');
                 currentFrame = await getTempCount();
@@ -820,55 +828,105 @@
             initCamera(); 
         });
 
+        // [平衡修訂] 渲染循環
         function renderLoop() {
             if (!video.srcObject || !video.srcObject.active || video.paused) return;
             requestAnimationFrame(renderLoop);
 
             const mode = MODES[currentModeIdx];
-            const w = (mode.id === 'BW' || mode.id === 'COLOR') ? 160 : 480;
-            const h = (mode.id === 'BW' || mode.id === 'COLOR') ? 90 : 270;
+            
+            // 解析度設定：960x540 提供足夠的清晰度，但不過於銳利
+            let w = 960; let h = 540;
+            if (mode.id === 'COLOR') { w = 320; h = 180; } 
 
             if (processCanvas.width !== w) { processCanvas.width = w; processCanvas.height = h; }
+            
+            processCtx.filter = "none";
             processCtx.drawImage(video, 0, 0, w, h);
             
             let imgData = processCtx.getImageData(0, 0, w, h);
             let data = imgData.data;
-            for (let i = 0; i < data.length; i += 4) {
-                let r = data[i], g = data[i+1], b = data[i+2];
-                if (mode.id === 'FILM') {
-                    if (r < 50) r *= 0.8; if (g < 50) g *= 0.8; if (b < 50) b *= 0.8;
-                    r = r * 0.92; g = g * 1.02; b = b * 1.08; if (r > 200) r = 200 + (r-200)*0.5;
-                    let grain = (Math.random() - 0.5) * 35; 
-                    data[i] = r + grain; data[i+1] = g + grain; data[i+2] = b + grain;
-                } else if (mode.id === 'BW') {
-                    let gray = r * 0.3 + g * 0.59 + b * 0.11; gray = gray > 110 ? gray * 1.25 : gray * 0.7;
-                    let noise = (Math.random() - 0.5) * 30; let final = Math.min(255, Math.max(0, gray + noise));
-                    data[i] = data[i+1] = data[i+2] = final;
-                } else if (mode.id === 'COLOR') {
-                    data[i] = Math.floor(r / 42) * 42; data[i+1] = Math.floor(g / 42) * 42; data[i+2] = Math.floor(b / 42) * 42;
-                } else if (mode.id === 'CCD') {
-                    r = r * 1.02; b = b * 1.08; if (r > 240 || g > 240 || b > 240) { r = 255; g = 250; b = 255; }
-                } else if (mode.id === 'HCBW') {
-                    let gray = r * 0.299 + g * 0.587 + b * 0.114; gray = 128 + (gray - 128) * 1.5;
-                    if(gray < 0) gray = 0; if(gray > 255) gray = 255;
-                    data[i] = data[i+1] = data[i+2] = gray;
+            
+            // Color Grading
+            if (mode.id === 'FILM') {
+                for (let i = 0; i < data.length; i += 4) {
+                    let r = data[i], g = data[i+1], b = data[i+2];
+                    r = r < 40 ? 40 + (r*0.5) : r;
+                    b = b < 50 ? 50 + (b*0.5) : b;
+                    r = r * 0.96; g = g * 1.01; b = b * 1.04; 
+                    data[i] = r; data[i+1] = g; data[i+2] = b;
+                }
+            } 
+            else if (mode.id === 'BW') {
+                for (let i = 0; i < data.length; i += 4) {
+                    let lum = data[i] * 0.3 + data[i+1] * 0.59 + data[i+2] * 0.11;
+                    if (lum < 128) lum = Math.pow(lum/128, 1.15) * 128;
+                    else lum = 128 + Math.pow((lum-128)/128, 0.9) * 128;
+                    data[i] = data[i+1] = data[i+2] = lum;
                 }
             }
-            processCtx.putImageData(imgData, 0, 0);
+            else if (mode.id === 'COLOR') {
+                for (let i = 0; i < data.length; i += 4) {
+                    data[i] = Math.round(data[i] / 50) * 50;
+                    data[i+1] = Math.round(data[i+1] / 50) * 50;
+                    data[i+2] = Math.round(data[i+2] / 50) * 50;
+                }
+            }
+            else if (mode.id === 'HCBW') {
+                for (let i = 0; i < data.length; i += 4) {
+                    let lum = data[i] * 0.299 + data[i+1] * 0.587 + data[i+2] * 0.114;
+                    lum = (lum - 40) * 1.25; 
+                    if(lum < 0) lum = 0; if(lum > 255) lum = 255;
+                    data[i] = data[i+1] = data[i+2] = lum;
+                }
+            }
             
+            processCtx.putImageData(imgData, 0, 0);
+
+            // [關鍵平衡技術] 顆粒合成
+            if (mode.id !== 'CCD' && mode.id !== 'COLOR') {
+                processCtx.save();
+                processCtx.globalCompositeOperation = "overlay"; 
+                
+                // 動態不透明度：黑白軟片顆粒更強
+                let grainOpacity = 0.25;
+                if(mode.id === 'BW') grainOpacity = 0.35; // Tri-X 顆粒感明顯
+                if(mode.id === 'FILM') grainOpacity = 0.22; // 彩色負片較柔和
+                
+                processCtx.globalAlpha = grainOpacity; 
+                processCtx.imageSmoothingEnabled = true; 
+
+                // [重要] 縮放比例：1.5x - 1.8x
+                // 這讓顆粒看起來有「體積感」(Clumping)，像銀鹽晶體，而不是像素點
+                const scale = 1.6; 
+                const offsetX = Math.random() * 128;
+                const offsetY = Math.random() * 128;
+                
+                processCtx.scale(scale, scale);
+                const pattern = processCtx.createPattern(grainCanvas, 'repeat');
+                processCtx.translate(offsetX, offsetY);
+                processCtx.fillStyle = pattern;
+                
+                // 繪製範圍需要因為 scale 而調整
+                processCtx.fillRect(-offsetX, -offsetY, (w/scale) + offsetX, (h/scale) + offsetY);
+                
+                processCtx.restore();
+            }
+
+            // 傳送畫面到各個視窗
             if (!isSelfieMode) {
                 if (smallCanvas.width !== w) { smallCanvas.width = w; smallCanvas.height = h; }
-                smallCanvas.style.imageRendering = (mode.id === 'BW' || mode.id === 'COLOR') ? 'pixelated' : 'auto';
+                smallCanvas.style.imageRendering = (mode.id === 'COLOR') ? 'pixelated' : 'auto';
                 smallCtx.drawImage(processCanvas, 0, 0);
             } else {
                 if (frontCanvas.width !== w) { frontCanvas.width = w; frontCanvas.height = h; }
-                frontCanvas.style.imageRendering = (mode.id === 'BW' || mode.id === 'COLOR') ? 'pixelated' : 'auto';
+                frontCanvas.style.imageRendering = (mode.id === 'COLOR') ? 'pixelated' : 'auto';
                 frontCtx.drawImage(processCanvas, 0, 0);
             }
 
             if (fsViewfinder.style.display === 'block') {
                 if (fsCanvas.width !== w) { fsCanvas.width = w; fsCanvas.height = h; }
-                fsCanvas.style.imageRendering = (mode.id === 'BW' || mode.id === 'COLOR') ? 'pixelated' : 'auto';
+                fsCanvas.style.imageRendering = (mode.id === 'COLOR') ? 'pixelated' : 'auto';
                 fsCanvas.style.transform = isSelfieMode ? 'scaleX(-1)' : 'none';
                 fsCtx.drawImage(processCanvas, 0, 0);
             }
@@ -939,23 +997,18 @@
                 finalCtx.scale(-1, 1);
             }
 
+            finalCtx.imageSmoothingEnabled = (mode.id === 'FILM' || mode.id === 'HCBW' || mode.id === 'CCD');
+            finalCtx.drawImage(processCanvas, 0, 0, targetW, targetH);
+
             if (mode.id === 'FILM') {
-                finalCtx.imageSmoothingEnabled = true; finalCtx.drawImage(processCanvas, 0, 0, targetW, targetH);
-                finalCtx.globalCompositeOperation = 'screen'; finalCtx.filter = 'blur(10px) opacity(0.4)';
+                finalCtx.globalCompositeOperation = 'screen'; finalCtx.filter = 'blur(12px) opacity(0.3)';
                 finalCtx.drawImage(processCanvas, 0, 0, targetW, targetH); 
                 finalCtx.filter = 'none'; 
                 const isLeft = Math.random() > 0.5; const leakW = targetW * (0.3 + Math.random() * 0.4);
                 const leakGrad = finalCtx.createLinearGradient(isLeft ? 0 : targetW, 0, isLeft ? leakW : targetW - leakW, 0);
                 leakGrad.addColorStop(0, 'rgba(255, 60, 20, 0.6)'); leakGrad.addColorStop(0.4, 'rgba(255, 180, 50, 0.3)'); leakGrad.addColorStop(1, 'rgba(0,0,0,0)');
                 finalCtx.fillStyle = leakGrad; finalCtx.fillRect(0, 0, targetW, targetH);
-                finalCtx.globalAlpha = 1.0; finalCtx.globalCompositeOperation = 'source-over';
-            } else if (mode.id === 'HCBW') {
-                finalCtx.imageSmoothingEnabled = true; finalCtx.filter = 'grayscale(100%) contrast(140%)'; finalCtx.drawImage(video, 0, 0, targetW, targetH);
-            } else if (mode.id === 'CCD') {
-                finalCtx.imageSmoothingEnabled = true; finalCtx.filter = 'blur(1px) contrast(1.1)'; finalCtx.drawImage(processCanvas, 0, 0, targetW, targetH);
-            } else {
-                finalCtx.imageSmoothingEnabled = false; finalCtx.drawImage(processCanvas, 0, 0, targetW, targetH);
-            }
+            } 
             
             finalCtx.setTransform(1, 0, 0, 1, 0, 0);
 
@@ -1355,4 +1408,4 @@
 
     </script>
 </body>
-</html>
+                </html>
