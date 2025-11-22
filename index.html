@@ -107,7 +107,8 @@
     
     .cable-plunger-wrapper {
         position: absolute; 
-        top: 320px; right: -90px; 
+        top: 320px;   
+        right: -90px; /* 確保是負數，讓它位於機身外側 */
         width: 60px; height: 120px;
         pointer-events: auto; cursor: pointer;
         display: flex; flex-direction: column; align-items: center;
@@ -1158,39 +1159,44 @@
         
         function handleShutter(e) {
             if(e) e.stopPropagation();
+            
+            // 1. 狀態檢查：忽略關閉按鈕點擊、檢查背蓋是否開啟、檢查底片是否用完
             if (e && e.target.id === 'vf-close-btn') return;
             if (!isSelfieMode && backDoorWrapper.classList.contains('open')) return;
             if (isRollMode && currentFrame >= 36) return;
             if (!isRollMode && pendingPhoto) return;
 
+            // 2. 確定按鈕樣式 (正面手柄 vs 頂部按鈕)
             const btn = isSelfieMode ? frontShutterBtn : shutterBtn;
             btn.classList.add('pressed');
             
-            if (!isSketchMode) {
-                splitCircle.classList.add('focused');
-                playFocusSound();
+            // 3. 播放快門聲音
+            playShutterSound();
+            
+            // 4. 處理視覺效果 (快門簾幕 / 鏡頭閃爍)
+            if (isSelfieMode) {
+                // [修訂關鍵] 強制重繪 (Force Reflow)
+                // 這三行確保即使連續快速點擊，瀏覽器也會重新播放動畫
+                shutterFlash.classList.remove('flash');
+                void shutterFlash.offsetWidth; // 觸發瀏覽器重繪
+                shutterFlash.classList.add('flash');
+                
+                // 動畫結束後清理 (非必須，但為了保持 DOM 乾淨)
+                setTimeout(() => shutterFlash.classList.remove('flash'), 150);
+            } else {
+                // 後置鏡頭模式：生成黑色快門簾幕
+                const container = (fsViewfinder.style.display === 'block') ? fsViewfinder : vfTrigger;
+                const blind = document.createElement('div');
+                blind.className = container === fsViewfinder ? 'shutter-blind' : 'vf-shutter-blind';
+                container.appendChild(blind);
+                setTimeout(() => blind.remove(), 150);
             }
             
+            // 5. 執行拍照 (模擬機械延遲)
             setTimeout(() => {
-                playShutterSound();
-                
-                if (isSelfieMode) {
-                    shutterFlash.classList.add('flash');
-                    setTimeout(() => shutterFlash.classList.remove('flash'), 150);
-                } else {
-                    const container = (fsViewfinder.style.display === 'block') ? fsViewfinder : vfTrigger;
-                    const blind = document.createElement('div');
-                    blind.className = container === fsViewfinder ? 'shutter-blind' : 'vf-shutter-blind';
-                    container.appendChild(blind);
-                    setTimeout(() => blind.remove(), 150);
-                }
-                
-                performCapture(); 
-                
+                performCapture();
                 btn.classList.remove('pressed');
-                if (splitCircle) splitCircle.classList.remove('focused');
-                
-            }, 600); 
+            }, 150);
         }
 
         function generateLightLeak(ctx, w, h, severity = 1) {
@@ -1289,7 +1295,7 @@
             currentFrame = 0; updateCounterDisplay(); checkLeverState();
         });
 
-       let leverPulled = false;
+        let leverPulled = false;
         advanceLever.addEventListener('click', async () => {
             // 檢查是否可以過片
             if (!readyLight.classList.contains('active') || leverPulled) return;
@@ -1428,7 +1434,24 @@
 
         function resetToCameraUI() { exportModal.style.display = 'none'; closeBackDoor(); document.getElementById('review-overlay').style.display = 'none'; pendingPhoto = null; checkLeverState(); }
         function checkOrientation() { if (window.innerHeight > window.innerWidth) { document.getElementById('orientation-lock').style.display = 'flex'; document.getElementById('camera-container').style.display = 'none'; fsPrompt.style.display = 'none'; } else { document.getElementById('orientation-lock').style.display = 'none'; if (document.fullscreenElement) { document.getElementById('camera-container').style.display = 'block'; document.getElementById('fullscreen-prompt').style.display = 'none'; resizeElements(); } else { enforceFullscreen(); } } }
-        function resizeElements() { const scale = Math.min(window.innerWidth / 800, window.innerHeight / 480); document.getElementById('camera-container').style.transform = `scale(${scale})`; }
+        function resizeElements() {
+            const w = window.innerWidth;
+            const h = window.innerHeight;
+            
+            // 計算螢幕長寬比
+            const aspectRatio = w / h;
+
+            // 判斷邏輯：
+            // 平板 (如 iPad) 的比例通常小於 1.6 (4:3 = 1.33) -> 需要縮小以免被切邊
+            // 手機 (如 iPhone) 的比例通常大於 1.7 (16:9 = 1.77) -> 空間夠大，保持 1.0
+            const isTablet = aspectRatio < 1.6;
+
+            // 如果是平板，縮小至 85%；如果是手機，保持 100%
+            const multiplier = isTablet ? 0.85 : 1.0;
+
+            const scale = Math.min(w / 800, h / 480) * multiplier;
+            document.getElementById('camera-container').style.transform = `scale(${scale})`;
+        }
         window.addEventListener('resize', () => { checkOrientation(); resizeElements(); });
 
     </script>
