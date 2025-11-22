@@ -241,7 +241,7 @@
     }
     .export-opt-group { margin-top: 20px; display: flex; gap: 20px; }
 
-    /* [新增] 放大檢視層 */
+    /* 放大檢視層 */
     #zoom-overlay {
         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
         background: rgba(0,0,0,0.95); z-index: 5000; display: none;
@@ -376,7 +376,6 @@
         <div class="dev-status-text" id="devStatus">DEVELOPING...</div>
     </div>
     
-    <!-- [新增] 放大檢視 -->
     <div id="zoom-overlay">
         <img id="zoom-img" src="" alt="Zoomed Photo">
     </div>
@@ -396,7 +395,6 @@
     <canvas id="final-canvas" style="display:none"></canvas>
 
     <script>
-        // --- DB Logic ---
         const DB_NAME = "RetroCamDB_ProMax";
         const TEMP_STORE = "temp_roll"; 
         const ALBUM_STORE = "user_album";
@@ -470,7 +468,6 @@
             });
         }
 
-        // --- Variables ---
         let isRollMode = localStorage.getItem('rollMode') === 'true';
         let currentFrame = 0;
         let pendingPhoto = null;
@@ -552,7 +549,6 @@
         const modeSub = document.getElementById('modeSub');
         const fsPrompt = document.getElementById('fullscreen-prompt');
         
-        // [新增] 放大檢視相關元素
         const zoomOverlay = document.getElementById('zoom-overlay');
         const zoomImg = document.getElementById('zoom-img');
 
@@ -602,7 +598,6 @@
             }
         }
 
-        // --- Fullscreen & Power ---
         document.getElementById('enter-fs-btn').addEventListener('click', () => {
             startFullscreenAndCamera();
         });
@@ -626,7 +621,11 @@
                 }
                 const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false });
                 video.srcObject = stream;
-                video.onloadedmetadata = () => { video.play(); fsPrompt.style.display = 'none'; renderLoop(); };
+                video.onloadedmetadata = () => { 
+                    video.play(); 
+                    checkOrientation();
+                    renderLoop(); 
+                };
             } catch (err) { console.error("Camera Error", err); }
         }
 
@@ -827,7 +826,6 @@
             });
         });
 
-        // 繪製邏輯
         function applyFrameAndDate(imgUrl, dateObj, style) {
             return new Promise(resolve => {
                 const img = new Image();
@@ -836,7 +834,6 @@
                     let padTop = 0, padSide = 0, padBottom = 0;
 
                     if (style === 'white') {
-                        // 拍立得：下方白邊減半 (150px)
                         padTop = 50; padSide = 50; padBottom = 150;
                         w = 1200; 
                         h = Math.floor(w * (9/16)) + padTop + padBottom; 
@@ -894,7 +891,6 @@
             });
         }
 
-        // 序號合成
         function overlaySerial(imgUrl, serialNo, style) {
             return new Promise(resolve => {
                 const img = new Image();
@@ -906,12 +902,10 @@
                     let x = 30, y = 30, color = '#fff';
                     
                     if (style === 'white') {
-                        // 拍立得：左下角白邊
                         x = 50; 
                         y = img.height - 80; 
                         color = '#333'; 
                     } else if (style === 'film') {
-                        // 菲林：左上角，照片內 (80黑邊 + 20距 = 100)
                         x = 40;
                         y = 100; 
                         color = 'rgba(255,255,255,0.8)';
@@ -972,7 +966,6 @@
             checkLeverState();
         }
 
-        // Album
         backLock.addEventListener('click', () => {
             const isOpen = backDoorWrapper.classList.contains('open');
             if (!isOpen) {
@@ -1015,22 +1008,17 @@
                 div.appendChild(img);
                 div.appendChild(seq);
                 
-                // [修改] 單點/雙點 邏輯
+                // 單點/雙點 邏輯
                 div.onclick = (e) => {
-                    // 如果有雙點鎖定 (例如快速點擊)
-                    if (div.getAttribute('data-dblclick-lock')) return;
-
-                    if (!div.clickTimeout) {
-                        div.clickTimeout = setTimeout(() => {
-                            div.clickTimeout = null;
-                            // 單點行為：選取
-                            toggleSelection(div, p.id);
-                        }, 250); // 250ms 延遲等待雙點
-                    } else {
+                    if (div.clickTimeout) {
                         clearTimeout(div.clickTimeout);
                         div.clickTimeout = null;
-                        // 雙點行為：放大
                         showZoom(p.image);
+                    } else {
+                        div.clickTimeout = setTimeout(() => {
+                            div.clickTimeout = null;
+                            toggleSelection(div, p.id);
+                        }, 250);
                     }
                 };
                 
@@ -1038,7 +1026,6 @@
             });
         }
         
-        // [新增] 顯示/隱藏放大層
         function showZoom(imgSrc) {
             zoomImg.src = imgSrc;
             zoomOverlay.style.display = 'flex';
@@ -1063,7 +1050,6 @@
             });
         });
 
-        // Delete Feature
         document.getElementById('alb-delete').addEventListener('click', async () => {
             if (!checkSelection()) return;
             if (confirm("DELETE SELECTED PHOTOS?")) {
@@ -1147,6 +1133,7 @@
                 document.getElementById('orientation-lock').style.display = 'none'; 
                 if (document.fullscreenElement) { 
                     document.getElementById('camera-container').style.display = 'block'; 
+                    document.getElementById('fullscreen-prompt').style.display = 'none'; 
                     resizeElements(); 
                 } else {
                     enforceFullscreen();
@@ -1161,4 +1148,4 @@
 
     </script>
 </body>
-    </html>
+</html>
