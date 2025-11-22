@@ -44,7 +44,7 @@
     .shutter-release-btn { position: absolute; top: -12px; right: 55px; width: 46px; height: 18px; background: var(--shutter-grey); border-radius: 4px 4px 0 0; border: 1px solid #888; border-bottom: none; cursor: pointer; z-index: 5; box-shadow: inset 0 1px 2px rgba(255,255,255,0.8), 0 -2px 5px rgba(0,0,0,0.2); transition: transform 0.1s cubic-bezier(0.1, 0.7, 1.0, 0.1); }
     .shutter-release-btn.pressed { transform: translateY(8px); transition: transform 0.05s ease-out; }
     
-    /* 小取景器 (保留原本的樣式與功能) */
+    /* 小取景器 */
     .viewfinder-wrap { 
         position: absolute; top: 15px; left: 30px; width: 120px; height: 80px; 
         background: #111; border: 3px solid #666; border-radius: 4px; 
@@ -153,7 +153,7 @@
     .film-card h3 { margin: 4px 0 0; font-size: 24px; font-weight: 900; color: #000; line-height: 1; font-family: Impact, sans-serif; }
     .film-card p { margin: 2px 0; font-size: 10px; color: #333; font-weight: bold; text-transform: uppercase; }
 
-    /* [修復] 全屏 UI (Viewfinder) - 恢復原始所有設定 */
+    /* 全屏 UI (Viewfinder) */
     #fs-viewfinder { 
         position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
         background: #000; z-index: 10000; display: none; cursor: crosshair; 
@@ -215,7 +215,7 @@
     .style-btn:hover { border-color: #c00; color: #c00; }
     .style-preview { width: 60px; height: 40px; background: #111; margin-bottom: 8px; }
     .sp-std { border: none; }
-    .sp-white { border: 2px solid white; border-bottom: 4px solid white; background: #333; } /* Modified preview icon */
+    .sp-white { border: 2px solid white; border-bottom: 4px solid white; background: #333; } 
     .sp-film { border-top: 6px solid black; border-bottom: 6px solid black; background: #333; position: relative; }
     .sp-film::before, .sp-film::after { content: '...'; position: absolute; color: white; font-size: 8px; letter-spacing: 4px; left: 2px; }
     .sp-film::before { top: -8px; } .sp-film::after { bottom: -4px; }
@@ -224,7 +224,6 @@
     #developing-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #111; z-index: 3000; display: none; flex-direction: column; justify-content: center; align-items: center; }
     .photo-paper-container { transform: scale(0.9); display: flex; justify-content: center; align-items: center; margin-bottom: 30px; }
     
-    /* 顯影容器 */
     #dev-image-wrap { 
         box-shadow: 0 0 50px #000; 
         opacity: 0; 
@@ -263,7 +262,6 @@
         <p>ROTATE DEVICE</p>
     </div>
 
-    <!-- 外層容器包含全屏 Viewfinder -->
     <div id="fs-viewfinder">
         <canvas id="fs-canvas"></canvas>
         <div class="fs-ui-layer">
@@ -308,6 +306,7 @@
                 <div class="album-container" id="albumGrid"></div>
                 <div class="album-controls">
                     <button class="album-btn" id="alb-sel-all">SELECT ALL</button>
+                    <button class="album-btn action" id="alb-delete" style="border-color:#c00; color:#c00;">DELETE</button>
                     <button class="album-btn action" id="alb-download">DOWNLOAD</button>
                     <button class="album-btn action" id="alb-share">SHARE</button>
                 </div>
@@ -380,7 +379,7 @@
     <canvas id="final-canvas" style="display:none"></canvas>
 
     <script>
-        // --- 資料庫 (DB Logic) ---
+        // --- DB Logic ---
         const DB_NAME = "RetroCamDB_ProMax";
         const TEMP_STORE = "temp_roll"; 
         const ALBUM_STORE = "user_album";
@@ -433,7 +432,7 @@
                     image: processedImage, 
                     timestamp: Date.now(),
                     serial: serialNumber,
-                    style: styleInfo // 儲存樣式以便導出時判斷序號位置
+                    style: styleInfo 
                 }).onsuccess = resolve;
             });
         }
@@ -454,7 +453,7 @@
             });
         }
 
-        // --- 核心變量 ---
+        // --- Variables ---
         let isRollMode = localStorage.getItem('rollMode') === 'true';
         let currentFrame = 0;
         let pendingPhoto = null;
@@ -582,8 +581,7 @@
             }
         }
 
-        // --- 電源與全屏管理 (修復黑屏/狀態遺失/強制全屏) ---
-        
+        // --- Fullscreen & Power ---
         document.getElementById('enter-fs-btn').addEventListener('click', () => {
             startFullscreenAndCamera();
         });
@@ -611,13 +609,10 @@
             } catch (err) { console.error("Camera Error", err); }
         }
 
-        // **強制全屏檢測**
         function enforceFullscreen() {
-            // 如果不在全屏模式，或瀏覽器切換到了後台(導致串流暫停)，強制顯示 Power On
             if (!document.fullscreenElement) {
                 fsPrompt.style.display = 'flex';
                 document.getElementById('camera-container').style.display = 'none';
-                // 關閉全屏取景器，避免殘留
                 fsViewfinder.style.display = 'none';
             }
         }
@@ -626,7 +621,6 @@
         document.addEventListener('visibilitychange', () => {
             if (document.visibilityState === 'visible') {
                 enforceFullscreen();
-                // 如果回來了，嘗試重啟串流（如果斷了）
                 if(video.srcObject && video.paused) video.play();
             }
         });
@@ -667,12 +661,10 @@
             }
             processCtx.putImageData(imgData, 0, 0);
             
-            // 繪製到小取景器
             if (smallCanvas.width !== w) { smallCanvas.width = w; smallCanvas.height = h; }
             smallCanvas.style.imageRendering = (mode.id === 'BW' || mode.id === 'COLOR') ? 'pixelated' : 'auto';
             smallCtx.drawImage(processCanvas, 0, 0);
 
-            // **關鍵修復**：繪製到全屏取景器（只要它是 block 狀態）
             if (fsViewfinder.style.display === 'block') {
                 if (fsCanvas.width !== w) { fsCanvas.width = w; fsCanvas.height = h; }
                 fsCanvas.style.imageRendering = (mode.id === 'BW' || mode.id === 'COLOR') ? 'pixelated' : 'auto';
@@ -680,30 +672,25 @@
             }
         }
 
-        // **Viewfinder 點擊事件修復**
-        // 點擊小視窗 -> 打開全屏視窗
+        // Viewfinder Event Handlers
         vfTrigger.addEventListener('click', (e) => {
-            e.stopPropagation(); // 防止觸發快門
+            e.stopPropagation();
             if (video.readyState >= 2) {
                 fsViewfinder.style.display = 'block';
             }
         });
 
-        // 關閉全屏視窗
         vfCloseBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             fsViewfinder.style.display = 'none';
         });
 
-        // 快門邏輯
         shutterBtn.addEventListener('click', handleShutter);
         fsViewfinder.addEventListener('click', handleShutter);
         
         function handleShutter(e) {
             if(e) e.stopPropagation();
-            // 如果點擊的是關閉按鈕，不拍照（防呆）
             if (e.target.id === 'vf-close-btn') return;
-
             if (backDoorWrapper.classList.contains('open')) return;
             if (isRollMode && currentFrame >= 36) return;
             if (!isRollMode && pendingPhoto) return;
@@ -820,20 +807,17 @@
             });
         });
 
-        // [修訂] 繪圖核心邏輯：邊框、日期位置
-        // 這裡只畫「基礎邊框 + 日期」，不畫序號（序號在導出時畫）
+        // 繪製邏輯：邊框與日期 (修正版)
         function applyFrameAndDate(imgUrl, dateObj, style) {
             return new Promise(resolve => {
                 const img = new Image();
                 img.onload = () => {
                     let w = 1920, h = 1080;
-                    // 定義邊框參數
                     let padTop = 0, padSide = 0, padBottom = 0;
 
                     if (style === 'white') {
-                        // 拍立得風格：下白邊減半
-                        padTop = 50; padSide = 50; 
-                        padBottom = 150; // 原為300，減半為150
+                        // 拍立得：下方白邊減半 (150px)
+                        padTop = 50; padSide = 50; padBottom = 150;
                         w = 1200; 
                         h = Math.floor(w * (9/16)) + padTop + padBottom; 
                     } else if (style === 'film') {
@@ -844,17 +828,14 @@
                     const ctx = finalCanvas.getContext('2d');
                     ctx.filter = 'none';
 
-                    // 1. 繪製背景與圖片
                     if (style === 'white') {
                         ctx.fillStyle = '#fff'; ctx.fillRect(0,0,w,h);
                         ctx.drawImage(img, padSide, padTop, w - padSide*2, h - padTop - padBottom);
                     } else if (style === 'film') {
                         ctx.drawImage(img, 0, padTop, w, h - padTop*2);
-                        // 菲林黑邊
                         ctx.fillStyle = '#111';
                         ctx.fillRect(0, 0, w, padTop);
                         ctx.fillRect(0, h - padBottom, w, padBottom);
-                        // 齒孔
                         ctx.fillStyle = '#fff';
                         const holeW = 30, gap = 20;
                         for(let x = 30; x < w; x += (holeW + gap)) {
@@ -865,7 +846,6 @@
                         ctx.drawImage(img, 0, 0, w, h);
                     }
 
-                    // 2. 繪製日期 (保持不變)
                     const d = new Date(dateObj);
                     const dateStr = `'${d.getFullYear().toString().slice(-2)} ${(d.getMonth()+1).toString().padStart(2,'0')} ${d.getDate().toString().padStart(2,'0')}`;
                     
@@ -894,8 +874,7 @@
             });
         }
 
-        // [輔助] 導出時疊加序號
-        // 根據樣式 (style) 決定序號位置
+        // 序號合成 (修正版：位置)
         function overlaySerial(imgUrl, serialNo, style) {
             return new Promise(resolve => {
                 const img = new Image();
@@ -904,24 +883,19 @@
                     const ctx = finalCanvas.getContext('2d');
                     ctx.drawImage(img, 0, 0);
                     
-                    // 根據樣式決定位置和顏色
                     let x = 30, y = 30, color = '#fff';
                     
                     if (style === 'white') {
                         // 拍立得：左下角白邊
-                        // Canvas 高度是 img.height。下邊距是 150 (padBottom)。
-                        // 序號應在 h - 150 + padding
-                        x = 50; // 左邊距
-                        y = img.height - 80; // 下方白邊區域
-                        color = '#333'; // 白底黑字
+                        x = 50; 
+                        y = img.height - 80; 
+                        color = '#333'; 
                     } else if (style === 'film') {
-                        // 菲林：左上角，照片內，不重疊邊框
-                        // 上黑邊是 80px。
+                        // 菲林：左上角，照片內 (80黑邊 + 20距 = 100)
                         x = 40;
-                        y = 100; // 80 + 20 padding
+                        y = 100; 
                         color = 'rgba(255,255,255,0.8)';
                     } else {
-                        // Standard: 左上
                         x = 30; y = 30; color = 'rgba(255,255,255,0.8)';
                     }
                     
@@ -947,7 +921,6 @@
             for (let p of photos) {
                 const thisSerial = globalSerialCounter++;
                 localStorage.setItem('global_serial_counter', globalSerialCounter);
-                // 存入 DB 的是不帶序號的圖
                 const finalImg = await applyFrameAndDate(p.image, p.date, style);
                 processed.push({ img: finalImg, serial: thisSerial, style: style });
             }
@@ -979,7 +952,7 @@
             checkLeverState();
         }
 
-        // --- 相簿與機背 ---
+        // Album
         backLock.addEventListener('click', () => {
             const isOpen = backDoorWrapper.classList.contains('open');
             if (!isOpen) {
@@ -1041,6 +1014,16 @@
             });
         });
 
+        // Delete Feature
+        document.getElementById('alb-delete').addEventListener('click', async () => {
+            if (!checkSelection()) return;
+            if (confirm("DELETE SELECTED PHOTOS?")) {
+                const idsToRemove = Array.from(selectedAlbumIds);
+                await deleteFromAlbum(idsToRemove);
+                await loadAlbum(); // Refresh grid only
+            }
+        });
+
         const exportModal = document.getElementById('export-modal');
         let exportActionType = ''; 
 
@@ -1066,7 +1049,6 @@
         document.getElementById('exp-no-serial').addEventListener('click', () => processExport(false));
         document.getElementById('exp-with-serial').addEventListener('click', () => processExport(true));
 
-        // [修正] 導出後自動返回相機介面
         async function processExport(addSerial) {
             const selectedData = currentAlbumData.filter(p => selectedAlbumIds.has(p.id));
             const filesToShare = [];
@@ -1094,32 +1076,28 @@
                 try { await navigator.share({ files: filesToShare }); } catch (e) {}
             }
 
-            // 刪除已下載的照片
             const idsToRemove = selectedData.map(p => p.id);
             await deleteFromAlbum(idsToRemove);
 
-            // [關鍵修正] 返回相機介面
+            // Auto reset to camera
             resetToCameraUI();
         }
 
         function resetToCameraUI() {
-            exportModal.style.display = 'none'; // 關閉導出選項
-            closeBackDoor(); // 關閉機背
-            // 如果在預覽模式也關閉
+            exportModal.style.display = 'none'; 
+            closeBackDoor(); 
             document.getElementById('review-overlay').style.display = 'none';
             pendingPhoto = null;
-            checkLeverState(); // 重置燈號
+            checkLeverState();
         }
 
-        // 監聽視窗大小調整 (轉向與縮放)
         function checkOrientation() {
             if (window.innerHeight > window.innerWidth) { 
                 document.getElementById('orientation-lock').style.display = 'flex'; 
                 document.getElementById('camera-container').style.display = 'none'; 
-                fsPrompt.style.display = 'none'; // 轉向提示優先
+                fsPrompt.style.display = 'none'; 
             } else { 
                 document.getElementById('orientation-lock').style.display = 'none'; 
-                // 如果在全屏才顯示相機
                 if (document.fullscreenElement) { 
                     document.getElementById('camera-container').style.display = 'block'; 
                     resizeElements(); 
