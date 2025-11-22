@@ -8,7 +8,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Retro Cam Ultimate - Organic Leaks</title>
+<title>Retro Cam - Fine Sketch Edition</title>
 <style>
     :root {
         --leather-color: #151515;
@@ -65,6 +65,14 @@
     .switch-knob { width: 18px; height: 18px; background: radial-gradient(#eee, #999); border-radius: 50%; position: absolute; top: -2px; left: 0; box-shadow: 0 1px 2px rgba(0,0,0,0.5); border: 1px solid #666; transition: left 0.3s; }
     .mode-switch-container.mode-36 .switch-knob { left: 18px; }
     
+    /* Sketch Switch Controls */
+    .sketch-switch-container { position: absolute; top: 20px; left: 155px; display: flex; flex-direction: column; align-items: center; cursor: pointer; z-index: 20; }
+    .sketch-labels { display: flex; gap: 8px; font-size: 9px; font-weight: bold; color: #444; margin-bottom: 2px; font-family: sans-serif; text-shadow: 0 1px 0 rgba(255,255,255,0.5); }
+    .sketch-labels .active { color: #000; }
+    .sketch-switch-track { width: 44px; height: 12px; background: #333; border-radius: 2px; position: relative; box-shadow: inset 0 1px 3px #000; }
+    .sketch-switch-knob { width: 22px; height: 16px; background: repeating-linear-gradient(90deg, #ccc, #ccc 2px, #999 2px, #999 4px); border-radius: 2px; position: absolute; top: -2px; left: 0; box-shadow: 0 1px 2px rgba(0,0,0,0.5); border: 1px solid #666; transition: left 0.3s; }
+    .sketch-switch-container.mode-sketch .sketch-switch-knob { left: 22px; }
+
     .ready-light { position: absolute; top: 20px; right: 165px; width: 8px; height: 8px; background: #300; border-radius: 50%; box-shadow: inset 0 0 2px #000; transition: background 0.3s; z-index: 15; }
     .ready-light.active { background: #f00; box-shadow: 0 0 8px #f00, inset 0 0 2px #fff; }
 
@@ -132,18 +140,6 @@
     }
     .cable-plunger-wrapper.pressed .cable-button-head { transform: translateY(12px); }
     .cable-plunger-wrapper.pressed .cable-stem { height: 8px; transform: translateY(12px); }
-
-    #selfie-toggle {
-        position: absolute; top: 20px; left: 170px; width: 24px; height: 24px;
-        background: radial-gradient(#ccc, #999); border: 1px solid #666; border-radius: 50%;
-        cursor: pointer; z-index: 20; box-shadow: 0 1px 2px rgba(0,0,0,0.5);
-        display: flex; justify-content: center; align-items: center;
-    }
-    #selfie-toggle::after {
-        content: '↻'; font-size: 16px; font-weight: bold; color: #333;
-        transition: transform 0.3s;
-    }
-    #selfie-toggle:active::after { transform: rotate(180deg); }
 
     .camera-body { width: 100%; height: 310px; position: relative; border-radius: 0 0 8px 8px; perspective: 1000px; }
 
@@ -267,19 +263,15 @@
     .film-card { width: 150px; height: 70px; background: #f4e9c5; box-shadow: 1px 1px 4px rgba(0,0,0,0.5); display: flex; flex-direction: column; justify-content: center; align-items: center; transform: rotate(-1deg); transition: filter 0.3s; }
     .film-card::before, .film-card::after { content: ''; position: absolute; width: 100%; height: 6px; background: #333; transition: background 0.3s ease; }
     .film-card::before { top: 0; } .film-card::after { bottom: 0; }
-    .film-card[data-mode="BW"]::before, .film-card[data-mode="BW"]::after { background: #111; }
-    .film-card[data-mode="COLOR"]::before, .film-card[data-mode="COLOR"]::after { background: #c00; }
-    .film-card[data-mode="CCD"]::before, .film-card[data-mode="CCD"]::after { background: #0055cc; }
-    .film-card[data-mode="FILM"]::before, .film-card[data-mode="FILM"]::after { background: #007700; }
-    .film-card[data-mode="HCBW"]::before, .film-card[data-mode="HCBW"]::after { background: #555; }
+    /* Dynamic Styles for Film Card are set in JS now */
     .film-card h3 { margin: 4px 0 0; font-size: 24px; font-weight: 900; color: #000; line-height: 1; font-family: Impact, sans-serif; }
     .film-card p { margin: 2px 0; font-size: 10px; color: #333; font-weight: bold; text-transform: uppercase; }
 
-    #fs-viewfinder { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 10000; display: none; cursor: crosshair; }
+    #fs-viewfinder { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 10000; display: none; cursor: crosshair; touch-action: none; }
     #fs-canvas { width: 100%; height: 100%; object-fit: contain; }
     .fs-ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; box-shadow: inset 0 0 150px rgba(0,0,0,0.7); }
     
-    .fs-guide-frame { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 85%; height: 85%; border: 1px solid rgba(255,255,255,0.3); }
+    .fs-guide-frame { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 85%; height: 85%; border: 1px solid rgba(255,255,255,0.3); transition: opacity 0.3s; }
     
     .split-image-circle { 
         position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
@@ -371,6 +363,12 @@
                         <div class="switch-track"><div class="switch-knob"></div></div>
                     </div>
                 </div>
+                
+                <!-- Sketch Switch -->
+                <div class="sketch-switch-container" id="sketchModeSwitch" title="Toggle Real/Sketch Mode">
+                    <div class="sketch-labels"><span id="lbl-real" class="active">REAL</span><span id="lbl-sketch">SKETCH</span></div>
+                    <div class="sketch-switch-track"><div class="sketch-switch-knob"></div></div>
+                </div>
             </div>
 
             <div id="front-controls-group" class="front-controls-group" style="display:none;">
@@ -392,7 +390,7 @@
             <div class="serial-number">NO. 854021</div>
             <div class="prism-hump"></div>
             <div class="ready-light" id="readyLight"></div>
-            <div id="selfie-toggle" title="Switch to Selfie Mode"></div>
+            <div id="selfie-toggle" title="Switch to Selfie Mode" style="left: 130px;"></div>
         </div>
 
         <div class="camera-body">
@@ -488,6 +486,8 @@
     <canvas id="process-canvas" style="display:none"></canvas>
     <canvas id="final-canvas" style="display:none"></canvas>
     <canvas id="grain-canvas" style="display:none"></canvas>
+    <!-- Medium Res Canvas for Smooth Sketch Effect -->
+    <canvas id="sketch-canvas" style="display:none"></canvas>
 
     <script>
         const DB_NAME = "RetroCamDB_ProMax";
@@ -508,78 +508,46 @@
             });
         }
 
-        function saveToTemp(dataUrl) {
-            return new Promise((resolve) => {
-                const tx = db.transaction([TEMP_STORE], "readwrite");
-                tx.objectStore(TEMP_STORE).add({ image: dataUrl, date: new Date() }).onsuccess = () => resolve(true);
-            });
-        }
-        
-        function getTempCount() {
-            return new Promise((resolve) => {
-                const tx = db.transaction([TEMP_STORE], "readonly");
-                tx.objectStore(TEMP_STORE).count().onsuccess = (e) => resolve(e.target.result);
-            });
-        }
+        function saveToTemp(dataUrl) { return new Promise((resolve) => { const tx = db.transaction([TEMP_STORE], "readwrite"); tx.objectStore(TEMP_STORE).add({ image: dataUrl, date: new Date() }).onsuccess = () => resolve(true); }); }
+        function getTempCount() { return new Promise((resolve) => { const tx = db.transaction([TEMP_STORE], "readonly"); tx.objectStore(TEMP_STORE).count().onsuccess = (e) => resolve(e.target.result); }); }
+        function getTempPhotos() { return new Promise((resolve) => { const tx = db.transaction([TEMP_STORE], "readonly"); tx.objectStore(TEMP_STORE).getAll().onsuccess = (e) => resolve(e.target.result); }); }
+        function clearTemp() { return new Promise(resolve => { db.transaction([TEMP_STORE], "readwrite").objectStore(TEMP_STORE).clear().onsuccess = resolve; }); }
+        function saveToAlbum(processedImage, serialNumber, styleInfo) { return new Promise(resolve => { const tx = db.transaction([ALBUM_STORE], "readwrite"); tx.objectStore(ALBUM_STORE).add({ image: processedImage, timestamp: Date.now(), serial: serialNumber, style: styleInfo }).onsuccess = resolve; }); }
+        function getAlbumPhotos() { return new Promise(resolve => { const tx = db.transaction([ALBUM_STORE], "readonly"); tx.objectStore(ALBUM_STORE).getAll().onsuccess = (e) => resolve(e.target.result); }); }
+        function deleteFromAlbum(ids) { return new Promise(resolve => { const tx = db.transaction([ALBUM_STORE], "readwrite"); const store = tx.objectStore(ALBUM_STORE); ids.forEach(id => store.delete(id)); tx.oncomplete = resolve; }); }
 
-        function getTempPhotos() {
-            return new Promise((resolve) => {
-                const tx = db.transaction([TEMP_STORE], "readonly");
-                tx.objectStore(TEMP_STORE).getAll().onsuccess = (e) => resolve(e.target.result);
-            });
-        }
-
-        function clearTemp() {
-            return new Promise(resolve => {
-                db.transaction([TEMP_STORE], "readwrite").objectStore(TEMP_STORE).clear().onsuccess = resolve;
-            });
-        }
-
-        function saveToAlbum(processedImage, serialNumber, styleInfo) {
-            return new Promise(resolve => {
-                const tx = db.transaction([ALBUM_STORE], "readwrite");
-                tx.objectStore(ALBUM_STORE).add({ 
-                    image: processedImage, 
-                    timestamp: Date.now(),
-                    serial: serialNumber,
-                    style: styleInfo 
-                }).onsuccess = resolve;
-            });
-        }
-
-        function getAlbumPhotos() {
-            return new Promise(resolve => {
-                const tx = db.transaction([ALBUM_STORE], "readonly");
-                tx.objectStore(ALBUM_STORE).getAll().onsuccess = (e) => resolve(e.target.result);
-            });
-        }
-
-        function deleteFromAlbum(ids) {
-            return new Promise(resolve => {
-                const tx = db.transaction([ALBUM_STORE], "readwrite");
-                const store = tx.objectStore(ALBUM_STORE);
-                ids.forEach(id => store.delete(id));
-                tx.oncomplete = resolve;
-            });
-        }
-
+        // State Variables
         let isRollMode = localStorage.getItem('rollMode') === 'true';
         let currentFrame = 0;
         let pendingPhoto = null;
         let globalSerialCounter = parseInt(localStorage.getItem('global_serial_counter') || '1');
         let isSelfieMode = false;
+        let isSketchMode = false;
+        
+        // SEPARATE MODE LISTS
+        const REAL_MODES = [
+            { id: 'BW', name: 'B&W', sub: 'TRI-X 400', color: '#000' },
+            { id: 'COLOR', name: 'COLOR', sub: 'GAME-CAM', color: '#c00' },
+            { id: 'CCD', name: 'DIGI', sub: 'CCD SENSOR', color: '#0055cc' },
+            { id: 'FILM', name: 'FILM', sub: 'JPN-CYAN', color: '#007700' },
+            { id: 'HCBW', name: 'HC-BW', sub: 'ACROS 100', color: '#555' }
+        ];
 
-        const MODES = [
-            { id: 'BW', name: 'B&W', sub: 'TRI-X 400', type: 'bw' },
-            { id: 'COLOR', name: 'COLOR', sub: 'GAME-CAM', type: 'color' },
-            { id: 'CCD', name: 'DIGI', sub: 'CCD SENSOR', type: 'ccd' },
-            { id: 'FILM', name: 'FILM', sub: 'JPN-CYAN', type: 'film' },
-            { id: 'HCBW', name: 'HC-BW', sub: 'ACROS 100', type: 'hcbw' }
+        const SKETCH_MODES = [
+            { id: 'SKETCH_BW', name: 'PENCIL', sub: '2B GRAPHITE', color: '#333' },
+            { id: 'SKETCH_COL', name: 'CRAYON', sub: 'SOFT PASTEL', color: '#d2691e' }
         ];
         
         let savedMode = localStorage.getItem('camModeIdx');
         let currentModeIdx = savedMode ? parseInt(savedMode) : 0;
-        if(currentModeIdx < 0 || currentModeIdx >= MODES.length) currentModeIdx = 0;
+        
+        // Ensure index is valid for the current state
+        function getModes() { return isSketchMode ? SKETCH_MODES : REAL_MODES; }
+        function validateModeIndex() {
+            const modes = getModes();
+            if (currentModeIdx < 0 || currentModeIdx >= modes.length) currentModeIdx = 0;
+        }
+        validateModeIndex();
 
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         const actx = new AudioContext();
@@ -587,14 +555,10 @@
         function playShutterSound() {
             if (actx.state === 'suspended') actx.resume();
             const t = actx.currentTime;
-            
-            // Low frequency thud - 增加 Gain 到 3.5
             const oscLow = actx.createOscillator(); const gainLow = actx.createGain();
             oscLow.frequency.setValueAtTime(150, t); oscLow.frequency.exponentialRampToValueAtTime(40, t + 0.1);
             gainLow.gain.setValueAtTime(3.5, t); gainLow.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
             oscLow.connect(gainLow).connect(actx.destination); oscLow.start(t); oscLow.stop(t + 0.1);
-
-            // Mechanical Noise - 增加 Gain 到 3.0
             const bufferSize = actx.sampleRate * 0.1; 
             const buffer = actx.createBuffer(1, bufferSize, actx.sampleRate);
             const data = buffer.getChannelData(0);
@@ -604,8 +568,6 @@
             const noiseGain = actx.createGain(); 
             noiseGain.gain.setValueAtTime(3.0, t); noiseGain.gain.exponentialRampToValueAtTime(0.01, t + 0.08);
             noise.connect(noiseFilter).connect(noiseGain).connect(actx.destination); noise.start(t);
-
-            // Metal Ping - 增加 Gain 到 1.5
             const oscHigh = actx.createOscillator(); const gainHigh = actx.createGain();
             oscHigh.type = 'triangle'; oscHigh.frequency.setValueAtTime(800, t + 0.04); oscHigh.frequency.exponentialRampToValueAtTime(100, t + 0.1);
             gainHigh.gain.setValueAtTime(0.0, t); gainHigh.gain.setValueAtTime(1.5, t + 0.04); gainHigh.gain.exponentialRampToValueAtTime(0.01, t + 0.15);
@@ -615,15 +577,10 @@
         function playFocusSound() {
             if (actx.state === 'suspended') actx.resume();
             const t = actx.currentTime;
-            const osc = actx.createOscillator();
-            const gain = actx.createGain();
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(800, t);
-            osc.frequency.exponentialRampToValueAtTime(1200, t + 0.1);
-            gain.gain.setValueAtTime(0.2, t); // 稍微調大一點點
-            gain.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
-            osc.connect(gain).connect(actx.destination);
-            osc.start(t); osc.stop(t + 0.15);
+            const osc = actx.createOscillator(); const gain = actx.createGain();
+            osc.type = 'sine'; osc.frequency.setValueAtTime(800, t); osc.frequency.exponentialRampToValueAtTime(1200, t + 0.1);
+            gain.gain.setValueAtTime(0.2, t); gain.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
+            osc.connect(gain).connect(actx.destination); osc.start(t); osc.stop(t + 0.15);
         }
 
         function playLeverSound() {
@@ -632,12 +589,12 @@
             for(let i=0; i<5; i++) {
                 const osc = actx.createOscillator(); const gain = actx.createGain();
                 osc.type = 'sawtooth'; osc.frequency.setValueAtTime(800, t + i*0.06); osc.frequency.exponentialRampToValueAtTime(100, t + i*0.06 + 0.03);
-                // 撥桿聲 - 增加 Gain 到 1.2
                 gain.gain.setValueAtTime(1.2, t + i*0.06); gain.gain.exponentialRampToValueAtTime(0.01, t + i*0.06 + 0.03);
                 osc.connect(gain); gain.connect(actx.destination); osc.start(t + i*0.06); osc.stop(t + i*0.06 + 0.04);
             }
         }
 
+        // DOM Elements
         const video = document.getElementById('video-source');
         const smallCanvas = document.getElementById('smallCanvas');
         const smallCtx = smallCanvas.getContext('2d', { alpha: false });
@@ -651,8 +608,12 @@
         const finalCtx = finalCanvas.getContext('2d');
         const grainCanvas = document.getElementById('grain-canvas');
         const grainCtx = grainCanvas.getContext('2d');
+        const sketchCanvas = document.getElementById('sketch-canvas');
+        const sketchCtx = sketchCanvas.getContext('2d', { willReadFrequently: true });
         
         const rollModeSwitch = document.getElementById('rollModeSwitch');
+        const sketchModeSwitch = document.getElementById('sketchModeSwitch');
+        
         const frameCounterUI = document.getElementById('frameCounter');
         const fsCounter = document.getElementById('fs-counter');
         const readyLight = document.getElementById('readyLight');
@@ -677,7 +638,6 @@
         const frontControls = document.getElementById('front-controls-group');
         
         const cablePlunger = document.getElementById('cablePlunger');
-
         const albumGrid = document.getElementById('albumGrid');
         const styleOverlay = document.getElementById('style-selector-overlay');
         const devOverlay = document.getElementById('developing-overlay');
@@ -687,20 +647,15 @@
         const modeTitle = document.getElementById('modeTitle');
         const modeSub = document.getElementById('modeSub');
         const fsPrompt = document.getElementById('fullscreen-prompt');
-        
         const zoomOverlay = document.getElementById('zoom-overlay');
         const zoomImg = document.getElementById('zoom-img');
 
+        // Grain System
         function initGrainSystem() {
-            grainCanvas.width = 512;
-            grainCanvas.height = 512;
-            const imgData = grainCtx.createImageData(512, 512);
-            const data = imgData.data;
-            
+            grainCanvas.width = 512; grainCanvas.height = 512;
+            const imgData = grainCtx.createImageData(512, 512); const data = imgData.data;
             for(let i=0; i<data.length; i+=4) {
-                let u = 0, v = 0;
-                while(u === 0) u = Math.random();
-                while(v === 0) v = Math.random();
+                let u = 0, v = 0; while(u === 0) u = Math.random(); while(v === 0) v = Math.random();
                 let num = Math.sqrt( -2.0 * Math.log( u ) ) * Math.cos( 2.0 * Math.PI * v );
                 let gray = 128 + num * 40; 
                 data[i] = gray; data[i+1] = gray; data[i+2] = gray; data[i+3] = 255;
@@ -708,23 +663,39 @@
             grainCtx.putImageData(imgData, 0, 0);
         }
 
+        // Mode UI Update
         function updateModeUI() {
-            const m = MODES[currentModeIdx];
-            modeTitle.textContent = m.name; modeSub.textContent = m.sub; 
+            const modes = getModes();
+            if(currentModeIdx >= modes.length) currentModeIdx = 0;
+            const m = modes[currentModeIdx];
+            
+            modeTitle.textContent = m.name; 
+            modeSub.textContent = m.sub; 
             document.getElementById('fs-mode-text').textContent = m.name;
-            filmCard.setAttribute('data-mode', m.id);
+            
             const h3 = filmCard.querySelector('h3');
-            if(m.id === 'BW') h3.style.color = '#000'; 
-            else if(m.id === 'FILM') h3.style.color = '#007700';
-            else if(m.id === 'COLOR') h3.style.color = '#c00';
-            else if(m.id === 'HCBW') h3.style.color = '#333';
-            else h3.style.color = '#0055cc';
+            // Remove old data attribute styling logic
+            h3.style.color = m.color;
+            
+            // Force film card styling
+            filmCard.className = 'film-card';
+            filmCard.querySelector('h3').style.color = m.color;
+            
+            // Custom film card strip color
+            const styleEl = document.createElement('style');
+            styleEl.innerHTML = `.film-card::before, .film-card::after { background: ${m.color} !important; }`;
+            const oldStyle = document.getElementById('film-card-style');
+            if(oldStyle) oldStyle.remove();
+            styleEl.id = 'film-card-style';
+            document.head.appendChild(styleEl);
         }
         updateModeUI();
 
+        // System Init
         async function initSystem() {
             await initDB();
             initGrainSystem(); 
+            
             if (isRollMode) {
                 rollModeSwitch.classList.add('mode-36');
                 currentFrame = await getTempCount();
@@ -755,41 +726,25 @@
             }
         }
 
-        document.getElementById('enter-fs-btn').addEventListener('click', () => {
-            startFullscreenAndCamera();
-        });
+        document.getElementById('enter-fs-btn').addEventListener('click', () => { startFullscreenAndCamera(); });
 
         function startFullscreenAndCamera() {
             const el = document.documentElement;
             const rfs = el.requestFullscreen || el.webkitRequestFullScreen;
             if (rfs) {
-                rfs.call(el).then(() => {
-                    initSystem().then(initCamera);
-                }).catch(() => {
-                    initSystem().then(initCamera);
-                });
+                rfs.call(el).then(() => { initSystem().then(initCamera); }).catch(() => { initSystem().then(initCamera); });
             }
         }
 
         async function initCamera() {
             try {
-                if(video.srcObject) {
-                    video.srcObject.getTracks().forEach(track => track.stop());
-                }
+                if(video.srcObject) { video.srcObject.getTracks().forEach(track => track.stop()); }
                 const stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { 
-                        facingMode: isSelfieMode ? 'user' : 'environment',
-                        width: { ideal: 1280 }, 
-                        height: { ideal: 720 } 
-                    }, 
+                    video: { facingMode: isSelfieMode ? 'user' : 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }, 
                     audio: false 
                 });
                 video.srcObject = stream;
-                video.onloadedmetadata = () => { 
-                    video.play(); 
-                    checkOrientation();
-                    renderLoop(); 
-                };
+                video.onloadedmetadata = () => { video.play(); renderLoop(); };
             } catch (err) { console.error("Camera Error", err); }
         }
 
@@ -809,146 +764,266 @@
             }
         });
 
+        // -------------------------
+        // REFINED SKETCH EFFECT (The Golden Mean)
+        // -------------------------
+        
+        function applySketchEffect(sourceVideo, destCtx, width, height, useColor) {
+            // Increased resolution for smoother lines (720 width base)
+            const scanW = 800; 
+            const scanH = Math.floor(scanW * (height/width));
+            
+            if(sketchCanvas.width !== scanW) {
+                sketchCanvas.width = scanW;
+                sketchCanvas.height = scanH;
+            }
+            
+            sketchCtx.drawImage(sourceVideo, 0, 0, scanW, scanH);
+            const frame = sketchCtx.getImageData(0, 0, scanW, scanH);
+            const data = frame.data;
+            const output = sketchCtx.createImageData(scanW, scanH);
+            const outData = output.data;
+            
+            // Lower threshold -> More lines
+            const threshold = 15; 
+
+            for(let y = 0; y < scanH; y++) {
+                for(let x = 0; x < scanW; x++) {
+                    const i = (y * scanW + x) * 4;
+                    
+                    // Current brightness
+                    const val = (data[i] + data[i+1] + data[i+2]) / 3;
+                    
+                    // Neighbor brightness (Right/Bottom)
+                    let rightVal = val;
+                    let bottomVal = val;
+                    
+                    if(x < scanW - 1) {
+                        const ir = i + 4;
+                        rightVal = (data[ir] + data[ir+1] + data[ir+2]) / 3;
+                    }
+                    if(y < scanH - 1) {
+                        const ib = i + scanW * 4;
+                        bottomVal = (data[ib] + data[ib+1] + data[ib+2]) / 3;
+                    }
+                    
+                    const diff = Math.abs(val - rightVal) + Math.abs(val - bottomVal);
+                    
+                    // Base Paper Color (Clean, very slight noise)
+                    // Almost white: 250-255 range
+                    const basePaper = 250 + (Math.random() * 5); 
+
+                    if (diff > threshold) {
+                        // Edge - Dark charcoal gray (not pure black for softness)
+                        // Intensity based on diff
+                        const intensity = Math.min(diff * 2, 150);
+                        const edgeColor = 60 - (intensity / 5); // 30 to 60 range
+                        
+                        outData[i] = edgeColor;
+                        outData[i+1] = edgeColor;
+                        outData[i+2] = edgeColor;
+                    } else {
+                        // Non-Edge area
+                        if(useColor) {
+                            // Color Sketch: Blend original color with paper white
+                            // Result is pastel-like
+                            outData[i] = Math.min(255, data[i] + 100); 
+                            outData[i+1] = Math.min(255, data[i+1] + 100);
+                            outData[i+2] = Math.min(255, data[i+2] + 100);
+                        } else {
+                            // B&W Sketch: Just paper
+                            // Extremely subtle noise (0.2% chance)
+                            if(Math.random() > 0.998) {
+                                outData[i] = 200; outData[i+1] = 200; outData[i+2] = 200;
+                            } else {
+                                outData[i] = basePaper;
+                                outData[i+1] = basePaper;
+                                outData[i+2] = basePaper;
+                            }
+                        }
+                    }
+                    outData[i+3] = 255;
+                }
+            }
+            
+            sketchCtx.putImageData(output, 0, 0);
+            
+            // Draw without smoothing for crispness, but high res makes it look fine
+            destCtx.imageSmoothingEnabled = true; 
+            destCtx.drawImage(sketchCanvas, 0, 0, width, height);
+        }
+
+        // -------------------------
+        
         selfieToggle.addEventListener('click', () => {
+            if(isSketchMode) return; 
             isSelfieMode = !isSelfieMode;
             if (isSelfieMode) {
-                backDoorWrapper.style.display = 'none';
-                frontFace.style.display = 'flex';
-                backControls.style.display = 'none';
-                frontControls.style.display = 'block';
+                backDoorWrapper.style.display = 'none'; frontFace.style.display = 'flex';
+                backControls.style.display = 'none'; frontControls.style.display = 'block';
             } else {
-                backDoorWrapper.style.display = 'block';
-                frontFace.style.display = 'none';
-                backControls.style.display = 'block';
-                frontControls.style.display = 'none';
+                backDoorWrapper.style.display = 'block'; frontFace.style.display = 'none';
+                backControls.style.display = 'block'; frontControls.style.display = 'none';
             }
             initCamera(); 
         });
 
+        // Sketch Mode Toggle Logic
+        sketchModeSwitch.addEventListener('click', () => {
+            isSketchMode = !isSketchMode;
+            sketchModeSwitch.classList.toggle('mode-sketch', isSketchMode);
+            document.getElementById('lbl-real').classList.toggle('active', !isSketchMode);
+            document.getElementById('lbl-sketch').classList.toggle('active', isSketchMode);
+            
+            // Reset to first mode of the new set
+            currentModeIdx = 0;
+            
+            if (isSketchMode) {
+                selfieToggle.style.opacity = '0.3'; selfieToggle.style.pointerEvents = 'none';
+            } else {
+                selfieToggle.style.opacity = '1'; selfieToggle.style.pointerEvents = 'auto';
+            }
+            
+            filmCard.style.filter = 'blur(5px)';
+            setTimeout(() => { updateModeUI(); filmCard.style.filter = 'none'; }, 200);
+        });
+
         function renderLoop() {
-            if (!video.srcObject || !video.srcObject.active || video.paused) return;
             requestAnimationFrame(renderLoop);
 
-            const mode = MODES[currentModeIdx];
+            const modes = getModes();
+            validateModeIndex();
+            const mode = modes[currentModeIdx];
             
             let w = 960; let h = 540;
-            if (mode.id === 'COLOR') { w = 320; h = 180; } 
-
+            
+            // Force low-res pixelation for COLOR/BW modes in Real Mode
+            if (!isSketchMode && (mode.id === 'COLOR' || mode.id === 'BW')) { w = 320; h = 180; } 
+            
             if (processCanvas.width !== w) { processCanvas.width = w; processCanvas.height = h; }
             
             processCtx.filter = "none";
-            processCtx.drawImage(video, 0, 0, w, h);
+            if (!video.srcObject || !video.srcObject.active || video.paused) return;
             
-            let imgData = processCtx.getImageData(0, 0, w, h);
-            let data = imgData.data;
+            if (isSketchMode) {
+                const useColor = (mode.id === 'SKETCH_COL');
+                applySketchEffect(video, processCtx, w, h, useColor);
+            } else {
+                // Standard Video Feed
+                processCtx.drawImage(video, 0, 0, w, h);
             
-            if (mode.id === 'FILM') {
-                for (let i = 0; i < data.length; i += 4) {
-                    let r = data[i], g = data[i+1], b = data[i+2];
-                    r = r < 40 ? 40 + (r*0.5) : r;
-                    b = b < 50 ? 50 + (b*0.5) : b;
-                    r = r * 0.96; g = g * 1.01; b = b * 1.04; 
-                    data[i] = r; data[i+1] = g; data[i+2] = b;
+                let imgData = processCtx.getImageData(0, 0, w, h);
+                let data = imgData.data;
+                
+                if (mode.id === 'FILM') {
+                    for (let i = 0; i < data.length; i += 4) {
+                        let r = data[i], g = data[i+1], b = data[i+2];
+                        r = r < 40 ? 40 + (r*0.5) : r; b = b < 50 ? 50 + (b*0.5) : b;
+                        r = r * 0.96; g = g * 1.01; b = b * 1.04; 
+                        data[i] = r; data[i+1] = g; data[i+2] = b;
+                    }
+                } 
+                else if (mode.id === 'BW') {
+                    for (let i = 0; i < data.length; i += 4) {
+                        let lum = data[i] * 0.3 + data[i+1] * 0.59 + data[i+2] * 0.11;
+                        if (lum < 128) lum = Math.pow(lum/128, 1.15) * 128; else lum = 128 + Math.pow((lum-128)/128, 0.9) * 128;
+                        data[i] = data[i+1] = data[i+2] = lum;
+                    }
                 }
-            } 
-            else if (mode.id === 'BW') {
-                for (let i = 0; i < data.length; i += 4) {
-                    let lum = data[i] * 0.3 + data[i+1] * 0.59 + data[i+2] * 0.11;
-                    if (lum < 128) lum = Math.pow(lum/128, 1.15) * 128;
-                    else lum = 128 + Math.pow((lum-128)/128, 0.9) * 128;
-                    data[i] = data[i+1] = data[i+2] = lum;
+                else if (mode.id === 'COLOR') {
+                    for (let i = 0; i < data.length; i += 4) {
+                        data[i] = Math.round(data[i] / 50) * 50; data[i+1] = Math.round(data[i+1] / 50) * 50; data[i+2] = Math.round(data[i+2] / 50) * 50;
+                    }
                 }
-            }
-            else if (mode.id === 'COLOR') {
-                for (let i = 0; i < data.length; i += 4) {
-                    data[i] = Math.round(data[i] / 50) * 50;
-                    data[i+1] = Math.round(data[i+1] / 50) * 50;
-                    data[i+2] = Math.round(data[i+2] / 50) * 50;
+                else if (mode.id === 'HCBW') {
+                    for (let i = 0; i < data.length; i += 4) {
+                        let lum = data[i] * 0.299 + data[i+1] * 0.587 + data[i+2] * 0.114;
+                        lum = (lum - 40) * 1.25; if(lum < 0) lum = 0; if(lum > 255) lum = 255;
+                        data[i] = data[i+1] = data[i+2] = lum;
+                    }
                 }
-            }
-            else if (mode.id === 'HCBW') {
-                for (let i = 0; i < data.length; i += 4) {
-                    let lum = data[i] * 0.299 + data[i+1] * 0.587 + data[i+2] * 0.114;
-                    lum = (lum - 40) * 1.25; 
-                    if(lum < 0) lum = 0; if(lum > 255) lum = 255;
-                    data[i] = data[i+1] = data[i+2] = lum;
-                }
-            }
-            
-            processCtx.putImageData(imgData, 0, 0);
+                
+                processCtx.putImageData(imgData, 0, 0);
 
-            if (mode.id !== 'CCD' && mode.id !== 'COLOR') {
-                processCtx.save();
-                processCtx.globalCompositeOperation = "overlay"; 
-                
-                let grainOpacity = 0.25;
-                if(mode.id === 'BW') grainOpacity = 0.35; 
-                if(mode.id === 'FILM') grainOpacity = 0.22; 
-                
-                processCtx.globalAlpha = grainOpacity; 
-                processCtx.imageSmoothingEnabled = true; 
-
-                const scale = 1.6; 
-                const offsetX = Math.random() * 128;
-                const offsetY = Math.random() * 128;
-                
-                processCtx.scale(scale, scale);
-                const pattern = processCtx.createPattern(grainCanvas, 'repeat');
-                processCtx.translate(offsetX, offsetY);
-                processCtx.fillStyle = pattern;
-                processCtx.fillRect(-offsetX, -offsetY, (w/scale) + offsetX, (h/scale) + offsetY);
-                processCtx.restore();
+                // Apply Grain
+                if (mode.id !== 'CCD' && mode.id !== 'COLOR') {
+                    processCtx.save(); processCtx.globalCompositeOperation = "overlay"; 
+                    let grainOpacity = 0.25; if(mode.id === 'BW') grainOpacity = 0.35; if(mode.id === 'FILM') grainOpacity = 0.22; 
+                    processCtx.globalAlpha = grainOpacity; processCtx.imageSmoothingEnabled = true; 
+                    const scale = 1.6; const offsetX = Math.random() * 128; const offsetY = Math.random() * 128;
+                    processCtx.scale(scale, scale); processCtx.translate(offsetX, offsetY);
+                    processCtx.fillStyle = processCtx.createPattern(grainCanvas, 'repeat');
+                    processCtx.fillRect(-offsetX, -offsetY, (w/scale) + offsetX, (h/scale) + offsetY);
+                    processCtx.restore();
+                }
             }
 
+            // Render to Viewfinders
+            const isPixelated = (!isSketchMode && (mode.id === 'COLOR' || mode.id === 'BW'));
+            
             if (!isSelfieMode) {
                 if (smallCanvas.width !== w) { smallCanvas.width = w; smallCanvas.height = h; }
-                smallCanvas.style.imageRendering = (mode.id === 'COLOR') ? 'pixelated' : 'auto';
+                smallCanvas.style.imageRendering = isPixelated ? 'pixelated' : 'auto';
                 smallCtx.drawImage(processCanvas, 0, 0);
             } else {
                 if (frontCanvas.width !== w) { frontCanvas.width = w; frontCanvas.height = h; }
-                frontCanvas.style.imageRendering = (mode.id === 'COLOR') ? 'pixelated' : 'auto';
+                frontCanvas.style.imageRendering = isPixelated ? 'pixelated' : 'auto';
                 frontCtx.drawImage(processCanvas, 0, 0);
             }
 
             if (fsViewfinder.style.display === 'block') {
                 if (fsCanvas.width !== w) { fsCanvas.width = w; fsCanvas.height = h; }
-                fsCanvas.style.imageRendering = (mode.id === 'COLOR') ? 'pixelated' : 'auto';
-                fsCanvas.style.transform = isSelfieMode ? 'scaleX(-1)' : 'none';
+                fsCanvas.style.imageRendering = isPixelated ? 'pixelated' : 'auto';
+                fsCanvas.style.transform = (isSelfieMode && !isSketchMode) ? 'scaleX(-1)' : 'none';
                 fsCtx.drawImage(processCanvas, 0, 0);
             }
         }
 
-        vfTrigger.addEventListener('click', (e) => { e.stopPropagation(); if (video.readyState >= 2) fsViewfinder.style.display = 'block'; });
+        // Viewfinder Interaction
+        vfTrigger.addEventListener('click', (e) => { 
+            e.stopPropagation(); 
+            fsViewfinder.style.display = 'block'; 
+            if(isSketchMode) {
+                splitCircle.style.display = 'none';
+                fsGuideFrame.style.display = 'none';
+            } else {
+                splitCircle.style.display = 'block';
+                fsGuideFrame.style.display = 'block';
+            }
+        });
+        
         frontVfTrigger.addEventListener('click', (e) => { e.stopPropagation(); if (video.readyState >= 2) fsViewfinder.style.display = 'block'; });
 
-        vfCloseBtn.addEventListener('click', (e) => { e.stopPropagation(); fsViewfinder.style.display = 'none'; });
+        vfCloseBtn.addEventListener('click', (e) => { 
+            e.stopPropagation(); 
+            fsViewfinder.style.display = 'none'; 
+        });
 
         fsViewfinder.addEventListener('click', (e) => {
             if(e.target.id !== 'vf-close-btn') {
                playFocusSound();
-               splitCircle.classList.add('focused');
-               fsCanvas.style.filter = 'blur(0px) contrast(1.1)';
-               setTimeout(() => { 
-                   splitCircle.classList.remove('focused'); 
-                   fsCanvas.style.filter = 'none';
+               if(!isSketchMode) {
+                   splitCircle.classList.add('focused');
+                   fsCanvas.style.filter = 'blur(0px) contrast(1.1)';
+                   setTimeout(() => { 
+                       splitCircle.classList.remove('focused'); 
+                       fsCanvas.style.filter = 'none';
+                       handleShutter(e);
+                   }, 400);
+               } else {
+                   // Instant snap in Sketch Mode
                    handleShutter(e);
-               }, 400);
+               }
             }
         });
 
         shutterBtn.addEventListener('click', handleShutter);
         frontShutterBtn.addEventListener('click', handleShutter);
-        
-        cablePlunger.addEventListener('click', (e) => {
-            e.stopPropagation();
-            cablePlunger.classList.add('pressed');
-            setTimeout(() => cablePlunger.classList.remove('pressed'), 200);
-            handleShutter(e);
-        });
+        cablePlunger.addEventListener('click', (e) => { e.stopPropagation(); cablePlunger.classList.add('pressed'); setTimeout(() => cablePlunger.classList.remove('pressed'), 200); handleShutter(e); });
         
         function handleShutter(e) {
             if(e) e.stopPropagation();
-            if (e.target.id === 'vf-close-btn') return;
+            if (e && e.target.id === 'vf-close-btn') return;
             if (!isSelfieMode && backDoorWrapper.classList.contains('open')) return;
             if (isRollMode && currentFrame >= 36) return;
             if (!isRollMode && pendingPhoto) return;
@@ -966,98 +1041,60 @@
                 container.appendChild(blind); setTimeout(() => blind.remove(), 150);
             }
             
-            setTimeout(() => {
-                performCapture();
-                btn.classList.remove('pressed');
-            }, 150);
+            setTimeout(() => { performCapture(); btn.classList.remove('pressed'); }, 150);
         }
 
-        // [攝影師特調] 生成式漏光引擎
+        // Generate Light Leak (Real Mode Only)
         function generateLightLeak(ctx, w, h) {
-            ctx.save();
-            ctx.globalCompositeOperation = 'screen'; // 關鍵：濾色模式，模擬光線疊加
-
-            const leakCount = Math.random() > 0.7 ? 2 : 1; // 30% 機率出現多重漏光
-
+            ctx.save(); ctx.globalCompositeOperation = 'screen'; 
+            const leakCount = Math.random() > 0.7 ? 2 : 1; 
             for(let i=0; i<leakCount; i++) {
-                const type = Math.random();
-                const opacity = 0.4 + Math.random() * 0.4; // 隨機透明度
-                
-                // 色彩生成：偏向紅橙色，偶爾有白光
+                const type = Math.random(); const opacity = 0.4 + Math.random() * 0.4; 
                 const hue = Math.random() > 0.8 ? 40 + Math.random()*10 : 10 + Math.random()*30; 
-                const sat = 80 + Math.random()*20;
-                const light = 50 + Math.random()*20;
-                
+                const sat = 80 + Math.random()*20; const light = 50 + Math.random()*20;
                 const colorInner = `hsla(${hue}, ${sat}%, ${light}%, ${opacity})`;
                 const colorOuter = `hsla(${hue-10}, ${sat}%, ${light-20}%, 0)`;
 
                 if (type < 0.4) {
-                    // 1. 側邊燒灼 (Side Burn) - 模擬背蓋縫隙
-                    const isLeft = Math.random() > 0.5;
-                    const width = w * (0.15 + Math.random() * 0.3);
+                    const isLeft = Math.random() > 0.5; const width = w * (0.15 + Math.random() * 0.3);
                     const grad = ctx.createLinearGradient(isLeft ? 0 : w, 0, isLeft ? width : w - width, 0);
-                    grad.addColorStop(0, colorInner);
-                    grad.addColorStop(1, colorOuter);
-                    ctx.fillStyle = grad;
-                    ctx.fillRect(0, 0, w, h);
-                } 
-                else if (type < 0.7) {
-                    // 2. 角落光斑 (Corner Flare) - 模擬鏡頭進光
-                    const cx = Math.random() > 0.5 ? 0 : w;
-                    const cy = Math.random() > 0.5 ? 0 : h;
+                    grad.addColorStop(0, colorInner); grad.addColorStop(1, colorOuter);
+                    ctx.fillStyle = grad; ctx.fillRect(0, 0, w, h);
+                } else if (type < 0.7) {
+                    const cx = Math.random() > 0.5 ? 0 : w; const cy = Math.random() > 0.5 ? 0 : h;
                     const r = Math.max(w, h) * (0.4 + Math.random() * 0.4);
                     const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
-                    grad.addColorStop(0, `hsla(${hue}, 20%, 90%, ${opacity})`); // 中心偏白
-                    grad.addColorStop(0.4, colorInner);
-                    grad.addColorStop(1, `hsla(${hue}, ${sat}%, 20%, 0)`);
-                    ctx.fillStyle = grad;
-                    ctx.fillRect(0, 0, w, h);
-                } 
-                else {
-                    // 3. 隨機光束 (Random Streak) - 模擬過片時的快門縫隙光
-                    const angle = (Math.random() - 0.5) * Math.PI / 2; // 傾斜角度
-                    ctx.translate(w/2, h/2);
-                    ctx.rotate(angle);
+                    grad.addColorStop(0, `hsla(${hue}, 20%, 90%, ${opacity})`);
+                    grad.addColorStop(0.4, colorInner); grad.addColorStop(1, `hsla(${hue}, ${sat}%, 20%, 0)`);
+                    ctx.fillStyle = grad; ctx.fillRect(0, 0, w, h);
+                } else {
+                    const angle = (Math.random() - 0.5) * Math.PI / 2; 
+                    ctx.translate(w/2, h/2); ctx.rotate(angle);
                     const grad = ctx.createLinearGradient(-w/2, 0, w/2, 0);
-                    grad.addColorStop(0, 'transparent');
-                    grad.addColorStop(Math.random() * 0.4 + 0.2, colorInner);
-                    grad.addColorStop(1, 'transparent');
-                    ctx.fillStyle = grad;
-                    ctx.fillRect(-w, -h, w*2, h*2);
-                    ctx.setTransform(1,0,0,1,0,0); // Reset transform
+                    grad.addColorStop(0, 'transparent'); grad.addColorStop(Math.random() * 0.4 + 0.2, colorInner); grad.addColorStop(1, 'transparent');
+                    ctx.fillStyle = grad; ctx.fillRect(-w, -h, w*2, h*2); ctx.setTransform(1,0,0,1,0,0);
                 }
             }
             ctx.restore();
         }
 
         async function performCapture() {
-            const mode = MODES[currentModeIdx];
+            const modes = getModes();
+            const mode = modes[currentModeIdx];
             const targetW = 1920, targetH = 1080;
             finalCanvas.width = targetW; finalCanvas.height = targetH;
             finalCtx.filter = 'none'; finalCtx.globalCompositeOperation = 'source-over';
 
-            if (isSelfieMode) {
-                finalCtx.translate(targetW, 0);
-                finalCtx.scale(-1, 1);
-            }
+            if (isSelfieMode && !isSketchMode) { finalCtx.translate(targetW, 0); finalCtx.scale(-1, 1); }
+            finalCtx.imageSmoothingEnabled = (mode.id === 'FILM' || mode.id === 'HCBW' || mode.id === 'CCD' || mode.id.includes('SKETCH'));
+            finalCtx.drawImage(processCanvas, 0, 0, targetW, targetH); 
 
-            finalCtx.imageSmoothingEnabled = (mode.id === 'FILM' || mode.id === 'HCBW' || mode.id === 'CCD');
-            finalCtx.drawImage(processCanvas, 0, 0, targetW, targetH);
-
-            // 只有在 FILM 模式下應用新的生成式漏光
-            if (mode.id === 'FILM') {
-                generateLightLeak(finalCtx, targetW, targetH);
-            } 
-            
+            if (mode.id === 'FILM') generateLightLeak(finalCtx, targetW, targetH);
             finalCtx.setTransform(1, 0, 0, 1, 0, 0);
-
             const highRes = finalCanvas.toDataURL('image/jpeg', 0.92);
 
             if (isRollMode) {
-                await saveToTemp(highRes);
-                currentFrame++;
-                updateCounterDisplay();
-                checkLeverState();
+                await saveToTemp(highRes); currentFrame++; updateCounterDisplay(); checkLeverState();
             } else {
                 pendingPhoto = highRes;
                 document.getElementById('review-img').src = highRes;
@@ -1067,27 +1104,22 @@
         }
 
         document.getElementById('btn-discard').addEventListener('click', () => { pendingPhoto = null; document.getElementById('review-overlay').style.display = 'none'; });
-        document.getElementById('btn-keep').addEventListener('click', () => { 
-            document.getElementById('review-overlay').style.display = 'none';
-            checkLeverState(); 
-        });
-
-        document.getElementById('filmDoor').addEventListener('click', () => {
-            if (backDoorWrapper.classList.contains('open')) return;
-            currentModeIdx = (currentModeIdx + 1) % MODES.length;
-            localStorage.setItem('camModeIdx', currentModeIdx);
-            filmCard.style.filter = 'blur(5px)';
-            setTimeout(() => { updateModeUI(); filmCard.style.filter = 'none'; }, 200);
+        document.getElementById('btn-keep').addEventListener('click', () => { document.getElementById('review-overlay').style.display = 'none'; checkLeverState(); });
+        document.getElementById('filmDoor').addEventListener('click', () => { 
+            if (backDoorWrapper.classList.contains('open')) return; 
+            const modes = getModes();
+            currentModeIdx = (currentModeIdx + 1) % modes.length; 
+            localStorage.setItem('camModeIdx', currentModeIdx); 
+            filmCard.style.filter = 'blur(5px)'; 
+            setTimeout(() => { updateModeUI(); filmCard.style.filter = 'none'; }, 200); 
         });
         
         rollModeSwitch.addEventListener('click', async () => {
             if(pendingPhoto || (isRollMode && currentFrame > 0 && currentFrame < 36)) {
                 if(!confirm("Switching modes will clear current roll. Continue?")) return;
-                await clearTemp();
-                pendingPhoto = null;
+                await clearTemp(); pendingPhoto = null;
             }
-            isRollMode = !isRollMode;
-            localStorage.setItem('rollMode', isRollMode);
+            isRollMode = !isRollMode; localStorage.setItem('rollMode', isRollMode);
             rollModeSwitch.classList.toggle('mode-36', isRollMode);
             currentFrame = 0; updateCounterDisplay(); checkLeverState();
         });
@@ -1095,34 +1127,16 @@
         let leverPulled = false;
         advanceLever.addEventListener('click', async () => {
             if (!readyLight.classList.contains('active') || leverPulled) return;
-            playLeverSound();
-            leverPulled = true;
-            advanceLever.style.transform = 'rotate(130deg)';
-            
-            setTimeout(() => {
-                advanceLever.style.transform = 'rotate(10deg)';
-                styleOverlay.style.display = 'flex';
-                leverPulled = false; 
-            }, 400);
+            playLeverSound(); leverPulled = true; advanceLever.style.transform = 'rotate(130deg)';
+            setTimeout(() => { advanceLever.style.transform = 'rotate(10deg)'; styleOverlay.style.display = 'flex'; leverPulled = false; }, 400);
         });
 
         document.querySelectorAll('.style-btn').forEach(btn => {
             btn.addEventListener('click', async (e) => {
-                const style = e.currentTarget.dataset.style;
-                styleOverlay.style.display = 'none';
-                readyLight.classList.remove('active');
-                leverBase.classList.remove('glow');
-                
+                const style = e.currentTarget.dataset.style; styleOverlay.style.display = 'none'; readyLight.classList.remove('active'); leverBase.classList.remove('glow');
                 let photosToProcess = [];
-                if (isRollMode) {
-                    photosToProcess = await getTempPhotos();
-                } else if (pendingPhoto) {
-                    photosToProcess = [{ image: pendingPhoto, date: new Date() }];
-                }
-
-                if(photosToProcess.length > 0) {
-                    await startDevelopingAnimation(photosToProcess, style);
-                }
+                if (isRollMode) photosToProcess = await getTempPhotos(); else if (pendingPhoto) photosToProcess = [{ image: pendingPhoto, date: new Date() }];
+                if(photosToProcess.length > 0) await startDevelopingAnimation(photosToProcess, style);
             });
         });
 
@@ -1130,64 +1144,40 @@
             return new Promise(resolve => {
                 const img = new Image();
                 img.onload = () => {
-                    let w = 1920, h = 1080;
-                    let padTop = 0, padSide = 0, padBottom = 0;
-
-                    if (style === 'white') {
-                        padTop = 50; padSide = 50; padBottom = 150;
-                        w = 1200; 
-                        h = Math.floor(w * (9/16)) + padTop + padBottom; 
-                    } else if (style === 'film') {
-                        padTop = 80; padSide = 0; padBottom = 80;
-                    }
-
-                    finalCanvas.width = w; finalCanvas.height = h;
-                    const ctx = finalCanvas.getContext('2d');
-                    ctx.filter = 'none';
-
-                    if (style === 'white') {
-                        ctx.fillStyle = '#fff'; ctx.fillRect(0,0,w,h);
-                        ctx.drawImage(img, padSide, padTop, w - padSide*2, h - padTop - padBottom);
-                    } else if (style === 'film') {
-                        ctx.drawImage(img, 0, padTop, w, h - padTop*2);
-                        ctx.fillStyle = '#111';
-                        ctx.fillRect(0, 0, w, padTop);
-                        ctx.fillRect(0, h - padBottom, w, padBottom);
-                        ctx.fillStyle = '#fff';
-                        const holeW = 30, gap = 20;
-                        for(let x = 30; x < w; x += (holeW + gap)) {
-                            ctx.fillRect(x, 20, holeW, 40);
-                            ctx.fillRect(x, h - 60, holeW, 40);
-                        }
-                    } else {
-                        ctx.drawImage(img, 0, 0, w, h);
-                    }
-
-                    const d = new Date(dateObj);
-                    const dateStr = `'${d.getFullYear().toString().slice(-2)} ${(d.getMonth()+1).toString().padStart(2,'0')} ${d.getDate().toString().padStart(2,'0')}`;
+                    let w = 1920, h = 1080; let padTop = 0, padSide = 0, padBottom = 0;
+                    if (style === 'white') { padTop = 50; padSide = 50; padBottom = 150; w = 1200; h = Math.floor(w * (9/16)) + padTop + padBottom; } else if (style === 'film') { padTop = 80; padSide = 0; padBottom = 80; }
+                    finalCanvas.width = w; finalCanvas.height = h; const ctx = finalCanvas.getContext('2d'); ctx.filter = 'none';
+                    if (style === 'white') { ctx.fillStyle = '#fff'; ctx.fillRect(0,0,w,h); ctx.drawImage(img, padSide, padTop, w - padSide*2, h - padTop - padBottom); } 
+                    else if (style === 'film') {
+                        ctx.drawImage(img, 0, padTop, w, h - padTop*2); ctx.fillStyle = '#111'; ctx.fillRect(0, 0, w, padTop); ctx.fillRect(0, h - padBottom, w, padBottom); ctx.fillStyle = '#fff'; const holeW = 30, gap = 20;
+                        for(let x = 30; x < w; x += (holeW + gap)) { ctx.fillRect(x, 20, holeW, 40); ctx.fillRect(x, h - 60, holeW, 40); }
+                    } else { ctx.drawImage(img, 0, 0, w, h); }
                     
-                    ctx.shadowColor = '#ff5500'; ctx.shadowBlur = 15;
-                    ctx.fillStyle = 'rgba(255, 170, 50, 0.9)';
-                    const fontSize = style === 'white' ? 40 : 50;
-                    ctx.font = `bold ${fontSize}px "Courier New", monospace`;
-                    ctx.textAlign = 'right'; ctx.textBaseline = 'bottom';
+                    // DATE STAMP STYLING
+                    const d = new Date(dateObj); const dateStr = `'${d.getFullYear().toString().slice(-2)} ${(d.getMonth()+1).toString().padStart(2,'0')} ${d.getDate().toString().padStart(2,'0')}`;
+                    let dateX = (style === 'white') ? w - padSide - 30 : ((style === 'film') ? w - 50 : w - 60); let dateY = (style === 'white' || style === 'film') ? h - padBottom - 30 : h - 50;
                     
-                    let dateX, dateY;
-                    if (style === 'white') {
-                        dateX = w - padSide - 30; 
-                        dateY = h - padBottom - 30;
-                    } else if (style === 'film') {
-                        dateX = w - 50;
-                        dateY = h - padBottom - 30;
+                    if (isSketchMode) {
+                        // Sketch: Handwritten, Dark Grey, No Glow, Slightly Tilted
+                        ctx.save();
+                        ctx.shadowBlur = 0;
+                        ctx.fillStyle = 'rgba(50, 50, 50, 0.85)';
+                        // Trying standard cursive fonts available on most systems
+                        ctx.font = `normal 45px "Segoe Print", "Comic Sans MS", "Chalkboard SE", cursive`;
+                        ctx.textAlign = 'right'; 
+                        ctx.textBaseline = 'bottom';
+                        ctx.translate(dateX, dateY);
+                        ctx.rotate(-0.05); // Slight tilt
+                        ctx.fillText(dateStr, 0, 0);
+                        ctx.restore();
                     } else {
-                        dateX = w - 60;
-                        dateY = h - 50;
+                        // Real: Orange Digital, Glow
+                        ctx.shadowColor = '#ff5500'; ctx.shadowBlur = 15; ctx.fillStyle = 'rgba(255, 170, 50, 0.9)'; const fontSize = style === 'white' ? 40 : 50; ctx.font = `bold ${fontSize}px "Courier New", monospace`; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom';
+                        ctx.fillText(dateStr, dateX, dateY); 
                     }
-                    ctx.fillText(dateStr, dateX, dateY);
-
+                    
                     resolve(finalCanvas.toDataURL('image/jpeg', 0.9));
-                };
-                img.src = imgUrl;
+                }; img.src = imgUrl;
             });
         }
 
@@ -1195,256 +1185,74 @@
             return new Promise(resolve => {
                 const img = new Image();
                 img.onload = () => {
-                    finalCanvas.width = img.width; finalCanvas.height = img.height;
-                    const ctx = finalCanvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0);
-                    
+                    finalCanvas.width = img.width; finalCanvas.height = img.height; const ctx = finalCanvas.getContext('2d'); ctx.drawImage(img, 0, 0);
                     let x = 30, y = 30, color = '#fff';
-                    
-                    if (style === 'white') {
-                        x = 50; 
-                        y = img.height - 80; 
-                        color = '#333'; 
-                    } else if (style === 'film') {
-                        x = 40;
-                        y = 100; 
-                        color = 'rgba(255,255,255,0.8)';
-                    } else {
-                        x = 30; y = 30; color = 'rgba(255,255,255,0.8)';
-                    }
-                    
-                    ctx.shadowColor = style === 'white' ? 'transparent' : '#000'; 
-                    ctx.shadowBlur = 2;
-                    ctx.fillStyle = color;
-                    ctx.font = `bold 36px "Courier New", monospace`;
-                    ctx.textAlign = 'left'; ctx.textBaseline = 'top';
-                    
-                    ctx.fillText(`No.${serialNo}`, x, y);
-                    
-                    resolve(finalCanvas.toDataURL('image/jpeg', 0.9));
-                };
-                img.src = imgUrl;
+                    if (style === 'white') { x = 50; y = img.height - 80; color = '#333'; } else if (style === 'film') { x = 40; y = 100; color = 'rgba(255,255,255,0.8)'; } else { color = 'rgba(255,255,255,0.8)'; }
+                    ctx.shadowColor = style === 'white' ? 'transparent' : '#000'; ctx.shadowBlur = 2; ctx.fillStyle = color; ctx.font = `bold 36px "Courier New", monospace`; ctx.textAlign = 'left'; ctx.textBaseline = 'top'; ctx.fillText(`No.${serialNo}`, x, y); resolve(finalCanvas.toDataURL('image/jpeg', 0.9));
+                }; img.src = imgUrl;
             });
         }
 
         async function startDevelopingAnimation(photos, style) {
-            devOverlay.style.display = 'flex';
-            devStatus.textContent = "PREPARING...";
-            
+            devOverlay.style.display = 'flex'; devStatus.textContent = "PREPARING...";
             const processed = [];
-            for (let p of photos) {
-                const thisSerial = globalSerialCounter++;
-                localStorage.setItem('global_serial_counter', globalSerialCounter);
-                const finalImg = await applyFrameAndDate(p.image, p.date, style);
-                processed.push({ img: finalImg, serial: thisSerial, style: style });
-            }
-
+            for (let p of photos) { const thisSerial = globalSerialCounter++; localStorage.setItem('global_serial_counter', globalSerialCounter); const finalImg = await applyFrameAndDate(p.image, p.date, style); processed.push({ img: finalImg, serial: thisSerial, style: style }); }
             for (let i = 0; i < processed.length; i++) {
-                devStatus.textContent = `DEVELOPING ${i+1}/${processed.length}`;
-                devImageWrap.src = processed[i].img;
-                devImageWrap.style.border = style === 'white' ? 'none' : '8px solid white';
-                
-                devImageWrap.style.animation = 'none';
-                devImageWrap.offsetHeight; 
-                devImageWrap.style.animation = 'developProcess 3s forwards';
-                
-                await new Promise(r => setTimeout(r, 3200));
-                await saveToAlbum(processed[i].img, processed[i].serial, processed[i].style);
+                devStatus.textContent = `DEVELOPING ${i+1}/${processed.length}`; devImageWrap.src = processed[i].img; devImageWrap.style.border = style === 'white' ? 'none' : '8px solid white';
+                devImageWrap.style.animation = 'none'; devImageWrap.offsetHeight; devImageWrap.style.animation = 'developProcess 3s forwards'; await new Promise(r => setTimeout(r, 3200)); await saveToAlbum(processed[i].img, processed[i].serial, processed[i].style);
             }
-
-            devStatus.textContent = "FINISHED";
-            await new Promise(r => setTimeout(r, 800));
-            
-            devOverlay.style.display = 'none';
-            if (isRollMode) {
-                await clearTemp();
-                currentFrame = 0;
-                updateCounterDisplay();
-            } else {
-                pendingPhoto = null;
-            }
-            checkLeverState();
+            devStatus.textContent = "FINISHED"; await new Promise(r => setTimeout(r, 800));
+            devOverlay.style.display = 'none'; if (isRollMode) { await clearTemp(); currentFrame = 0; updateCounterDisplay(); } else { pendingPhoto = null; } checkLeverState();
         }
 
-        backLock.addEventListener('click', () => {
-            const isOpen = backDoorWrapper.classList.contains('open');
-            if (!isOpen) {
-                backDoorWrapper.classList.add('open');
-                backLock.style.transform = 'translateX(5px)';
-                loadAlbum();
-            } else {
-                closeBackDoor();
-            }
-        });
-
-        function closeBackDoor() {
-            backDoorWrapper.classList.remove('open');
-            backLock.style.transform = 'translateX(0)';
-        }
-
-        let selectedAlbumIds = new Set();
-        let currentAlbumData = [];
-
+        backLock.addEventListener('click', () => { const isOpen = backDoorWrapper.classList.contains('open'); if (!isOpen) { backDoorWrapper.classList.add('open'); backLock.style.transform = 'translateX(5px)'; loadAlbum(); } else { closeBackDoor(); } });
+        function closeBackDoor() { backDoorWrapper.classList.remove('open'); backLock.style.transform = 'translateX(0)'; }
+        
+        let selectedAlbumIds = new Set(); let currentAlbumData = [];
         async function loadAlbum() {
-            albumGrid.innerHTML = '';
-            selectedAlbumIds.clear();
-            currentAlbumData = await getAlbumPhotos();
-            currentAlbumData.sort((a,b) => b.timestamp - a.timestamp);
-
-            if(currentAlbumData.length === 0) {
-                albumGrid.innerHTML = '<p style="color:#555; width:100%; text-align:center; margin-top:50px; font-family:monospace;">ALBUM EMPTY</p>';
-                return;
-            }
-
+            albumGrid.innerHTML = ''; selectedAlbumIds.clear(); currentAlbumData = await getAlbumPhotos(); currentAlbumData.sort((a,b) => b.timestamp - a.timestamp);
+            if(currentAlbumData.length === 0) { albumGrid.innerHTML = '<p style="color:#555; width:100%; text-align:center; margin-top:50px; font-family:monospace;">ALBUM EMPTY</p>'; return; }
             currentAlbumData.forEach(p => {
-                const div = document.createElement('div');
-                div.className = 'album-photo';
-                div.dataset.id = p.id;
-                const img = document.createElement('img');
-                img.src = p.image;
-                const seq = document.createElement('div');
-                seq.className = 'album-seq';
-                seq.textContent = `No.${p.serial}`;
-                div.appendChild(img);
-                div.appendChild(seq);
-                
-                div.onclick = (e) => {
-                    if (div.clickTimeout) {
-                        clearTimeout(div.clickTimeout);
-                        div.clickTimeout = null;
-                        showZoom(p.image);
-                    } else {
-                        div.clickTimeout = setTimeout(() => {
-                            div.clickTimeout = null;
-                            toggleSelection(div, p.id);
-                        }, 250);
-                    }
-                };
-                
+                const div = document.createElement('div'); div.className = 'album-photo'; div.dataset.id = p.id;
+                const img = document.createElement('img'); img.src = p.image;
+                const seq = document.createElement('div'); seq.className = 'album-seq'; seq.textContent = `No.${p.serial}`;
+                div.appendChild(img); div.appendChild(seq);
+                div.onclick = (e) => { if (div.clickTimeout) { clearTimeout(div.clickTimeout); div.clickTimeout = null; showZoom(p.image); } else { div.clickTimeout = setTimeout(() => { div.clickTimeout = null; toggleSelection(div, p.id); }, 250); } };
                 albumGrid.appendChild(div);
             });
         }
         
-        function showZoom(imgSrc) {
-            zoomImg.src = imgSrc;
-            zoomOverlay.style.display = 'flex';
-        }
-        
-        zoomOverlay.addEventListener('click', () => {
-            zoomOverlay.style.display = 'none';
-        });
+        function showZoom(imgSrc) { zoomImg.src = imgSrc; zoomOverlay.style.display = 'flex'; }
+        zoomOverlay.addEventListener('click', () => { zoomOverlay.style.display = 'none'; });
+        function toggleSelection(el, id) { if (selectedAlbumIds.has(id)) { selectedAlbumIds.delete(id); el.classList.remove('selected'); } else { selectedAlbumIds.add(id); el.classList.add('selected'); } }
+        document.getElementById('alb-sel-all').addEventListener('click', () => { const allEls = document.querySelectorAll('.album-photo'); const allSelected = selectedAlbumIds.size === currentAlbumData.length; allEls.forEach(el => { const id = parseInt(el.dataset.id); if (allSelected) { selectedAlbumIds.delete(id); el.classList.remove('selected'); } else { selectedAlbumIds.add(id); el.classList.add('selected'); } }); });
+        document.getElementById('alb-delete').addEventListener('click', async () => { if (!checkSelection()) return; if (confirm("DELETE SELECTED PHOTOS?")) { const idsToRemove = Array.from(selectedAlbumIds); await deleteFromAlbum(idsToRemove); await loadAlbum(); } });
 
-        function toggleSelection(el, id) {
-            if (selectedAlbumIds.has(id)) { selectedAlbumIds.delete(id); el.classList.remove('selected'); } 
-            else { selectedAlbumIds.add(id); el.classList.add('selected'); }
-        }
-
-        document.getElementById('alb-sel-all').addEventListener('click', () => {
-            const allEls = document.querySelectorAll('.album-photo');
-            const allSelected = selectedAlbumIds.size === currentAlbumData.length;
-            allEls.forEach(el => {
-                const id = parseInt(el.dataset.id);
-                if (allSelected) { selectedAlbumIds.delete(id); el.classList.remove('selected'); } 
-                else { selectedAlbumIds.add(id); el.classList.add('selected'); }
-            });
-        });
-
-        document.getElementById('alb-delete').addEventListener('click', async () => {
-            if (!checkSelection()) return;
-            if (confirm("DELETE SELECTED PHOTOS?")) {
-                const idsToRemove = Array.from(selectedAlbumIds);
-                await deleteFromAlbum(idsToRemove);
-                await loadAlbum(); 
-            }
-        });
-
-        const exportModal = document.getElementById('export-modal');
-        let exportActionType = ''; 
-
-        function checkSelection() {
-            if (selectedAlbumIds.size === 0) { alert("SELECT PHOTOS FIRST"); return false; }
-            return true;
-        }
-
-        document.getElementById('alb-download').addEventListener('click', () => {
-            if(!checkSelection()) return;
-            exportActionType = 'download';
-            exportModal.style.display = 'flex';
-        });
-
-        document.getElementById('alb-share').addEventListener('click', () => {
-            if(!checkSelection()) return;
-            if(!navigator.share) { alert("SHARING NOT SUPPORTED"); return; }
-            exportActionType = 'share';
-            exportModal.style.display = 'flex';
-        });
-
+        const exportModal = document.getElementById('export-modal'); let exportActionType = ''; 
+        function checkSelection() { if (selectedAlbumIds.size === 0) { alert("SELECT PHOTOS FIRST"); return false; } return true; }
+        document.getElementById('alb-download').addEventListener('click', () => { if(!checkSelection()) return; exportActionType = 'download'; exportModal.style.display = 'flex'; });
+        document.getElementById('alb-share').addEventListener('click', () => { if(!checkSelection()) return; if(!navigator.share) { alert("SHARING NOT SUPPORTED"); return; } exportActionType = 'share'; exportModal.style.display = 'flex'; });
         document.getElementById('exp-cancel').addEventListener('click', () => exportModal.style.display = 'none');
         document.getElementById('exp-no-serial').addEventListener('click', () => processExport(false));
         document.getElementById('exp-with-serial').addEventListener('click', () => processExport(true));
 
         async function processExport(addSerial) {
-            const selectedData = currentAlbumData.filter(p => selectedAlbumIds.has(p.id));
-            const filesToShare = [];
-
+            const selectedData = currentAlbumData.filter(p => selectedAlbumIds.has(p.id)); const filesToShare = [];
             for (let p of selectedData) {
-                let finalDataUrl = p.image;
-                if (addSerial) {
-                    finalDataUrl = await overlaySerial(p.image, p.serial, p.style);
-                }
+                let finalDataUrl = p.image; if (addSerial) finalDataUrl = await overlaySerial(p.image, p.serial, p.style);
                 const fileName = `RETRO_No${p.serial}_${Date.now()}.jpg`;
-
-                if (exportActionType === 'download') {
-                    const link = document.createElement('a');
-                    link.download = fileName;
-                    link.href = finalDataUrl;
-                    link.click();
-                    await new Promise(r => setTimeout(r, 200));
-                } else {
-                    const blob = await (await fetch(finalDataUrl)).blob();
-                    filesToShare.push(new File([blob], fileName, { type: 'image/jpeg' }));
-                }
+                if (exportActionType === 'download') { const link = document.createElement('a'); link.download = fileName; link.href = finalDataUrl; link.click(); await new Promise(r => setTimeout(r, 200)); } 
+                else { const blob = await (await fetch(finalDataUrl)).blob(); filesToShare.push(new File([blob], fileName, { type: 'image/jpeg' })); }
             }
-
-            if (exportActionType === 'share' && filesToShare.length > 0) {
-                try { await navigator.share({ files: filesToShare }); } catch (e) {}
-            }
-
-            const idsToRemove = selectedData.map(p => p.id);
-            await deleteFromAlbum(idsToRemove);
-            resetToCameraUI();
+            if (exportActionType === 'share' && filesToShare.length > 0) { try { await navigator.share({ files: filesToShare }); } catch (e) {} }
+            const idsToRemove = selectedData.map(p => p.id); await deleteFromAlbum(idsToRemove); resetToCameraUI();
         }
 
-        function resetToCameraUI() {
-            exportModal.style.display = 'none'; 
-            closeBackDoor(); 
-            document.getElementById('review-overlay').style.display = 'none';
-            pendingPhoto = null;
-            checkLeverState();
-        }
-
-        function checkOrientation() {
-            if (window.innerHeight > window.innerWidth) { 
-                document.getElementById('orientation-lock').style.display = 'flex'; 
-                document.getElementById('camera-container').style.display = 'none'; 
-                fsPrompt.style.display = 'none'; 
-            } else { 
-                document.getElementById('orientation-lock').style.display = 'none'; 
-                if (document.fullscreenElement) { 
-                    document.getElementById('camera-container').style.display = 'block'; 
-                    document.getElementById('fullscreen-prompt').style.display = 'none'; 
-                    resizeElements(); 
-                } else {
-                    enforceFullscreen();
-                }
-            }
-        }
-        function resizeElements() {
-            const scale = Math.min(window.innerWidth / 800, window.innerHeight / 480);
-            document.getElementById('camera-container').style.transform = `scale(${scale})`;
-        }
+        function resetToCameraUI() { exportModal.style.display = 'none'; closeBackDoor(); document.getElementById('review-overlay').style.display = 'none'; pendingPhoto = null; checkLeverState(); }
+        function checkOrientation() { if (window.innerHeight > window.innerWidth) { document.getElementById('orientation-lock').style.display = 'flex'; document.getElementById('camera-container').style.display = 'none'; fsPrompt.style.display = 'none'; } else { document.getElementById('orientation-lock').style.display = 'none'; if (document.fullscreenElement) { document.getElementById('camera-container').style.display = 'block'; document.getElementById('fullscreen-prompt').style.display = 'none'; resizeElements(); } else { enforceFullscreen(); } } }
+        function resizeElements() { const scale = Math.min(window.innerWidth / 800, window.innerHeight / 480); document.getElementById('camera-container').style.transform = `scale(${scale})`; }
         window.addEventListener('resize', () => { checkOrientation(); resizeElements(); });
 
     </script>
 </body>
-        </html>
+</html>
