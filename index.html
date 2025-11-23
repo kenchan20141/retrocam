@@ -1576,34 +1576,68 @@ function randomizeOSD() {
     }
         
     async function startDevelopingAnimation(photos, style) { 
-        devOverlay.style.display = 'flex'; devStatus.textContent = "PREPARING..."; 
+        // [雙重保險 1] 程式一開始，直接清空輸入框的值
+        // 這能確保就算代碼寫錯去讀取它，讀到的也是空的
+        document.getElementById('exp-text-input').value = "";
+
+        devOverlay.style.display = 'flex'; 
+        devStatus.textContent = "PREPARING..."; 
+        
         let waterLoopId; let rippleTime = 0; let waveIntensity = 1.0; 
-        const turbulenceNode = document.querySelector('#liquidFilter feTurbulence'); const paperContainer = document.querySelector('.photo-paper-container');
+        const turbulenceNode = document.querySelector('#liquidFilter feTurbulence'); 
+        const paperContainer = document.querySelector('.photo-paper-container');
         
         function renderWaterRipple() { rippleTime += 0.05; const baseFreqY = (0.05 + Math.sin(rippleTime * 0.5) * 0.01) * waveIntensity; const displayFreq = Math.max(0.001, baseFreqY); turbulenceNode.setAttribute('baseFrequency', `0.01 ${displayFreq}`); waterLoopId = requestAnimationFrame(renderWaterRipple); }
 
         const processed = []; 
         for (let p of photos) { 
-            const thisSerial = globalSerialCounter++; localStorage.setItem('global_serial_counter', globalSerialCounter); 
-            const customText = document.getElementById('exp-text-input').value;
-            const finalImg = await processFinalPhoto(p.image, p.date, "", style, customText); 
+            const thisSerial = globalSerialCounter++; 
+            localStorage.setItem('global_serial_counter', globalSerialCounter); 
+            
+            // [雙重保險 2] 直接在函數調用時寫死最後一個參數為 "" (空字串)
+            // 絕對不要在這裡使用變數，確保傳進去的永遠是「無文字」
+            const finalImg = await processFinalPhoto(p.image, p.date, "", style, ""); 
+            
             processed.push({ img: finalImg, serial: thisSerial, style: style }); 
         }
         
         for (let i = 0; i < processed.length; i++) { 
-            devStatus.textContent = `DEVELOPING ${i+1}/${processed.length}`; devImageWrap.src = processed[i].img; devImageWrap.style.border = style === 'white' ? 'none' : '8px solid white'; 
-            waveIntensity = 1.0; devImageWrap.style.opacity = '0'; devImageWrap.style.filter = 'none'; paperContainer.classList.add('wet-process'); devImageWrap.classList.add('in-liquid');
-            renderWaterRipple(); devImageWrap.style.animation = 'none'; devImageWrap.offsetHeight; devImageWrap.style.animation = 'developProcess 3s forwards linear'; 
+            devStatus.textContent = `DEVELOPING ${i+1}/${processed.length}`; 
+            devImageWrap.src = processed[i].img; 
+            devImageWrap.style.border = style === 'white' ? 'none' : '8px solid white'; 
+            
+            waveIntensity = 1.0; devImageWrap.style.opacity = '0'; devImageWrap.style.filter = 'none'; 
+            paperContainer.classList.add('wet-process'); devImageWrap.classList.add('in-liquid');
+            renderWaterRipple(); 
+            
+            devImageWrap.style.animation = 'none'; devImageWrap.offsetHeight; 
+            devImageWrap.style.animation = 'developProcess 3s forwards linear'; 
+            
             await new Promise(r => setTimeout(r, 2500));
+            
             const calmDuration = 800; const startTime = Date.now();
             while (true) { const elapsed = Date.now() - startTime; if (elapsed >= calmDuration) { waveIntensity = 0; break; } const progress = elapsed / calmDuration; waveIntensity = 1.0 - Math.pow(progress, 0.5); await new Promise(r => requestAnimationFrame(r)); }
-            cancelAnimationFrame(waterLoopId); devImageWrap.style.opacity = '1'; devImageWrap.style.transform = 'scale(1)'; devImageWrap.style.animation = 'none'; devImageWrap.style.filter = 'none'; devImageWrap.classList.remove('in-liquid'); paperContainer.classList.remove('wet-process');
+            
+            cancelAnimationFrame(waterLoopId); 
+            devImageWrap.style.opacity = '1'; devImageWrap.style.transform = 'scale(1)'; 
+            devImageWrap.style.animation = 'none'; devImageWrap.style.filter = 'none'; 
+            devImageWrap.classList.remove('in-liquid'); paperContainer.classList.remove('wet-process');
+            
             await new Promise(r => setTimeout(r, 1500));
+            
             await saveToAlbum(processed[i].img, processed[i].serial, processed[i].style, finalCanvas.width, finalCanvas.height); 
             devImageWrap.style.opacity = '0';
         } 
-        document.getElementById('exp-text-input').value = ""; devStatus.textContent = "FINISHED"; await new Promise(r => setTimeout(r, 800)); devOverlay.style.display = 'none'; 
-        if (isRollMode) { await clearTemp(); currentFrame = 0; updateCounterDisplay(); } else { pendingPhoto = null; } updateLeverUI(); 
+        
+        // 結束時再次清空，保持衛生
+        document.getElementById('exp-text-input').value = ""; 
+        
+        devStatus.textContent = "FINISHED"; 
+        await new Promise(r => setTimeout(r, 800)); 
+        devOverlay.style.display = 'none'; 
+        
+        if (isRollMode) { await clearTemp(); currentFrame = 0; updateCounterDisplay(); } else { pendingPhoto = null; } 
+        updateLeverUI(); 
     }
 
     backLock.addEventListener('click', () => { const isOpen = backDoorWrapper.classList.contains('open'); if (!isOpen) { latchAudio.currentTime = 0; latchAudio.play(); backDoorWrapper.classList.add('open'); backLock.style.transform = 'translateX(5px)'; loadAlbum(); } else { closeBackDoor(); } });
@@ -1710,20 +1744,52 @@ function randomizeOSD() {
         
         exportModal.style.display = 'flex'; 
     });
-    document.getElementById('exp-cancel').addEventListener('click', () => exportModal.style.display = 'none');
+     document.getElementById('exp-cancel').addEventListener('click', () => {
+        document.getElementById('exp-text-input').value = "";
+        exportModal.style.display = 'none';
+    });
     document.getElementById('exp-no-serial').addEventListener('click', () => processExport(false));
     document.getElementById('exp-with-serial').addEventListener('click', () => processExport(true));
-    async function processExport(addSerial) { 
-        const customText = document.getElementById('exp-text-input').value;
-        const selectedData = currentAlbumData.filter(p => selectedAlbumIds.has(p.id)); const filesToShare = []; document.body.style.cursor = 'wait';
+   async function processExport(addSerial) { 
+        const inputEl = document.getElementById('exp-text-input');
+        const customText = inputEl.value; // 讀取當前輸入的文字
+        
+        const selectedData = currentAlbumData.filter(p => selectedAlbumIds.has(p.id)); 
+        const filesToShare = []; 
+        document.body.style.cursor = 'wait';
+        
         try {
-            for (let p of selectedData) { const finalDataUrl = await annotateExportPhoto(p.image, addSerial ? p.serial : "", p.style, customText); const fileName = `RETRO_${Date.now()}_${p.serial}.jpg`; 
-                if (exportActionType === 'download') { const link = document.createElement('a'); link.download = fileName; link.href = finalDataUrl; link.click(); await new Promise(r => setTimeout(r, 200)); } 
-                else { const blob = await (await fetch(finalDataUrl)).blob(); filesToShare.push(new File([blob], fileName, { type: 'image/jpeg' })); } 
+            for (let p of selectedData) { 
+                // 這裡會將你的 Caption 合成到原本乾淨的照片上
+                const finalDataUrl = await annotateExportPhoto(p.image, addSerial ? p.serial : "", p.style, customText); 
+                const fileName = `RETRO_${Date.now()}_${p.serial}.jpg`; 
+                
+                if (exportActionType === 'download') { 
+                    const link = document.createElement('a'); link.download = fileName; link.href = finalDataUrl; link.click(); await new Promise(r => setTimeout(r, 200)); 
+                } 
+                else { 
+                    const blob = await (await fetch(finalDataUrl)).blob(); filesToShare.push(new File([blob], fileName, { type: 'image/jpeg' })); 
+                } 
             } 
-            if (exportActionType === 'share' && filesToShare.length > 0) { try { await navigator.share({ files: filesToShare }); } catch (e) {} } 
-            const idsToRemove = selectedData.map(p => p.id); await deleteFromAlbum(idsToRemove); await loadAlbum(); resetToCameraUI(); 
-        } catch (err) { console.error("Export failed:", err); retroAlert("EXPORT ERROR\nCheck console for details"); } finally { document.body.style.cursor = 'default'; }
+            
+            if (exportActionType === 'share' && filesToShare.length > 0) { 
+                try { await navigator.share({ files: filesToShare }); } catch (e) {} 
+            } 
+            
+            const idsToRemove = selectedData.map(p => p.id); 
+            await deleteFromAlbum(idsToRemove); 
+            await loadAlbum(); 
+            
+            // [修正] 匯出完成後，清空輸入框，避免下次誤用
+            inputEl.value = "";
+            
+            resetToCameraUI(); 
+        } catch (err) { 
+            console.error("Export failed:", err); 
+            retroAlert("EXPORT ERROR\nCheck console for details"); 
+        } finally { 
+            document.body.style.cursor = 'default'; 
+        }
     }
     function resetToCameraUI() { exportModal.style.display = 'none'; closeBackDoor(); document.getElementById('review-overlay').style.display = 'none'; pendingPhoto = null; updateLeverUI(); }
     function checkOrientation() { if (window.innerHeight > window.innerWidth) { document.getElementById('orientation-lock').style.display = 'flex'; document.getElementById('camera-container').style.display = 'none'; fsPrompt.style.display = 'none'; } else { document.getElementById('orientation-lock').style.display = 'none'; if (document.fullscreenElement) { document.getElementById('camera-container').style.display = 'block'; document.getElementById('fullscreen-prompt').style.display = 'none'; resizeElements(); } else { enforceFullscreen(); } } }
