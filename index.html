@@ -32,15 +32,15 @@ html, body {
     padding: 0; 
     background-color: #000; 
     
-    /* 關鍵：防止手機瀏覽器滾動導致的高度計算錯誤 */
+    /* [修改] 移除 Flex，改用 block 避免佈局推擠 */
+    display: block; 
+    
+    /* 強制鎖死捲動，防止 iOS Safari 的橡皮筋效果 */
     position: fixed; 
     top: 0; 
     left: 0;
     overflow: hidden; 
     
-    display: flex; 
-    justify-content: center; 
-    align-items: center; 
     font-family: 'Arial', sans-serif; 
     color: #333; 
     perspective: 1200px; 
@@ -53,17 +53,27 @@ html, body {
     #orientation-lock svg { width: 60px; height: 60px; fill: #fff; animation: rotatePhone 2s infinite; }
     @keyframes rotatePhone { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-90deg); } }
 
-    #camera-container {
-        width: 760px; height: 420px; 
-        position: fixed; 
-        top: 50%; left: 50%;
-        transform: translate(-50%, -50%); 
-        transform-origin: center center;
-        filter: drop-shadow(0 0 2px rgba(255,255,255,0.25)) drop-shadow(0 30px 60px rgba(0,0,0,0.9)); 
-        display: none; 
-        transform-style: preserve-3d; 
-        z-index: 100;
-    }
+   #camera-container {
+    width: 760px; 
+    height: 420px; 
+    
+    /* [修改] 使用 fixed 強制定位，這是最穩定的置中方式 */
+    position: fixed; 
+    top: 50%; 
+    left: 50%;
+    
+    /* 使用 transform 進行精確置中 */
+    transform: translate(-50%, -50%); 
+    transform-origin: center center;
+    
+    filter: drop-shadow(0 0 2px rgba(255,255,255,0.25)) drop-shadow(0 30px 60px rgba(0,0,0,0.9)); 
+    display: none; /* JS 會控制顯示 */
+    transform-style: preserve-3d; 
+    z-index: 100;
+    
+    /* 防止相簿捲動時觸發父層位移 */
+    contain: layout size;
+}
 
     .top-plate {
         width: 100%; height: 110px; background: var(--metal-grad);
@@ -177,7 +187,19 @@ html, body {
 
 
     
-    .album-container { flex: 1; padding: 20px; overflow-y: auto; display: none; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 15px; align-content: flex-start; }
+   .album-container { 
+    flex: 1; 
+    padding: 20px; 
+    overflow-y: auto; 
+    display: none; 
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); 
+    gap: 15px; 
+    align-content: flex-start;
+    
+    /* [新增] 關鍵修正：防止相簿捲動時，連帶影響到整個相機的位置 */
+    overscroll-behavior: contain; 
+    -webkit-overflow-scrolling: touch;
+}
     .album-container.active { display: grid; }
     .album-container::-webkit-scrollbar { width: 8px; }
     .album-container::-webkit-scrollbar-track { background: #111; }
@@ -349,9 +371,54 @@ html, body {
     #export-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 4000; display: none; flex-direction: column; justify-content: center; align-items: center; }
     .export-opt-group { margin-top: 20px; display: flex; gap: 20px; }
 
-    #zoom-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 5000; display: none; justify-content: center; align-items: center; cursor: zoom-out; }
-    #zoom-img { max-width: 95%; max-height: 95%; box-shadow: 0 0 20px #000; object-fit: contain; transition: transform 0.3s ease; }
+  #zoom-overlay { 
+    /* [修改] 使用 fixed 滿版覆蓋，無視任何父層影響 */
+    position: fixed !important; 
+    top: 0; 
+    left: 0; 
+    width: 100vw; 
+    height: 100vh; /* 使用 vh 而非 %，確保填滿螢幕 */
+    
+    background: rgba(0,0,0,0.95); 
+    z-index: 2147483647; /* 最大整數，確保在最頂層 */
+    
+    /* 這裡直接設定 flex 置中，不需要 JS 動態介入 display 屬性 */
+    display: none; 
+    flex-direction: column; 
+    justify-content: center; 
+    align-items: center; 
+    
+    /* 確保沒有邊距干擾 */
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    
+    /* 鎖定觸控事件，避免穿透到底層相機 */
+    touch-action: none;
+}
 
+/* 當 JS 將其設為 display: flex 時生效的輔助類別 */
+#zoom-overlay.active {
+    display: flex !important;
+}
+
+#zoom-img { 
+    /* 確保圖片不超過視窗，自動計算比例 */
+    max-width: 95vw; 
+    max-height: 90vh; 
+    
+    width: auto;
+    height: auto;
+    
+    box-shadow: 0 0 30px #000; 
+    object-fit: contain; 
+    
+    /* 雙重保險置中 */
+    margin: auto;
+    display: block;
+}
+
+    
     @keyframes pulse { 0%,100% {opacity:0.5} 50% {opacity:1}}
     
     /* [MODIFIED] Animation logic split: this handles Opacity/Scale/Look, SVG handles distortion */
@@ -564,7 +631,20 @@ html, body {
         function getTempCount() { return new Promise((resolve) => { const tx = db.transaction([TEMP_STORE], "readonly"); tx.objectStore(TEMP_STORE).count().onsuccess = (e) => resolve(e.target.result); }); }
         function getTempPhotos() { return new Promise((resolve) => { const tx = db.transaction([TEMP_STORE], "readonly"); tx.objectStore(TEMP_STORE).getAll().onsuccess = (e) => resolve(e.target.result); }); }
         function clearTemp() { return new Promise(resolve => { db.transaction([TEMP_STORE], "readwrite").objectStore(TEMP_STORE).clear().onsuccess = resolve; }); }
-        function saveToAlbum(processedImage, serialNumber, styleInfo) { return new Promise(resolve => { const tx = db.transaction([ALBUM_STORE], "readwrite"); tx.objectStore(ALBUM_STORE).add({ image: processedImage, timestamp: Date.now(), serial: serialNumber, style: styleInfo }).onsuccess = resolve; }); }
+       // [修改] 存檔時一併記錄圖片尺寸，以實現相簿秒開
+function saveToAlbum(processedImage, serialNumber, styleInfo, w, h) { 
+    return new Promise(resolve => { 
+        const tx = db.transaction([ALBUM_STORE], "readwrite"); 
+        tx.objectStore(ALBUM_STORE).add({ 
+            image: processedImage, 
+            timestamp: Date.now(), 
+            serial: serialNumber, 
+            style: styleInfo,
+            width: w || 0,  // 存入寬度
+            height: h || 0  // 存入高度
+        }).onsuccess = resolve; 
+    }); 
+}
         function getAlbumPhotos() { return new Promise(resolve => { const tx = db.transaction([ALBUM_STORE], "readonly"); tx.objectStore(ALBUM_STORE).getAll().onsuccess = (e) => resolve(e.target.result); }); }
         function deleteFromAlbum(ids) { return new Promise(resolve => { const tx = db.transaction([ALBUM_STORE], "readwrite"); const store = tx.objectStore(ALBUM_STORE); ids.forEach(id => store.delete(id)); tx.oncomplete = resolve; }); }
 
@@ -900,65 +980,144 @@ html, body {
     }); 
 });
 
-function applyFrameAndDate(imgUrl, dateObj, style) { return new Promise(resolve => { const img = new Image(); img.onload = () => { let w = 1920, h = 1080; let padTop = 0, padSide = 0, padBottom = 0; if (style === 'white') { padTop = 50; padSide = 50; padBottom = 150; w = 1200; h = Math.floor(w * (9/16)) + padTop + padBottom; } else if (style === 'film') { padTop = 80; padSide = 0; padBottom = 80; } finalCanvas.width = w; finalCanvas.height = h; const ctx = finalCanvas.getContext('2d'); ctx.filter = 'none'; if (style === 'white') { ctx.fillStyle = '#fff'; ctx.fillRect(0,0,w,h); ctx.drawImage(img, padSide, padTop, w - padSide*2, h - padTop - padBottom); } else if (style === 'film') { ctx.drawImage(img, 0, padTop, w, h - padTop*2); ctx.fillStyle = '#111'; ctx.fillRect(0, 0, w, padTop); ctx.fillRect(0, h - padBottom, w, padBottom); ctx.fillStyle = '#fff'; const holeW = 30, gap = 20; for(let x = 30; x < w; x += (holeW + gap)) { ctx.fillRect(x, 20, holeW, 40); ctx.fillRect(x, h - 60, holeW, 40); } } else { ctx.drawImage(img, 0, 0, w, h); } const d = new Date(dateObj); const dateStr = `'${d.getFullYear().toString().slice(-2)} ${(d.getMonth()+1).toString().padStart(2,'0')} ${d.getDate().toString().padStart(2,'0')}`; let dateX = (style === 'white') ? w - padSide - 30 : ((style === 'film') ? w - 50 : w - 60); let dateY = (style === 'white' || style === 'film') ? h - padBottom - 30 : h - 50; if (isSketchMode) { ctx.save(); ctx.shadowBlur = 0; const m = SKETCH_MODES[currentModeIdx]; if(m.id === 'SKETCH_CYBER') ctx.fillStyle = '#0f0'; else if(m.id === 'SKETCH_BLUE') ctx.fillStyle = '#fff'; else if(m.id === 'SKETCH_HK_NEON') ctx.fillStyle = '#ff00cc'; else ctx.fillStyle = 'rgba(50, 50, 50, 0.85)'; ctx.font = `normal 45px "Segoe Print", "Comic Sans MS", cursive`; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom'; ctx.translate(dateX, dateY); ctx.rotate(-0.05); ctx.fillText(dateStr, 0, 0); ctx.restore(); } else { ctx.shadowColor = '#ff5500'; ctx.shadowBlur = 15; ctx.fillStyle = 'rgba(255, 170, 50, 0.9)'; const fontSize = style === 'white' ? 40 : 50; ctx.font = `bold ${fontSize}px "Courier New", monospace`; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom'; ctx.fillText(dateStr, dateX, dateY); } resolve(finalCanvas.toDataURL('image/jpeg', 0.9)); }; img.src = imgUrl; }); }
-        
-     function overlaySerial(imgUrl, serialNo, style, customText) { 
+// [新增] 萬能整合繪圖函數：處理邊框、日期、序號、自定義文字
+function processFinalPhoto(imgUrl, dateObj, serialNo, style, customText) { 
     return new Promise(async (resolve) => { 
         
-        // 1. 確保 Noto Serif TC 字體已加載
+        // 1. 確保字體已加載
         try {
             await document.fonts.load('600 40px "Noto Serif TC"');
-        } catch (e) {
-            console.log("Font loading skipped or failed");
-        }
+        } catch (e) {}
 
         const img = new Image(); 
         img.onload = () => { 
-            finalCanvas.width = img.width; 
-            finalCanvas.height = img.height; 
-            const ctx = finalCanvas.getContext('2d'); 
+            let w = 1920, h = 1080; 
+            let padTop = 0, padSide = 0, padBottom = 0; 
             
-            // 繪製底圖
-            ctx.drawImage(img, 0, 0); 
-            
-            // 繪製 Serial Number (保持不變)
-            let x = 30, y = 30, color = '#fff'; 
+            // --- A. 定義畫布尺寸與邊距 (找回邊框的關鍵) ---
             if (style === 'white') { 
-                x = 50; y = img.height - 80; color = '#333'; 
+                // 拍立得風格：底部留白多
+                padTop = 50; padSide = 50; padBottom = 180; // 底部加高一點給文字
+                w = 1200; 
+                h = Math.floor(w * (img.height / img.width)) + padTop + padBottom; 
             } else if (style === 'film') { 
-                x = 40; y = 100; color = 'rgba(255,255,255,0.8)'; 
-            } else { 
-                color = 'rgba(255,255,255,0.8)'; 
-            } 
-            
-            ctx.shadowColor = style === 'white' ? 'transparent' : '#000'; 
-            ctx.shadowBlur = 2; 
-            ctx.fillStyle = color; 
-            ctx.font = `bold 36px "Courier New", monospace`; 
-            ctx.textAlign = 'left'; 
-            ctx.textBaseline = 'top'; 
-            
-            if (serialNo !== "") {
-                ctx.fillText(`No.${serialNo}`, x, y);
+                // 底片風格：上下黑邊
+                padTop = 80; padSide = 0; padBottom = 80; 
+                // 保持原始寬度比例
+                w = img.width;
+                h = img.height + padTop + padBottom;
+            } else {
+                // 標準風格：無邊框
+                w = img.width;
+                h = img.height;
             }
 
-            // [重點修改] 繪製自定義文字 (思源宋體)
+            finalCanvas.width = w; 
+            finalCanvas.height = h; 
+            const ctx = finalCanvas.getContext('2d'); 
+            ctx.filter = 'none'; 
+
+            // --- B. 繪製背景與邊框 ---
+            if (style === 'white') { 
+                // 畫白色底紙
+                ctx.fillStyle = '#fff'; 
+                ctx.fillRect(0, 0, w, h); 
+                // 畫照片
+                ctx.drawImage(img, padSide, padTop, w - padSide*2, h - padTop - padBottom); 
+            } else if (style === 'film') { 
+                // 畫黑色底片基底
+                ctx.fillStyle = '#111'; 
+                ctx.fillRect(0, 0, w, h);
+                // 畫照片
+                ctx.drawImage(img, 0, padTop, w, img.height); 
+                
+                // 畫底片齒孔
+                ctx.fillStyle = '#fff'; 
+                const holeW = 30, gap = 20; 
+                // 上排齒孔
+                for(let x = 30; x < w; x += (holeW + gap)) { 
+                    ctx.fillRect(x, 25, holeW, 30); 
+                }
+                // 下排齒孔
+                for(let x = 30; x < w; x += (holeW + gap)) { 
+                    ctx.fillRect(x, h - 55, holeW, 30); 
+                }
+            } else { 
+                // 標準風格
+                ctx.drawImage(img, 0, 0, w, h); 
+            } 
+
+            // --- C. 繪製日期 (橙色日期戳) ---
+            const d = new Date(dateObj); 
+            const dateStr = `'${d.getFullYear().toString().slice(-2)} ${(d.getMonth()+1).toString().padStart(2,'0')} ${d.getDate().toString().padStart(2,'0')}`; 
+            
+            let dateX = w - 60; 
+            let dateY = h - 50;
+            
+            // 根據邊框調整日期位置
+            if (style === 'white') {
+                dateX = w - padSide - 30;
+                dateY = h - padBottom - 30; // 放在照片區域的右下角，不是白邊的右下角
+            } else if (style === 'film') {
+                dateX = w - 50;
+                dateY = h - padBottom - 40;
+            }
+
+            // 繪製日期邏輯
+            if (isSketchMode) { 
+                ctx.save(); 
+                ctx.shadowBlur = 0; 
+                ctx.fillStyle = 'rgba(50, 50, 50, 0.85)'; 
+                ctx.font = `normal 45px "Segoe Print", cursive`; 
+                ctx.textAlign = 'right'; 
+                ctx.textBaseline = 'bottom'; 
+                ctx.translate(dateX, dateY); 
+                ctx.rotate(-0.05); 
+                ctx.fillText(dateStr, 0, 0); 
+                ctx.restore(); 
+            } else { 
+                ctx.shadowColor = '#ff5500'; 
+                ctx.shadowBlur = 15; 
+                ctx.fillStyle = 'rgba(255, 170, 50, 0.9)'; 
+                const fontSize = style === 'white' ? 40 : 50; 
+                ctx.font = `bold ${fontSize}px "Courier New", monospace`; 
+                ctx.textAlign = 'right'; 
+                ctx.textBaseline = 'bottom'; 
+                ctx.fillText(dateStr, dateX, dateY); 
+            }
+
+            // --- D. 繪製序號 (Serial No.) ---
+            // 計算序號位置
+            let serX = 30, serY = 30, serColor = 'rgba(255,255,255,0.8)';
+            if (style === 'white') {
+                serX = 50; serY = h - 60; serColor = '#333'; // 在下方白邊左側
+            } else if (style === 'film') {
+                serX = 40; serY = h - 40; serColor = 'rgba(255,255,255,0.6)'; // 在下方黑邊左側
+            }
+
+            ctx.shadowColor = style === 'white' ? 'transparent' : '#000'; 
+            ctx.shadowBlur = 2; 
+            ctx.fillStyle = serColor; 
+            ctx.font = `bold 36px "Courier New", monospace`; 
+            ctx.textAlign = 'left'; 
+            ctx.textBaseline = 'bottom'; 
+            
+            if (serialNo !== "") {
+                ctx.fillText(`No.${serialNo}`, serX, serY);
+            }
+
+            // --- E. 繪製自定義文字 (Noto Serif TC) ---
             if (style === 'white' && customText && customText.trim() !== "") {
-                // 設定深黑色
                 ctx.fillStyle = '#111'; 
                 ctx.shadowBlur = 0;
                 
-                // 字體大小：設定為 38px (精緻小標題感)
-                const fontSize = 38;
-                
-                // 使用 Noto Serif TC，權重 600 (SemiBold)
-                ctx.font = `600 ${fontSize}px "Noto Serif TC", serif`; 
-                
+                // 使用思源宋體
+                ctx.font = `600 38px "Noto Serif TC", serif`; 
                 ctx.textAlign = 'center'; 
                 ctx.textBaseline = 'bottom'; 
                 
-                // 位置：距離底部 45px
-                ctx.fillText(customText, img.width / 2, img.height - 45);
+                // 繪製在底部白邊中央
+                ctx.fillText(customText, w / 2, h - 40);
             }
 
             resolve(finalCanvas.toDataURL('image/jpeg', 0.9)); 
@@ -966,8 +1125,12 @@ function applyFrameAndDate(imgUrl, dateObj, style) { return new Promise(resolve 
         img.src = imgUrl; 
     }); 
 }
+        
+    
        /* [MODIFIED] Smooth Transition Version */
 async function startDevelopingAnimation(photos, style) { 
+    // [修改] 這裡不再檢查張數上限，直接開始沖洗
+    
     devOverlay.style.display = 'flex'; 
     devStatus.textContent = "PREPARING..."; 
     
@@ -980,84 +1143,74 @@ async function startDevelopingAnimation(photos, style) {
     function renderWaterRipple() {
         rippleTime += 0.05; 
         const baseFreqY = (0.05 + Math.sin(rippleTime * 0.5) * 0.01) * waveIntensity;
-        // 確保頻率不為負數
         const displayFreq = Math.max(0.001, baseFreqY); 
         turbulenceNode.setAttribute('baseFrequency', `0.01 ${displayFreq}`);
         waterLoopId = requestAnimationFrame(renderWaterRipple);
     }
 
-    const processed = []; 
+   const processed = []; 
     for (let p of photos) { 
         const thisSerial = globalSerialCounter++; 
         localStorage.setItem('global_serial_counter', globalSerialCounter); 
-        const finalImg = await applyFrameAndDate(p.image, p.date, style); 
+        
+        const customText = document.getElementById('exp-text-input').value;
+        
+        // [修改] 第三個參數原本是 thisSerial，現在改成 "" (空字串)
+        // 這樣沖洗出來的照片就不會有 No.xxx 序號，看起來更乾淨
+        const finalImg = await processFinalPhoto(p.image, p.date, "", style, customText); 
+        
         processed.push({ img: finalImg, serial: thisSerial, style: style }); 
-    } 
+    }
     
     for (let i = 0; i < processed.length; i++) { 
         devStatus.textContent = `DEVELOPING ${i+1}/${processed.length}`; 
         devImageWrap.src = processed[i].img; 
         devImageWrap.style.border = style === 'white' ? 'none' : '8px solid white'; 
         
-        // 1. 初始化狀態
         waveIntensity = 1.0; 
-        devImageWrap.style.opacity = '0'; // 確保開始前不可見
-        devImageWrap.style.filter = 'none'; // 清除舊濾鏡
+        devImageWrap.style.opacity = '0'; 
+        devImageWrap.style.filter = 'none'; 
         paperContainer.classList.add('wet-process');
         devImageWrap.classList.add('in-liquid');
         renderWaterRipple(); 
 
-        // 2. 執行 CSS 顯影動畫 (3秒)
         devImageWrap.style.animation = 'none'; 
-        devImageWrap.offsetHeight; // Trigger Reflow
+        devImageWrap.offsetHeight; 
         devImageWrap.style.animation = 'developProcess 3s forwards linear'; 
         
-        // 3. 等待顯影大部分完成 (2.5秒)
         await new Promise(r => setTimeout(r, 2500));
         
-        // 4. 開始退浪 (0.8秒) - 讓波浪逐漸平息
         const calmDuration = 800; 
         const startTime = Date.now();
         
         while (true) {
             const elapsed = Date.now() - startTime;
-            if (elapsed >= calmDuration) {
-                waveIntensity = 0; 
-                break;
-            }
+            if (elapsed >= calmDuration) { waveIntensity = 0; break; }
             const progress = elapsed / calmDuration;
             waveIntensity = 1.0 - Math.pow(progress, 0.5); 
             await new Promise(r => requestAnimationFrame(r)); 
         }
 
-        // [關鍵修復點] ---------------------------------------------
-        // 顯影結束，水波已平。現在要「切斷」動畫控制，強制變回清晰靜態圖。
-        
-        // A. 停止 JS 循環
         cancelAnimationFrame(waterLoopId);
-        
-        // B. 鎖定目前的視覺狀態 (因為移除 animation 後，opacity 會跳回 css 預設的 0)
         devImageWrap.style.opacity = '1'; 
         devImageWrap.style.transform = 'scale(1)';
-        
-        // C. 暴力移除 Animation 屬性 (解除 forwards 的鎖定)
         devImageWrap.style.animation = 'none'; 
-        
-        // D. 強制設定無濾鏡
         devImageWrap.style.filter = 'none'; 
         devImageWrap.classList.remove('in-liquid');
         paperContainer.classList.remove('wet-process');
-        // --------------------------------------------------------
         
-        // 5. 展示成品：清晰、無水波的靜止時間 (1.5秒)
         await new Promise(r => setTimeout(r, 1500));
         
-        await saveToAlbum(processed[i].img, processed[i].serial, processed[i].style); 
+        // [關鍵修改] 存檔時傳入 finalCanvas.width 和 finalCanvas.height
+        // 這樣 loadAlbum 才能實現秒開
+        await saveToAlbum(processed[i].img, processed[i].serial, processed[i].style, finalCanvas.width, finalCanvas.height); 
         
-        // 重置樣式以便下一張使用
         devImageWrap.style.opacity = '0';
     } 
     
+    // 清空輸入框，避免下次誤用
+    document.getElementById('exp-text-input').value = "";
+
     devStatus.textContent = "FINISHED"; 
     await new Promise(r => setTimeout(r, 800)); 
     devOverlay.style.display = 'none'; 
@@ -1083,17 +1236,15 @@ async function startDevelopingAnimation(photos, style) {
         btnViewFilm.addEventListener('click', () => { isFilmViewMode = true; updateViewVisibility(); });
         btnViewGrid.addEventListener('click', () => { isFilmViewMode = false; updateViewVisibility(); });
 
-      async function loadAlbum() {
+     async function loadAlbum() {
     const loader = document.getElementById('album-loader');
     const grid = document.getElementById('albumGrid');
     const strip = document.getElementById('filmStripView');
 
-    // 1. 顯示 Loading
     loader.style.display = 'block';
     grid.innerHTML = ''; 
     strip.innerHTML = ''; 
 
-    // 2. 延遲執行，讓瀏覽器有時間渲染出 "READING DATA..." 文字
     setTimeout(async () => {
         try {
             selectedAlbumIds.clear(); 
@@ -1107,48 +1258,42 @@ async function startDevelopingAnimation(photos, style) {
             } else {
                 const gridFragment = document.createDocumentFragment();
                 const stripFragment = document.createDocumentFragment();
+                const visibleHeight = 152; // CSS 高度
 
-                // [關鍵優化] 使用 Promise.all 並行讀取所有圖片尺寸
-                // 這比原本的 "await 一張、再 await 下一張" 快非常多
-                const imageTasks = currentAlbumData.map(p => {
+                // 混合處理：有尺寸的直接算(快)，沒尺寸的讀圖算(慢)
+                const tasks = currentAlbumData.map(p => {
+                    if (p.width && p.height && p.width > 0) {
+                        const naturalRatio = p.width / p.height;
+                        return Promise.resolve({ p: p, width: visibleHeight * naturalRatio });
+                    } 
                     return new Promise((resolve) => {
                         const img = new Image();
                         img.onload = () => {
-                            // 計算原始比例寬度
-                            const visibleHeight = 152; // 對應 CSS 高度 (扣除邊框)
                             const naturalRatio = img.width / img.height;
-                            const calculatedWidth = visibleHeight * naturalRatio;
-                            resolve({ p: p, width: calculatedWidth, valid: true });
+                            resolve({ p: p, width: visibleHeight * naturalRatio });
                         };
-                        img.onerror = () => {
-                            // 讀取失敗的備案 (3:2)
-                            resolve({ p: p, width: 228, valid: false });
-                        };
+                        img.onerror = () => resolve({ p: p, width: 228 }); 
                         img.src = p.image;
                     });
                 });
 
-                // 等待所有圖片尺寸計算完成
-                const processedItems = await Promise.all(imageTasks);
+                const processedItems = await Promise.all(tasks);
 
-                // 開始建立 DOM
                 for (const item of processedItems) {
                     const p = item.p;
 
-                    // --- Grid View (方塊視圖) ---
+                    // Grid View
                     const div = document.createElement('div'); div.className = 'album-photo'; div.dataset.id = p.id;
-                    const imgEl = document.createElement('img'); imgEl.src = p.image; imgEl.loading = "lazy"; // 加入 lazy load
+                    const imgEl = document.createElement('img'); imgEl.src = p.image; imgEl.loading = "lazy"; 
                     const seq = document.createElement('div'); seq.className = 'album-seq'; seq.textContent = `No.${p.serial}`;
                     div.appendChild(imgEl); div.appendChild(seq);
                     div.onclick = (e) => { if (div.clickTimeout) { clearTimeout(div.clickTimeout); div.clickTimeout = null; showZoom(p.image); } else { div.clickTimeout = setTimeout(() => { div.clickTimeout = null; toggleSelectionAll(p.id); }, 250); } };
                     gridFragment.appendChild(div);
 
-                    // --- Film Strip View (底片視圖 - 保持原始比例) ---
+                    // Film Strip View
                     const frameContainer = document.createElement('div'); 
                     frameContainer.className = 'film-frame-container'; 
                     frameContainer.dataset.id = p.id;
-                    
-                    // [這裡] 使用剛剛算出來的精確寬度
                     frameContainer.style.width = `${item.width}px`; 
                     
                     const block = document.createElement('div'); block.className = 'film-block';
@@ -1175,13 +1320,21 @@ async function startDevelopingAnimation(photos, style) {
         } catch (err) {
             console.error("Album Load Error", err);
         } finally {
-            // 3. 隱藏 Loading
             loader.style.display = 'none';
         }
-    }, 50); // 保留延遲以確保 UI 顯示
+    }, 50);
 }
         
-        function showZoom(imgSrc) { zoomImg.src = imgSrc; zoomOverlay.style.display = 'flex'; }
+      function showZoom(imgSrc) { 
+    zoomImg.src = imgSrc; 
+    // 使用 class 切換，配合上面的 CSS .active
+    zoomOverlay.classList.add('active'); 
+}
+
+// 2. 修改 zoomOverlay 的關閉邏輯 (找到原本的 click event listener)
+zoomOverlay.addEventListener('click', () => { 
+    zoomOverlay.classList.remove('active'); 
+});
         zoomOverlay.addEventListener('click', () => { zoomOverlay.style.display = 'none'; });
         function toggleSelectionAll(id) { if (selectedAlbumIds.has(id)) { selectedAlbumIds.delete(id); } else { selectedAlbumIds.add(id); } syncSelectionUI(); }
         function syncSelectionUI() { document.querySelectorAll('.album-photo').forEach(el => { const pid = parseInt(el.dataset.id); if(selectedAlbumIds.has(pid)) el.classList.add('selected'); else el.classList.remove('selected'); }); document.querySelectorAll('.film-frame-container').forEach(el => { const pid = parseInt(el.dataset.id); if(selectedAlbumIds.has(pid)) el.classList.add('selected'); else el.classList.remove('selected'); }); }
@@ -1263,28 +1416,22 @@ function resizeElements() {
     const w = window.innerWidth; 
     const h = window.innerHeight; 
     
-    const baseW = 760;
-    const baseH = 420;
+    const baseW = 760; 
+    const baseH = 420; 
     
     const isTablet = (w / h) < 1.6; 
-    
-    // 縮放倍率 (維持上一步驟的設定，或者你可以微調)
     const multiplier = isTablet ? 0.8 : 0.85; 
     
     const scale = Math.min(w / baseW, h / baseH) * multiplier; 
     
-    container.style.position = 'absolute';
-    
-    // [關鍵修改] 垂直位置調整
-    // 50% 是正中間
-    // 改成 54% 代表「往下移」一點點，讓相機離底部近一些
-    // 如果覺得還不夠近，可以試試 55% 或 56%
-    container.style.top = '54%'; 
+    // [修改] 調整垂直位置
+    // 50% = 正中央
+    // 58% = 稍微偏下 (推薦)
+    // 65% = 非常貼近底部
+    // 您可以修改 '58%' 這個數字來決定要多低
+    container.style.top = '53%'; 
     
     container.style.left = '50%';
-    container.style.margin = '0'; 
-    
-    // 這裡保持不變，依然是以自身中心點為基準
     container.style.transform = `translate(-50%, -50%) scale(${scale})`; 
     
     if (document.fullscreenElement || window.innerHeight < window.innerWidth) {
