@@ -541,6 +541,37 @@ body.is-selfie .exp-dot.center {
 .exp-needle {
     pointer-events: none;
 }
+
+    /* [新增] 日期開關樣式 */
+.date-checkbox {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #888;
+    background: transparent;
+    position: relative;
+    transition: all 0.2s;
+}
+
+/* 勾選狀態 (實心紅) */
+.date-checkbox.checked {
+    background: #c00;
+    border-color: #fff;
+    box-shadow: 0 0 5px #c00;
+}
+
+/* 勾選時的小勾勾 */
+.date-checkbox.checked::after {
+    content: '✔';
+    position: absolute;
+    top: -4px;
+    left: 2px;
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+#date-option-wrapper:hover .date-checkbox { border-color: #fff; }
+#date-option-wrapper:hover span { color: #fff; }
     
 </style>
 </head>
@@ -675,7 +706,32 @@ body.is-selfie .exp-dot.center {
         </div>
     </div>
 
-    <div id="style-selector-overlay"><h2 style="color:white; font-family:'Courier New'; text-align:center;">SELECT PRINT STYLE</h2><div class="style-options"><div class="style-btn" data-style="standard"><div class="style-preview sp-std"></div>STANDARD</div><div class="style-btn" data-style="white"><div class="style-preview sp-white"></div>INSTANT</div><div class="style-btn" data-style="film"><div class="style-preview sp-film"></div>FILM</div></div></div>
+   <div id="style-selector-overlay">
+        <!-- 標題 -->
+        <h2 style="color:white; font-family:'Courier New'; text-align:center;">SELECT PRINT STYLE</h2>
+        
+        <!-- 三個外框選項 -->
+        <div class="style-options">
+            <div class="style-btn" data-style="standard">
+                <div class="style-preview sp-std"></div>STANDARD
+            </div>
+            <div class="style-btn" data-style="white">
+                <div class="style-preview sp-white"></div>INSTANT
+            </div>
+            <div class="style-btn" data-style="film">
+                <div class="style-preview sp-film"></div>FILM
+            </div>
+        </div>
+
+        <!-- [修正位置] 將日期開關放在這個 DIV 結束標籤的「裡面」 -->
+        <div id="date-option-wrapper" style="margin-top: 30px; display: flex; align-items: center; gap: 12px; cursor: pointer; opacity: 0.9; transition: opacity 0.2s;">
+            <div id="date-checkbox" class="date-checkbox checked"></div>
+            <span style="color: #ddd; font-family: 'Courier New', monospace; font-size: 16px; font-weight: bold; letter-spacing: 1px; text-shadow: 0 0 5px rgba(0,0,0,0.5);">IMPRINT DATE</span>
+        </div>
+    </div> 
+
+
+              
     <div id="review-overlay"><img id="review-img" src="" alt="Review"><div class="review-controls"><button class="btn-retro" id="btn-discard">DISCARD</button><button class="btn-retro" id="btn-keep">KEEP</button></div></div>
     <div id="developing-overlay"><div class="photo-paper-container"><img id="dev-image-wrap" src="" alt="Developing"></div><div class="dev-status-text" id="devStatus">DEVELOPING...</div></div>
     <div id="zoom-overlay"><img id="zoom-img" src="" alt="Zoomed Photo"></div>
@@ -1474,19 +1530,52 @@ function randomizeOSD() {
         }, 400); 
     });
 
+    // [新增] 日期開關邏輯
+    const dateOptWrapper = document.getElementById('date-option-wrapper');
+    const dateCheckbox = document.getElementById('date-checkbox');
+    let isDateImprintOn = true; // 預設開啟
+
+    if (dateOptWrapper && dateCheckbox) {
+        dateOptWrapper.addEventListener('click', () => {
+            isDateImprintOn = !isDateImprintOn;
+            if (isDateImprintOn) {
+                dateCheckbox.classList.add('checked');
+            } else {
+                dateCheckbox.classList.remove('checked');
+            }
+        });
+    }
+
+    // [修改] 風格按鈕點擊事件 (加入傳遞 isDateImprintOn)
     document.querySelectorAll('.style-btn').forEach(btn => { 
         btn.addEventListener('click', async (e) => { 
-            const style = e.currentTarget.dataset.style; styleOverlay.style.display = 'none'; 
-            isFilmAdvanced = true; updateLeverUI(); exposureCtx.clearRect(0,0, exposureCanvas.width, exposureCanvas.height);
+            const style = e.currentTarget.dataset.style; 
+            styleOverlay.style.display = 'none'; 
+            
+            isFilmAdvanced = true; 
+            updateLeverUI(); 
+            exposureCtx.clearRect(0,0, exposureCanvas.width, exposureCanvas.height);
+            
             let photosToProcess = []; 
-            if (isRollMode && currentFrame >= 36) { photosToProcess = await getTempPhotos(); } 
-            else if (pendingPhoto) { photosToProcess = [{ image: pendingPhoto, date: new Date() }]; pendingPhoto = null; }
-            if (photosToProcess.length > 0) { fsViewfinder.style.display = 'none'; await startDevelopingAnimation(photosToProcess, style); }
+            if (isRollMode && currentFrame >= 36) { 
+                photosToProcess = await getTempPhotos(); 
+            } 
+            else if (pendingPhoto) { 
+                photosToProcess = [{ image: pendingPhoto, date: new Date() }]; 
+                pendingPhoto = null; 
+            }
+            
+            if (photosToProcess.length > 0) { 
+                fsViewfinder.style.display = 'none'; 
+                // [關鍵修改] 呼叫顯影函數時，傳入 isDateImprintOn
+                await startDevelopingAnimation(photosToProcess, style, isDateImprintOn); 
+            }
         }); 
     });
 
    // 1. 處理顯示用的最終照片 (修正 Serial 位置)
-    function processFinalPhoto(imgUrl, dateObj, serialNo, style, customText) { 
+   // [修改] 增加 showDate 參數，控制是否繪製日期
+    function processFinalPhoto(imgUrl, dateObj, serialNo, style, customText, showDate = true) { 
         return new Promise(async (resolve) => { 
             try { await document.fonts.load('600 40px "Noto Serif TC"'); } catch (e) {}
             const img = new Image(); 
@@ -1504,34 +1593,45 @@ function randomizeOSD() {
                 else if (style === 'film') { ctx.fillStyle = '#111'; ctx.fillRect(0, 0, w, h); ctx.drawImage(img, 0, padTop, w, img.height); ctx.fillStyle = '#fff'; const holeW = 30, gap = 20; for(let x = 30; x < w; x += (holeW + gap)) { ctx.fillRect(x, 25, holeW, 30); } for(let x = 30; x < w; x += (holeW + gap)) { ctx.fillRect(x, h - 55, holeW, 30); } } 
                 else { ctx.drawImage(img, 0, 0, w, h); } 
 
-                // 繪製日期
-                const d = new Date(dateObj); const dateStr = `'${d.getFullYear().toString().slice(-2)} ${(d.getMonth()+1).toString().padStart(2,'0')} ${d.getDate().toString().padStart(2,'0')}`; 
-                let dateX = w - 60; let dateY = h - 50;
-                // [日期位置微調]
-                if (style === 'white') { dateX = w - padSide - 30; dateY = h - padBottom - 30; } 
-                else if (style === 'film') { dateX = w - 50; dateY = h - padBottom - 40; }
+                // [修改邏輯] 只有當 showDate 為 true 時才繪製日期
+                if (showDate) {
+                    const d = new Date(dateObj); 
+                    const dateStr = `'${d.getFullYear().toString().slice(-2)} ${(d.getMonth()+1).toString().padStart(2,'0')} ${d.getDate().toString().padStart(2,'0')}`; 
+                    
+                    let dateX = w - 60; let dateY = h - 50;
+                    // 日期位置微調
+                    if (style === 'white') { dateX = w - padSide - 30; dateY = h - padBottom - 30; } 
+                    else if (style === 'film') { dateX = w - 50; dateY = h - padBottom - 40; }
 
-                if (isSketchMode) { ctx.save(); ctx.shadowBlur = 0; ctx.fillStyle = 'rgba(50, 50, 50, 0.85)'; ctx.font = `normal 45px "Segoe Print", cursive`; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom'; ctx.translate(dateX, dateY); ctx.rotate(-0.05); ctx.fillText(dateStr, 0, 0); ctx.restore(); } 
-                else { ctx.shadowColor = '#ff5500'; ctx.shadowBlur = 15; ctx.fillStyle = 'rgba(255, 170, 50, 0.9)'; const fontSize = style === 'white' ? 40 : 50; ctx.font = `bold ${fontSize}px "Courier New", monospace`; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom'; ctx.fillText(dateStr, dateX, dateY); }
+                    if (isSketchMode) { 
+                        ctx.save(); ctx.shadowBlur = 0; ctx.fillStyle = 'rgba(50, 50, 50, 0.85)'; ctx.font = `normal 45px "Segoe Print", cursive`; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom'; ctx.translate(dateX, dateY); ctx.rotate(-0.05); ctx.fillText(dateStr, 0, 0); ctx.restore(); 
+                    } 
+                    else { 
+                        ctx.shadowColor = '#ff5500'; ctx.shadowBlur = 15; ctx.fillStyle = 'rgba(255, 170, 50, 0.9)'; 
+                        const fontSize = style === 'white' ? 40 : 50; 
+                        ctx.font = `bold ${fontSize}px "Courier New", monospace`; 
+                        ctx.textAlign = 'right'; ctx.textBaseline = 'bottom'; 
+                        ctx.fillText(dateStr, dateX, dateY); 
+                    }
+                }
 
-                // [修正重點] SERIAL NUMBER 位置調整
+                // SERIAL NUMBER 繪製 (保持不變)
                 let serX = 30, serY = 70, serColor = 'rgba(255,255,255,0.8)';
                 
                 if (style === 'white') { 
                     serX = 50; 
-                    // [修改] 標準模式位置改為 h - 65 (原本是 h - 60)
                     serY = h - 65; 
                     serColor = '#333'; 
-               } else if (style === 'film') { 
-    serX = 40; 
-    serY = h - 80;  // [修改] 同樣改為 h - 80
-    serColor = 'rgba(255,255,255,0.6)'; useShadow = true; 
-}
+                } else if (style === 'film') { 
+                    serX = 40; 
+                    serY = h - 80;
+                    serColor = 'rgba(255,255,255,0.6)'; 
+                }
                 
                 ctx.shadowColor = style === 'white' ? 'transparent' : '#000'; ctx.shadowBlur = 2; ctx.fillStyle = serColor; ctx.font = `bold 36px "Courier New", monospace`; ctx.textAlign = 'left'; ctx.textBaseline = 'bottom'; 
                 if (serialNo !== "") { ctx.fillText(`No.${serialNo}`, serX, serY); }
                 
-                // 繪製自定義文字 (Instant Style)
+                // 自定義文字 (Instant Style)
                 if (style === 'white' && customText && customText.trim() !== "") { ctx.fillStyle = '#111'; ctx.shadowBlur = 0; ctx.font = `600 38px "Noto Serif TC", serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.fillText(customText, w / 2, h - 40); }
                 
                 resolve(finalCanvas.toDataURL('image/jpeg', 0.9)); 
@@ -1575,9 +1675,9 @@ function randomizeOSD() {
         });
     }
         
-    async function startDevelopingAnimation(photos, style) { 
-        // [雙重保險 1] 程式一開始，直接清空輸入框的值
-        // 這能確保就算代碼寫錯去讀取它，讀到的也是空的
+    // [修改] 接收 wantDate 參數
+    async function startDevelopingAnimation(photos, style, wantDate = true) { 
+        // 清空輸入框防止殘留
         document.getElementById('exp-text-input').value = "";
 
         devOverlay.style.display = 'flex'; 
@@ -1594,9 +1694,9 @@ function randomizeOSD() {
             const thisSerial = globalSerialCounter++; 
             localStorage.setItem('global_serial_counter', globalSerialCounter); 
             
-            // [雙重保險 2] 直接在函數調用時寫死最後一個參數為 "" (空字串)
-            // 絕對不要在這裡使用變數，確保傳進去的永遠是「無文字」
-            const finalImg = await processFinalPhoto(p.image, p.date, "", style, ""); 
+            // [關鍵修改] 呼叫 processFinalPhoto 時，傳入 wantDate 參數 (最後一個參數)
+            // 參數順序: imgUrl, dateObj, serialNo, style, customText, showDate
+            const finalImg = await processFinalPhoto(p.image, p.date, "", style, "", wantDate); 
             
             processed.push({ img: finalImg, serial: thisSerial, style: style }); 
         }
@@ -1625,11 +1725,11 @@ function randomizeOSD() {
             
             await new Promise(r => setTimeout(r, 1500));
             
+            // 存入相冊
             await saveToAlbum(processed[i].img, processed[i].serial, processed[i].style, finalCanvas.width, finalCanvas.height); 
             devImageWrap.style.opacity = '0';
         } 
         
-        // 結束時再次清空，保持衛生
         document.getElementById('exp-text-input').value = ""; 
         
         devStatus.textContent = "FINISHED"; 
