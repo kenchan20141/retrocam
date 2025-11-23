@@ -1129,7 +1129,6 @@ function processFinalPhoto(imgUrl, dateObj, serialNo, style, customText) {
         // [新增] 專用於匯出的函數：只在現有照片上疊加文字，不增加邊框
 function annotateExportPhoto(imgUrl, serialNo, style, customText) {
     return new Promise(async (resolve) => {
-        // 確保字體載入
         try { await document.fonts.load('600 40px "Noto Serif TC"'); } catch (e) {}
         try { await document.fonts.load('bold 36px "Courier New"'); } catch (e) {}
 
@@ -1143,21 +1142,51 @@ function annotateExportPhoto(imgUrl, serialNo, style, customText) {
             canvas.height = h;
             const ctx = canvas.getContext('2d');
             
-            // 1. 繪製原圖
+            // 1. 繪製底圖
             ctx.drawImage(img, 0, 0);
 
-            // 2. 補上序號
+            // 判斷是否有 Caption
+            const hasCaption = (customText && customText.trim() !== "");
+
+            // 2. 繪製序號 (智慧調整位置)
             if (serialNo && serialNo !== "") {
-                let serX = 30, serY = 30, serColor = 'rgba(255,255,255,0.8)';
-                
+                let serX = 30, serY = 30;
+                let serColor = '#fff';
+                let useShadow = true;
+
                 if (style === 'white') {
-                    serX = 50; serY = h - 60; serColor = '#333'; 
+                    if (hasCaption) {
+                        // 【關鍵修改】如果有 Caption，序號移到「照片畫面內」的左下角
+                        // h - 180 大約是白邊上方的位置
+                        serX = 50; 
+                        serY = h - 190; 
+                        serColor = 'rgba(255, 255, 255, 0.9)'; // 改成白色
+                        useShadow = true; // 加陰影才看得到
+                    } else {
+                        // 沒有 Caption，序號維持在白邊左下角
+                        serX = 50; 
+                        serY = h - 60; 
+                        serColor = '#333'; // 深色字
+                        useShadow = false; // 白紙黑字不需要陰影
+                    }
                 } else if (style === 'film') {
-                    serX = 40; serY = h - 40; serColor = 'rgba(255,255,255,0.6)';
+                    // 底片風格維持不變
+                    serX = 40; serY = h - 40; 
+                    serColor = 'rgba(255,255,255,0.6)';
+                    useShadow = true;
                 }
 
-                ctx.shadowColor = style === 'white' ? 'transparent' : '#000'; 
-                ctx.shadowBlur = 2; 
+                // 設定陰影樣式
+                if (useShadow) {
+                    ctx.shadowColor = '#000';
+                    ctx.shadowBlur = 4;
+                    ctx.shadowOffsetX = 1;
+                    ctx.shadowOffsetY = 1;
+                } else {
+                    ctx.shadowColor = 'transparent';
+                    ctx.shadowBlur = 0;
+                }
+
                 ctx.fillStyle = serColor; 
                 ctx.font = `bold 36px "Courier New", monospace`; 
                 ctx.textAlign = 'left'; 
@@ -1165,17 +1194,19 @@ function annotateExportPhoto(imgUrl, serialNo, style, customText) {
                 ctx.fillText(`No.${serialNo}`, serX, serY);
             }
 
-            // 3. 補上自定義文字 (Caption)
-            if (style === 'white' && customText && customText.trim() !== "") {
+            // 3. 繪製 Caption (置中於白邊)
+            if (style === 'white' && hasCaption) {
                 ctx.fillStyle = '#111'; 
+                ctx.shadowColor = 'transparent';
                 ctx.shadowBlur = 0;
-                ctx.font = `600 38px "Noto Serif TC", serif`; 
+                
+                // 使用更優雅的思源宋體
+                ctx.font = `600 42px "Noto Serif TC", serif`; 
                 ctx.textAlign = 'center'; 
                 ctx.textBaseline = 'bottom'; 
                 
-                // [修改] 改為 h - 85 (原本是 h - 40)
-                // 這樣文字會往上移，位於白邊的視覺中心
-                ctx.fillText(customText, w / 2, h - 85);
+                // 位置設在白邊的正中央 (h - 90 視覺效果最好)
+                ctx.fillText(customText, w / 2, h - 90);
             }
 
             resolve(canvas.toDataURL('image/jpeg', 0.92));
