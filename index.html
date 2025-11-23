@@ -428,6 +428,51 @@ html, body {
     /* 修改點：100% 時不移除 url(#liquidFilter)，讓 JS 負責慢慢把水變平 */
     100% { opacity: 1; transform: scale(1); filter: brightness(1) sepia(0) blur(0) url(#liquidFilter); } 
 }
+
+
+/* [新增] 品牌銘刻樣式 */
+.engraved-brand {
+    position: absolute;
+    
+    /* 位置：精確定位於自拍鍵正下方，稍微往左修飾以達到視覺平衡 */
+    top: 28px;             
+    left: 35px;            
+    width: 80px;           /* 給予足夠寬度 */
+    text-align: center;    /* 文字置中 */
+    
+    /* [關鍵區隔] 字體設定：完全區別於序號的單間距字體 */
+    /* 使用 Times New Roman / Georgia 襯線體，營造經典光學大廠的氛圍 */
+    font-family: 'Times New Roman', Times, serif;
+    font-weight: 900;      /* 極粗體 */
+    font-style: italic;    /* 斜體，增加速度感與品牌識別度 */
+    font-size: 15px;       /* 夠大，這是品牌 LOGO 的尺寸 */
+    letter-spacing: 0.5px; /* 品牌字距通常較緊湊 */
+    
+    /* [關鍵擬真] 填漆刻印質感 */
+    /* 使用極深的灰黑色 (#151515)，模擬凹槽內填滿黑色油漆的效果 */
+    color: #151515;        
+    
+    /* 銳利的底部亮邊，模擬金屬邊緣切割的反光 */
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.7);
+    
+    pointer-events: none;  /* 確保點擊穿透，不會擋到下方的開關 */
+    display: none;         /* 預設隱藏 */
+    z-index: 25;
+}
+
+/* [保持不變] 僅在自拍模式下顯示 */
+body.is-selfie .engraved-brand {
+    display: block;
+    animation: brandAppear 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* 加入一點彈性動畫，讓 LOGO 出現時更有質感 */
+@keyframes brandAppear {
+    from { opacity: 0; transform: translateY(-5px) scale(0.9); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+    
 </style>
 </head>
 <body>
@@ -485,18 +530,21 @@ html, body {
                 <canvas class="vf-glass" id="smallCanvas"></canvas>
             </div>
 
-            <div class="function-group">
-                <div class="top-row-btns">
-                    <div class="flat-lock-btn" id="orientationBtn" title="Lock Orientation"><span>LOCK</span></div>
-                    <div class="selfie-btn" id="selfie-toggle" title="Selfie Mode"></div>
-                </div>
-                
-                <div class="compact-switch-container" id="sketchModeSwitch" title="Real/Art Mode">
-                    <span id="lbl-real" class="cs-label active">REAL</span>
-                    <div class="cs-track"><div class="cs-knob"></div></div>
-                    <span id="lbl-sketch" class="cs-label">ART</span>
-                </div>
-            </div>
+     <div class="function-group">
+    <!-- 品牌名稱 -->
+    <div class="engraved-brand">LUMIGRAPH</div>
+
+    <div class="top-row-btns">
+        <div class="flat-lock-btn" id="orientationBtn" title="Lock Orientation"><span>LOCK</span></div>
+        <div class="selfie-btn" id="selfie-toggle" title="Selfie Mode"></div>
+    </div>
+    
+    <div class="compact-switch-container" id="sketchModeSwitch" title="Real/Art Mode">
+        <span id="lbl-real" class="cs-label active">REAL</span>
+        <div class="cs-track"><div class="cs-knob"></div></div>
+        <span id="lbl-sketch" class="cs-label">ART</span>
+    </div>
+</div>
 
             <div id="back-controls-group">
                 <div class="lever-base" id="leverBase"></div>
@@ -650,6 +698,9 @@ function saveToAlbum(processedImage, serialNumber, styleInfo, w, h) {
 
         /* --- VARS --- */
         let isRollMode = localStorage.getItem('rollMode') === 'true'; let currentFrame = 0; let pendingPhoto = null; let globalSerialCounter = parseInt(localStorage.getItem('global_serial_counter') || '1'); let isSelfieMode = false; let isSketchMode = false; let isOrientationLocked = localStorage.getItem('orientationLocked') === 'true'; let isFilmViewMode = true;
+
+// [新增] 用於控制選單是否強制鎖定的變數
+let isMenuLocked = false;
         
         // Multi-exposure State
         let isFilmAdvanced = true; // True = Ready to shoot fresh frame. False = Frame exposed, needs winding.
@@ -741,9 +792,55 @@ function saveToAlbum(processedImage, serialNumber, styleInfo, w, h) {
 
         function renderFilmSelector() { const modes = getModes(); filmRollContainer.innerHTML = ''; modes.forEach((m, index) => { const canister = document.createElement('div'); canister.className = 'film-canister'; if (index === currentModeIdx) canister.classList.add('active'); const labelStyle = `border: 4px solid ${m.color}; background: #f4e9c5;`; const nameStyle = `color: ${m.color};`; canister.innerHTML = `<div class="canister-cap cap-top"></div><div class="canister-body"><div class="canister-label" style="${labelStyle}"><div class="cl-name" style="${nameStyle}">${m.name}</div><div class="cl-sub">${m.sub}</div><div class="cl-iso">ISO</div></div></div><div class="sprocket-lip"></div><div class="canister-cap cap-bottom"></div>`; canister.addEventListener('click', (e) => { e.stopPropagation(); selectModeFromRoll(index); }); filmRollContainer.appendChild(canister); }); }
         function openFilmSelector() { if (backDoorWrapper.classList.contains('open')) return; renderFilmSelector(); filmRollOverlay.style.display = 'flex'; void filmRollOverlay.offsetWidth; filmRollOverlay.classList.add('visible'); }
-        function selectModeFromRoll(index) { currentModeIdx = index; localStorage.setItem('camModeIdx', currentModeIdx); filmRollOverlay.classList.remove('visible'); setTimeout(() => { filmRollOverlay.style.display = 'none'; filmCard.style.filter = 'blur(10px)'; processCanvas.style.filter = 'blur(10px)'; updateModeUI(); setTimeout(() => { filmCard.style.filter = 'none'; processCanvas.style.filter = 'none'; }, 400); }, 300); }
-        filmDoor.addEventListener('click', openFilmSelector); filmRollOverlay.addEventListener('click', (e) => { if(e.target === filmRollOverlay) { filmRollOverlay.classList.remove('visible'); setTimeout(() => filmRollOverlay.style.display = 'none', 300); } });
+       // [修改] 選擇底片後的處理函數
+function selectModeFromRoll(index) { 
+    currentModeIdx = index; 
+    localStorage.setItem('camModeIdx', currentModeIdx); 
+    
+    // [關鍵] 用戶已做出選擇，解除鎖定狀態
+    isMenuLocked = false;
 
+    filmRollOverlay.classList.remove('visible'); 
+    setTimeout(() => { 
+        filmRollOverlay.style.display = 'none'; 
+        filmCard.style.filter = 'blur(10px)'; 
+        processCanvas.style.filter = 'blur(10px)'; 
+        updateModeUI(); 
+        setTimeout(() => { 
+            filmCard.style.filter = 'none'; 
+            processCanvas.style.filter = 'none'; 
+        }, 400); 
+    }, 300); 
+}
+       // [修改] 1. 點擊機背單純換底片，不鎖定選單
+filmDoor.addEventListener('click', () => {
+    isMenuLocked = false; // 允許點擊背景退出
+    openFilmSelector();
+});
+
+// [新增/補回] 2. 點擊遮罩背景的行為 (包含強制鎖定邏輯)
+filmRollOverlay.addEventListener('click', (e) => { 
+    if(e.target === filmRollOverlay) { 
+        // [關鍵] 檢查是否被鎖定
+        if (isMenuLocked) {
+            // 如果鎖定中，給予一點視覺反饋（輕微放大一下），提示不能退出
+            const container = document.getElementById('filmRollContainer');
+            container.style.transition = 'transform 0.1s';
+            container.style.transform = 'scale(1.05)';
+            setTimeout(() => {
+                container.style.transform = 'scale(1)';
+                // 恢復原有的 transition 設定以免影響後續操作
+                setTimeout(() => container.style.transition = '', 100);
+            }, 100);
+            return; // 阻止關閉
+        }
+
+        // 如果沒鎖定，正常關閉
+        filmRollOverlay.classList.remove('visible'); 
+        setTimeout(() => filmRollOverlay.style.display = 'none', 300); 
+    } 
+});
+        
         function applySketchEffect(sourceVideo, destCtx, width, height, modeId) {
             const scanW = 800; const scanH = Math.floor(scanW * (height/width));
             if(sketchCanvas.width !== scanW) { sketchCanvas.width = scanW; sketchCanvas.height = scanH; }
@@ -761,9 +858,18 @@ function saveToAlbum(processedImage, serialNumber, styleInfo, w, h) {
             initCamera(); 
         });
 
-        sketchModeSwitch.addEventListener('click', () => {
-            isSketchMode = !isSketchMode; sketchModeSwitch.classList.toggle('mode-sketch', isSketchMode); document.getElementById('lbl-real').classList.toggle('active', !isSketchMode); document.getElementById('lbl-sketch').classList.toggle('active', isSketchMode); currentModeIdx = 0; openFilmSelector();
-        });
+      sketchModeSwitch.addEventListener('click', () => {
+    isSketchMode = !isSketchMode;
+    sketchModeSwitch.classList.toggle('mode-sketch', isSketchMode);
+    document.getElementById('lbl-real').classList.toggle('active', !isSketchMode);
+    document.getElementById('lbl-sketch').classList.toggle('active', isSketchMode);
+    currentModeIdx = 0;
+
+    // [關鍵] 因為切換了大模式，強制鎖定選單，迫使用戶選擇一款濾鏡
+    isMenuLocked = true;
+    
+    openFilmSelector();
+});
 
         function renderLoop() {
             requestAnimationFrame(renderLoop);
