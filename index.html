@@ -26,12 +26,11 @@
     #orientation-lock svg { width: 60px; height: 60px; fill: #fff; animation: rotatePhone 2s infinite; }
     @keyframes rotatePhone { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-90deg); } }
 
-    /* [MODIFIED] Fixed positioning for absolute centering stability */
     #camera-container {
         width: 760px; height: 420px; 
         position: fixed; 
         top: 50%; left: 50%;
-        transform: translate(-50%, -50%); /* Default centered state */
+        transform: translate(-50%, -50%); 
         transform-origin: center center;
         filter: drop-shadow(0 0 2px rgba(255,255,255,0.25)) drop-shadow(0 30px 60px rgba(0,0,0,0.9)); 
         display: none; 
@@ -76,7 +75,6 @@
     .prism-hump::after { content: ''; width: 1px; height: 100%; background: rgba(0,0,0,0.1); }
     
     .lever-base { position: absolute; top: 35px; right: 100px; width: 50px; height: 50px; border-radius: 50%; background: radial-gradient(#ccc, #999); border: 1px solid #666; z-index: 5; box-shadow: inset 0 1px 2px rgba(255,255,255,0.5); transition: box-shadow 0.3s; }
-    /* [MODIFIED] Lever glow to indicate it needs pulling */
     .lever-base.glow { box-shadow: 0 0 20px #ffaa00, inset 0 0 10px #ffcc00; border-color: #ffaa00; animation: glowPulse 0.8s infinite alternate; }
     @keyframes glowPulse { from { box-shadow: 0 0 15px #ffaa00, inset 0 0 5px #ffcc00; } to { box-shadow: 0 0 25px #ff5500, inset 0 0 12px #ffdd00; } }
 
@@ -91,8 +89,6 @@
     .switch-knob { width: 18px; height: 18px; background: radial-gradient(#eee, #999); border-radius: 50%; position: absolute; top: -2px; left: 0; box-shadow: 0 1px 2px rgba(0,0,0,0.5); border: 1px solid #666; transition: left 0.3s; }
     .mode-switch-container.mode-36 .switch-knob { left: 18px; }
     .ready-light { position: absolute; top: 20px; right: 165px; width: 8px; height: 8px; background: #300; border-radius: 50%; box-shadow: inset 0 0 2px #000; transition: background 0.3s; z-index: 15; }
-    /* Ready light logic inverted: Green when ready to shoot, OFF when needs winding? Or Red when needs winding? 
-       For this sim: Active (Red) means "Needs Winding / Double Exp Ready" */
     .ready-light.active { background: #f00; box-shadow: 0 0 8px #f00, inset 0 0 2px #fff; }
 
     .front-controls-group { display: none; } 
@@ -130,7 +126,6 @@
     @keyframes lensFlash { 0% { opacity: 0.8; } 100% { opacity: 0; } }
     .camera-interior { width: 100%; height: 100%; background: #0a0a0a; border-radius: 0 0 8px 8px; box-shadow: inset 0 0 40px #000; position: absolute; top: 0; left: 0; z-index: 1; display: flex; flex-direction: column; overflow: hidden; border-left: 1px solid #333; border-right: 1px solid #333; border-bottom: 1px solid #333; }
 
-    /* --- ALBUM GRID VIEW (Small Thumbnails) --- */
     .album-container { flex: 1; padding: 20px; overflow-y: auto; display: none; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 15px; align-content: flex-start; }
     .album-container.active { display: grid; }
     .album-container::-webkit-scrollbar { width: 8px; }
@@ -143,7 +138,6 @@
     .album-photo.selected::after { content: '✔'; position: absolute; top: 2px; right: 2px; background: #c00; color: white; font-size: 12px; padding: 2px 4px; }
     .album-seq { position: absolute; top: 2px; left: 2px; font-family: 'Courier New'; font-size: 10px; color: #ff9900; background: rgba(0,0,0,0.7); padding: 1px 3px; }
 
-    /* --- SEAMLESS FILM STRIP VIEW --- */
     .film-strip-view {
         flex: 1; display: none; flex-direction: row; overflow-x: auto; overflow-y: hidden;
         white-space: nowrap; background: #050505; align-items: center;
@@ -186,7 +180,6 @@
         box-shadow: 0 0 8px rgba(255, 170, 0, 0.6);
     }
 
-    /* [MODIFIED] Positive Film (Slide) Look: "Through-light" transparency effect */
    .film-block-img {
         position: absolute; 
         top: 14px; bottom: 14px; 
@@ -270,9 +263,36 @@
     .sp-film::before, .sp-film::after { content: '...'; position: absolute; color: white; font-size: 8px; letter-spacing: 4px; left: 2px; }
     .sp-film::before { top: -8px; } .sp-film::after { bottom: -4px; }
 
-    #developing-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #111; z-index: 3000; display: none; flex-direction: column; justify-content: center; align-items: center; }
-    .photo-paper-container { transform: scale(0.9); display: flex; justify-content: center; align-items: center; margin-bottom: 30px; }
-    #dev-image-wrap { box-shadow: 0 0 50px #000; opacity: 0; max-height: 80vh; max-width: 80vw; transition: all 0.3s; }
+    /* [MODIFIED] Developing Overlay with Water Texture Support */
+    #developing-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 3000; display: none; flex-direction: column; justify-content: center; align-items: center; }
+    
+    .photo-paper-container { 
+        transform: scale(0.9); display: flex; justify-content: center; align-items: center; margin-bottom: 30px; position: relative; overflow: hidden; 
+        transition: box-shadow 0.3s;
+    }
+    
+    /* Water Simulation Classes */
+    .photo-paper-container.wet-process {
+        box-shadow: 0 0 50px rgba(0, 100, 255, 0.15), inset 0 0 20px rgba(0,0,0,0.5);
+    }
+    /* Pseudo-element for surface gloss/reflection */
+    .photo-paper-container.wet-process::after {
+        content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.05), rgba(0,0,20,0.3));
+        pointer-events: none; z-index: 10; mix-blend-mode: overlay;
+    }
+
+    /* Apply the SVG displacement filter here when active */
+    #dev-image-wrap { 
+        box-shadow: 0 0 50px #000; 
+        opacity: 0; max-height: 80vh; max-width: 80vw; 
+        transition: all 0.3s; 
+    }
+    
+    #dev-image-wrap.in-liquid {
+        filter: url(#liquidFilter); 
+    }
+
     .dev-status-text { color: #888; font-family: monospace; font-size: 16px; letter-spacing: 2px; animation: pulse 1s infinite; margin-top: 20px;}
     
     #export-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 4000; display: none; flex-direction: column; justify-content: center; align-items: center; }
@@ -282,10 +302,36 @@
     #zoom-img { max-width: 95%; max-height: 95%; box-shadow: 0 0 20px #000; object-fit: contain; transition: transform 0.3s ease; }
 
     @keyframes pulse { 0%,100% {opacity:0.5} 50% {opacity:1}}
-    @keyframes developProcess { 0% { opacity: 0; filter: brightness(0.1) blur(20px) sepia(1) contrast(0.8); transform: scale(0.95); } 40% { opacity: 0.6; filter: brightness(0.7) blur(5px) sepia(0.6) contrast(0.9); } 100% { opacity: 1; filter: none; transform: scale(1); } }
+    
+    /* [MODIFIED] Animation logic split: this handles Opacity/Scale/Look, SVG handles distortion */
+   @keyframes developProcess { 
+    0% { opacity: 0; transform: scale(0.95); filter: brightness(0.1) sepia(1) blur(5px) url(#liquidFilter); } 
+    40% { opacity: 0.6; filter: brightness(0.6) sepia(0.5) blur(2px) url(#liquidFilter); } 
+    /* 修改點：100% 時不移除 url(#liquidFilter)，讓 JS 負責慢慢把水變平 */
+    100% { opacity: 1; transform: scale(1); filter: brightness(1) sepia(0) blur(0) url(#liquidFilter); } 
+}
 </style>
 </head>
 <body>
+
+    <!-- [NEW] SVG Filter for Realistic Water Distortion -->
+    <svg style="position: absolute; width:0; height:0; pointer-events:none;">
+      <defs>
+        <filter id="liquidFilter">
+          <!-- Turbulence creates the liquid noise pattern -->
+          <feTurbulence type="turbulence" baseFrequency="0.01 0.05" numOctaves="2" result="turbulence" seed="0" />
+          <!-- DisplacementMap uses that noise to distort the image underneath -->
+          <feDisplacementMap in2="turbulence" in="SourceGraphic" scale="15" xChannelSelector="R" yChannelSelector="G" result="distorted" />
+          <!-- Specular Lighting adds the wet surface highlights -->
+          <feSpecularLighting in="turbulence" specularConstant="0.75" specularExponent="20" lighting-color="#ffffff" surfaceScale="2" result="specular">
+             <fePointLight x="500" y="-100" z="200" />
+          </feSpecularLighting>
+          <!-- Composite the lights onto the distorted image -->
+          <feComposite in="specular" in2="distorted" operator="in" result="specular-composite" />
+          <feComposite in="distorted" in2="specular-composite" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" />
+        </filter>
+      </defs>
+    </svg>
 
     <div id="fullscreen-prompt">
         <p>FULLSCREEN REQUIRED</p>
@@ -504,15 +550,21 @@
         function updateCounterDisplay() { if (!isRollMode) { frameCounterUI.textContent = "S"; fsCounter.textContent = "1"; } else { if (currentFrame === 0) frameCounterUI.textContent = "S"; else if (currentFrame >= 36) frameCounterUI.textContent = "E"; else frameCounterUI.textContent = currentFrame; fsCounter.textContent = (36 - currentFrame) + " LEFT"; } }
         
         function updateLeverUI() {
-            // If film is NOT advanced (shot taken, needs winding), show glow and red light.
-            if (!isFilmAdvanced) {
-                readyLight.classList.add('active'); 
-                leverBase.classList.add('glow');
-            } else {
-                readyLight.classList.remove('active'); 
-                leverBase.classList.remove('glow');
-            }
-        }
+    // 判斷是否已經拍完整捲 (36張模式 且 計數器>=36)
+    const isEndOfRoll = isRollMode && currentFrame >= 36;
+
+    // 亮燈與發光的條件修改為：
+    // 1. !isFilmAdvanced : 剛剛按了快門，還沒過片
+    //    或者
+    // 2. isEndOfRoll : 已經拍完36張，等待最後一次拉動來沖洗
+    if (!isFilmAdvanced || isEndOfRoll) {
+        readyLight.classList.add('active'); // 紅燈亮
+        leverBase.classList.add('glow');    // 撥桿發光
+    } else {
+        readyLight.classList.remove('active');
+        leverBase.classList.remove('glow');
+    }
+}
 
         document.getElementById('enter-fs-btn').addEventListener('click', () => { startFullscreenAndCamera(); });
         function startFullscreenAndCamera() { const el = document.documentElement; const rfs = el.requestFullscreen || el.webkitRequestFullScreen; if (rfs) { rfs.call(el).then(() => { initSystem().then(initCamera); if(isOrientationLocked && screen.orientation && screen.orientation.lock) { screen.orientation.lock('landscape').catch(()=>{}); } }).catch(() => { initSystem().then(initCamera); }); } }
@@ -520,28 +572,16 @@
         function enforceFullscreen() { if (!document.fullscreenElement) { fsPrompt.style.display = 'flex'; document.getElementById('camera-container').style.display = 'none'; fsViewfinder.style.display = 'none'; } }
         document.addEventListener('fullscreenchange', enforceFullscreen);document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden') {
-        // --- 進入背景模式 (切換分頁、縮小、鎖屏) ---
-        
-        // 1. 強制停止相機硬體 (這會讓手機的綠色/橘色相機燈號熄滅)
         if (video.srcObject) {
             const tracks = video.srcObject.getTracks();
-            tracks.forEach(track => {
-                track.stop(); // 物理性釋放鏡頭資源
-            });
-            video.srcObject = null; // 斷開影片連結
+            tracks.forEach(track => { track.stop(); });
+            video.srcObject = null;
         }
-        
-        // 2. 暫停音效 (如果剛好在播放過片聲)
         if(shutterAudio) { shutterAudio.pause(); shutterAudio.currentTime = 0; }
         if(latchAudio) { latchAudio.pause(); latchAudio.currentTime = 0; }
 
     } else if (document.visibilityState === 'visible') {
-        // --- 回到前景模式 (用家點回來這個網頁) ---
-        
-        enforceFullscreen(); // 檢查是否全螢幕
-        
-        // 重新啟動相機 (因為剛才已經被我們強制殺掉了)
-        // 這裡加個延遲，確保瀏覽器準備好才請求鏡頭，避免黑屏
+        enforceFullscreen();
         setTimeout(() => {
              if (!video.srcObject || !video.srcObject.active) {
                 initCamera();
@@ -603,7 +643,6 @@
             if (e && e.target.id === 'vf-close-btn') return; 
             if (!isSelfieMode && backDoorWrapper.classList.contains('open')) return; 
             if (isRollMode && currentFrame >= 36) return; 
-            // In 1-shot mode, we allow unlimited shots if not cleared, creating double exposures as per request.
             
             const btn = isSelfieMode ? frontShutterBtn : shutterBtn; 
             btn.classList.add('pressed'); 
@@ -635,7 +674,6 @@
             const mode = modes[currentModeIdx]; 
             const targetW = 1920, targetH = 1080; 
             
-            // 1. Prepare temp capture from live video
             const tempC = document.createElement('canvas');
             tempC.width = targetW; tempC.height = targetH;
             const tempCtx = tempC.getContext('2d');
@@ -646,28 +684,21 @@
             tempCtx.drawImage(processCanvas, 0, 0, targetW, targetH); 
             if (mode.id.startsWith('FILM_')) { const severity = (mode.id === 'FILM_AGED') ? 2.0 : 1.0; generateLightLeak(tempCtx, targetW, targetH, severity); } 
             
-            // 2. EXPOSURE LOGIC (Multi-Exposure)
-            // If film is NOT advanced, we are doing a double exposure (or triple, etc.)
-            // We draw onto the existing exposureCanvas.
             if (exposureCanvas.width !== targetW) {
                 exposureCanvas.width = targetW; exposureCanvas.height = targetH;
             }
 
             if (isFilmAdvanced) {
-                // First shot on this frame: Just draw it.
                 exposureCtx.globalCompositeOperation = 'source-over';
                 exposureCtx.drawImage(tempC, 0, 0);
-                isFilmAdvanced = false; // Now frame is "dirty", needs winding.
+                isFilmAdvanced = false; 
             } else {
-                // Double exposure! Use 'screen' to simulate light adding to film.
                 exposureCtx.globalCompositeOperation = 'screen';
-                // Slightly reduce opacity to prevent total whiteout if multiple shots are bright
                 exposureCtx.globalAlpha = 0.8; 
                 exposureCtx.drawImage(tempC, 0, 0);
                 exposureCtx.globalAlpha = 1.0;
             }
 
-            // 3. Update UI
             updateLeverUI();
         }
         
@@ -678,101 +709,238 @@
         
         document.getElementById('btn-keep').addEventListener('click', () => { 
             document.getElementById('review-overlay').style.display = 'none'; 
-            // In 1-shot mode, "keeping" means we are done with this frame.
             isFilmAdvanced = true; 
             updateLeverUI();
         });
 
-        rollModeSwitch.addEventListener('click', async () => { 
-            if(!isFilmAdvanced || (isRollMode && currentFrame > 0 && currentFrame < 36)) { 
-                if(!confirm("Switching modes will clear current roll/frame. Continue?")) return; 
-                await clearTemp(); 
-                // Clear exposure buffer
-                exposureCtx.clearRect(0, 0, exposureCanvas.width, exposureCanvas.height);
-                isFilmAdvanced = true;
-            } 
-            isRollMode = !isRollMode; 
-            localStorage.setItem('rollMode', isRollMode); 
-            rollModeSwitch.classList.toggle('mode-36', isRollMode); 
-            currentFrame = 0; 
-            updateCounterDisplay(); 
-            updateLeverUI(); 
-        });
+       rollModeSwitch.addEventListener('click', async () => { 
+    // 判斷條件修改：
+    // 1. pendingPhoto: 1張模式下有未保存的照片
+    // 2. (isRollMode && currentFrame > 0): 36張模式下，只要拍了超過 0 張 (包含 36 張滿)，都要警告
+    if(pendingPhoto || (isRollMode && currentFrame > 0)) { 
         
-        // LEVER LOGIC
+        // 彈出明確的警告視窗
+        const msg = isRollMode 
+            ? `WARNING: Switching modes will DELETE all ${currentFrame} photos in this roll.\n\nContinue?`
+            : "Discard current photo and switch mode?";
+
+        if(!confirm(msg)) return; // 如果使用者按「取消」，則不執行任何動作
+        
+        // 使用者按「確定」，開始清除
+        await clearTemp(); 
+        
+        // [重要] 清除多重曝光的緩存，避免切換後上一張的殘影留到新模式
+        exposureCtx.clearRect(0, 0, exposureCanvas.width, exposureCanvas.height);
+        
+        pendingPhoto = null; 
+        isFilmAdvanced = true; // 重置過片狀態
+    } 
+    
+    // 執行模式切換
+    isRollMode = !isRollMode; 
+    localStorage.setItem('rollMode', isRollMode); 
+    rollModeSwitch.classList.toggle('mode-36', isRollMode); 
+    currentFrame = 0; 
+    
+    updateCounterDisplay(); 
+    
+    // 修正切換後的燈號狀態 (引用之前修復的邏輯)
+    if (typeof updateLeverUI === "function") {
+        updateLeverUI();
+    } else {
+        // 如果您還沒把 updateLeverUI 獨立出來，則使用原本的 checkLeverState
+        checkLeverState(); 
+    }
+});
+        
         let leverPulled = false; 
-        advanceLever.addEventListener('click', async () => { 
-            if (isFilmAdvanced || leverPulled) return; // Can't wind if already wound
-            
-            leverPulled = true; 
-            requestAnimationFrame(() => { 
-                advanceLever.style.transform = 'rotate(130deg)'; 
-                setTimeout(playLeverSound, 50); 
-            }); 
-            
-            setTimeout(async () => { 
-                advanceLever.style.transform = 'rotate(10deg)'; 
-                
-                // --- DEVELOP / ADVANCE LOGIC ---
-                const finalImage = exposureCanvas.toDataURL('image/jpeg', 0.92);
-                
-                if (isRollMode) {
-                    // 36 Mode: Save to Temp, Clear, Advance Counter
-                    await saveToTemp(finalImage);
-                    currentFrame++;
-                    updateCounterDisplay();
-                    isFilmAdvanced = true;
-                    // Clear buffer for next shot
-                    exposureCtx.clearRect(0,0, exposureCanvas.width, exposureCanvas.height);
-                    updateLeverUI();
-                    leverPulled = false;
-                } else {
-                    // 1 Shot Mode: Open Development/Style Selector immediately
-                    // Prompt asks for style selection for "developed" photos.
-                    // We treat the lever pull as "Developing" the shot.
-                    styleOverlay.style.display = 'flex';
-                    // We temporarily store the image to pendingPhoto
-                    pendingPhoto = finalImage;
-                    // Note: isFilmAdvanced stays false until "Keep" is pressed or Style selected?
-                    // Actually, selecting style -> animation -> save to album.
-                    // So we handle the reset inside the style selector callback.
-                    leverPulled = false;
-                }
-            }, 400); 
-        });
+        advanceLever.addEventListener('click', async () => {
+    // 判斷是否為底片拍完的狀態
+    const isEndOfRoll = isRollMode && currentFrame >= 36;
 
-        document.querySelectorAll('.style-btn').forEach(btn => { 
-            btn.addEventListener('click', async (e) => { 
-                const style = e.currentTarget.dataset.style; 
-                styleOverlay.style.display = 'none'; 
-                
-                // Clear mechanical state
-                isFilmAdvanced = true; 
-                updateLeverUI();
-                exposureCtx.clearRect(0,0, exposureCanvas.width, exposureCanvas.height);
+    //原本的條件是 if (isFilmAdvanced || leverPulled) return;
+    //現在修改為：如果是 EndOfRoll (拍完了)，即使 isFilmAdvanced 是 true 也可以拉動
+    if ((isFilmAdvanced && !isEndOfRoll) || leverPulled) return;
+    
+    leverPulled = true;
+    playLeverSound(); // 播放過片聲
 
-                let photosToProcess = []; 
-                if (isRollMode) {
-                    // This logic only triggers if we manually trigger development for 36 mode? 
-                    // No, usually 36 mode develops at end. But if we reuse this UI...
-                    // Current flow: Lever in 1-mode opens this.
-                    // Lever in 36-mode just advances.
-                    // So this block is mostly for 1-mode or "Finish Roll" logic.
-                } 
-                
-                if (pendingPhoto && !isRollMode) {
-                   photosToProcess = [{ image: pendingPhoto, date: new Date() }];
-                   pendingPhoto = null;
-                   fsViewfinder.style.display = 'none';
-                   await startDevelopingAnimation(photosToProcess, style);
-                }
-            }); 
-        });
+    // 動畫：撥桿拉下
+    requestAnimationFrame(() => { 
+        advanceLever.style.transform = 'rotate(130deg)'; 
+    }); 
+    
+    setTimeout(async () => { 
+        // 動畫：撥桿回彈
+        advanceLever.style.transform = 'rotate(10deg)'; 
+        
+        // --- 核心邏輯分流 ---
+
+        if (isEndOfRoll) {
+            // 【情況 A】36張拍完了 -> 拉動撥桿 = 觸發沖洗程序
+            // 打開風格選擇視窗，準備沖洗整捲底片
+            styleOverlay.style.display = 'flex';
+            leverPulled = false; 
+            return;
+        }
+
+        const finalImage = exposureCanvas.toDataURL('image/jpeg', 0.92);
+        
+        if (isRollMode) {
+            // 【情況 B】36張模式，正常過片 (例如第 5 張 -> 第 6 張)
+            await saveToTemp(finalImage);
+            currentFrame++;
+            updateCounterDisplay();
+            isFilmAdvanced = true;
+            exposureCtx.clearRect(0,0, exposureCanvas.width, exposureCanvas.height);
+            updateLeverUI();
+            leverPulled = false;
+        } else {
+            // 【情況 C】1張模式 (單拍單沖)
+            styleOverlay.style.display = 'flex';
+            pendingPhoto = finalImage;
+            leverPulled = false;
+        }
+    }, 400); 
+});
+
+       document.querySelectorAll('.style-btn').forEach(btn => { 
+    btn.addEventListener('click', async (e) => { 
+        const style = e.currentTarget.dataset.style; 
+        styleOverlay.style.display = 'none'; 
+        
+        // 清除機械狀態
+        isFilmAdvanced = true; 
+        updateLeverUI();
+        exposureCtx.clearRect(0,0, exposureCanvas.width, exposureCanvas.height);
+
+        let photosToProcess = []; 
+
+        if (isRollMode && currentFrame >= 36) {
+            // 【新增】如果是36張模式且拍滿了，從資料庫讀取整捲底片
+            photosToProcess = await getTempPhotos(); // 這是定義在最上面的 helper function
+        } else if (pendingPhoto) {
+            // 單張模式
+            photosToProcess = [{ image: pendingPhoto, date: new Date() }];
+            pendingPhoto = null;
+        }
+        
+        if (photosToProcess.length > 0) {
+            fsViewfinder.style.display = 'none'; // 關閉觀景窗以免擋住
+            await startDevelopingAnimation(photosToProcess, style);
+        }
+    }); 
+});
 
 function applyFrameAndDate(imgUrl, dateObj, style) { return new Promise(resolve => { const img = new Image(); img.onload = () => { let w = 1920, h = 1080; let padTop = 0, padSide = 0, padBottom = 0; if (style === 'white') { padTop = 50; padSide = 50; padBottom = 150; w = 1200; h = Math.floor(w * (9/16)) + padTop + padBottom; } else if (style === 'film') { padTop = 80; padSide = 0; padBottom = 80; } finalCanvas.width = w; finalCanvas.height = h; const ctx = finalCanvas.getContext('2d'); ctx.filter = 'none'; if (style === 'white') { ctx.fillStyle = '#fff'; ctx.fillRect(0,0,w,h); ctx.drawImage(img, padSide, padTop, w - padSide*2, h - padTop - padBottom); } else if (style === 'film') { ctx.drawImage(img, 0, padTop, w, h - padTop*2); ctx.fillStyle = '#111'; ctx.fillRect(0, 0, w, padTop); ctx.fillRect(0, h - padBottom, w, padBottom); ctx.fillStyle = '#fff'; const holeW = 30, gap = 20; for(let x = 30; x < w; x += (holeW + gap)) { ctx.fillRect(x, 20, holeW, 40); ctx.fillRect(x, h - 60, holeW, 40); } } else { ctx.drawImage(img, 0, 0, w, h); } const d = new Date(dateObj); const dateStr = `'${d.getFullYear().toString().slice(-2)} ${(d.getMonth()+1).toString().padStart(2,'0')} ${d.getDate().toString().padStart(2,'0')}`; let dateX = (style === 'white') ? w - padSide - 30 : ((style === 'film') ? w - 50 : w - 60); let dateY = (style === 'white' || style === 'film') ? h - padBottom - 30 : h - 50; if (isSketchMode) { ctx.save(); ctx.shadowBlur = 0; const m = SKETCH_MODES[currentModeIdx]; if(m.id === 'SKETCH_CYBER') ctx.fillStyle = '#0f0'; else if(m.id === 'SKETCH_BLUE') ctx.fillStyle = '#fff'; else if(m.id === 'SKETCH_HK_NEON') ctx.fillStyle = '#ff00cc'; else ctx.fillStyle = 'rgba(50, 50, 50, 0.85)'; ctx.font = `normal 45px "Segoe Print", "Comic Sans MS", cursive`; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom'; ctx.translate(dateX, dateY); ctx.rotate(-0.05); ctx.fillText(dateStr, 0, 0); ctx.restore(); } else { ctx.shadowColor = '#ff5500'; ctx.shadowBlur = 15; ctx.fillStyle = 'rgba(255, 170, 50, 0.9)'; const fontSize = style === 'white' ? 40 : 50; ctx.font = `bold ${fontSize}px "Courier New", monospace`; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom'; ctx.fillText(dateStr, dateX, dateY); } resolve(finalCanvas.toDataURL('image/jpeg', 0.9)); }; img.src = imgUrl; }); }
         
         function overlaySerial(imgUrl, serialNo, style) { return new Promise(resolve => { const img = new Image(); img.onload = () => { finalCanvas.width = img.width; finalCanvas.height = img.height; const ctx = finalCanvas.getContext('2d'); ctx.drawImage(img, 0, 0); let x = 30, y = 30, color = '#fff'; if (style === 'white') { x = 50; y = img.height - 80; color = '#333'; } else if (style === 'film') { x = 40; y = 100; color = 'rgba(255,255,255,0.8)'; } else { color = 'rgba(255,255,255,0.8)'; } ctx.shadowColor = style === 'white' ? 'transparent' : '#000'; ctx.shadowBlur = 2; ctx.fillStyle = color; ctx.font = `bold 36px "Courier New", monospace`; ctx.textAlign = 'left'; ctx.textBaseline = 'top'; ctx.fillText(`No.${serialNo}`, x, y); resolve(finalCanvas.toDataURL('image/jpeg', 0.9)); }; img.src = imgUrl; }); }
-        async function startDevelopingAnimation(photos, style) { devOverlay.style.display = 'flex'; devStatus.textContent = "PREPARING..."; const processed = []; for (let p of photos) { const thisSerial = globalSerialCounter++; localStorage.setItem('global_serial_counter', globalSerialCounter); const finalImg = await applyFrameAndDate(p.image, p.date, style); processed.push({ img: finalImg, serial: thisSerial, style: style }); } for (let i = 0; i < processed.length; i++) { devStatus.textContent = `DEVELOPING ${i+1}/${processed.length}`; devImageWrap.src = processed[i].img; devImageWrap.style.border = style === 'white' ? 'none' : '8px solid white'; devImageWrap.style.animation = 'none'; devImageWrap.offsetHeight; devImageWrap.style.animation = 'developProcess 3s forwards'; await new Promise(r => setTimeout(r, 3200)); await saveToAlbum(processed[i].img, processed[i].serial, processed[i].style); } devStatus.textContent = "FINISHED"; await new Promise(r => setTimeout(r, 800)); devOverlay.style.display = 'none'; if (isRollMode) { await clearTemp(); currentFrame = 0; updateCounterDisplay(); } else { pendingPhoto = null; } updateLeverUI(); }
+        
+       /* [MODIFIED] Smooth Transition Version */
+async function startDevelopingAnimation(photos, style) { 
+    devOverlay.style.display = 'flex'; 
+    devStatus.textContent = "PREPARING..."; 
+    
+    let waterLoopId;
+    let rippleTime = 0;
+    let waveIntensity = 1.0; 
+    const turbulenceNode = document.querySelector('#liquidFilter feTurbulence');
+    const paperContainer = document.querySelector('.photo-paper-container');
+    
+    function renderWaterRipple() {
+        rippleTime += 0.05; 
+        const baseFreqY = (0.05 + Math.sin(rippleTime * 0.5) * 0.01) * waveIntensity;
+        // 確保頻率不為負數
+        const displayFreq = Math.max(0.001, baseFreqY); 
+        turbulenceNode.setAttribute('baseFrequency', `0.01 ${displayFreq}`);
+        waterLoopId = requestAnimationFrame(renderWaterRipple);
+    }
+
+    const processed = []; 
+    for (let p of photos) { 
+        const thisSerial = globalSerialCounter++; 
+        localStorage.setItem('global_serial_counter', globalSerialCounter); 
+        const finalImg = await applyFrameAndDate(p.image, p.date, style); 
+        processed.push({ img: finalImg, serial: thisSerial, style: style }); 
+    } 
+    
+    for (let i = 0; i < processed.length; i++) { 
+        devStatus.textContent = `DEVELOPING ${i+1}/${processed.length}`; 
+        devImageWrap.src = processed[i].img; 
+        devImageWrap.style.border = style === 'white' ? 'none' : '8px solid white'; 
+        
+        // 1. 初始化狀態
+        waveIntensity = 1.0; 
+        devImageWrap.style.opacity = '0'; // 確保開始前不可見
+        devImageWrap.style.filter = 'none'; // 清除舊濾鏡
+        paperContainer.classList.add('wet-process');
+        devImageWrap.classList.add('in-liquid');
+        renderWaterRipple(); 
+
+        // 2. 執行 CSS 顯影動畫 (3秒)
+        devImageWrap.style.animation = 'none'; 
+        devImageWrap.offsetHeight; // Trigger Reflow
+        devImageWrap.style.animation = 'developProcess 3s forwards linear'; 
+        
+        // 3. 等待顯影大部分完成 (2.5秒)
+        await new Promise(r => setTimeout(r, 2500));
+        
+        // 4. 開始退浪 (0.8秒) - 讓波浪逐漸平息
+        const calmDuration = 800; 
+        const startTime = Date.now();
+        
+        while (true) {
+            const elapsed = Date.now() - startTime;
+            if (elapsed >= calmDuration) {
+                waveIntensity = 0; 
+                break;
+            }
+            const progress = elapsed / calmDuration;
+            waveIntensity = 1.0 - Math.pow(progress, 0.5); 
+            await new Promise(r => requestAnimationFrame(r)); 
+        }
+
+        // [關鍵修復點] ---------------------------------------------
+        // 顯影結束，水波已平。現在要「切斷」動畫控制，強制變回清晰靜態圖。
+        
+        // A. 停止 JS 循環
+        cancelAnimationFrame(waterLoopId);
+        
+        // B. 鎖定目前的視覺狀態 (因為移除 animation 後，opacity 會跳回 css 預設的 0)
+        devImageWrap.style.opacity = '1'; 
+        devImageWrap.style.transform = 'scale(1)';
+        
+        // C. 暴力移除 Animation 屬性 (解除 forwards 的鎖定)
+        devImageWrap.style.animation = 'none'; 
+        
+        // D. 強制設定無濾鏡
+        devImageWrap.style.filter = 'none'; 
+        devImageWrap.classList.remove('in-liquid');
+        paperContainer.classList.remove('wet-process');
+        // --------------------------------------------------------
+        
+        // 5. 展示成品：清晰、無水波的靜止時間 (1.5秒)
+        await new Promise(r => setTimeout(r, 1500));
+        
+        await saveToAlbum(processed[i].img, processed[i].serial, processed[i].style); 
+        
+        // 重置樣式以便下一張使用
+        devImageWrap.style.opacity = '0';
+    } 
+    
+    devStatus.textContent = "FINISHED"; 
+    await new Promise(r => setTimeout(r, 800)); 
+    devOverlay.style.display = 'none'; 
+    
+    if (isRollMode) { 
+        await clearTemp(); 
+        currentFrame = 0; 
+        updateCounterDisplay(); 
+    } else { 
+        pendingPhoto = null; 
+    } 
+    updateLeverUI(); 
+}
 
         backLock.addEventListener('click', () => { const isOpen = backDoorWrapper.classList.contains('open'); if (!isOpen) { latchAudio.currentTime = 0; latchAudio.play(); backDoorWrapper.classList.add('open'); backLock.style.transform = 'translateX(5px)'; loadAlbum(); } else { closeBackDoor(); } });
         function closeBackDoor() { backDoorWrapper.classList.remove('open'); backLock.style.transform = 'translateX(0)'; setTimeout(() => { latchAudio.currentTime = 0; latchAudio.play(); }, 250); }
@@ -850,23 +1018,19 @@ function applyFrameAndDate(imgUrl, dateObj, style) { return new Promise(resolve 
         function resetToCameraUI() { exportModal.style.display = 'none'; closeBackDoor(); document.getElementById('review-overlay').style.display = 'none'; pendingPhoto = null; updateLeverUI(); }
         function checkOrientation() { if (window.innerHeight > window.innerWidth) { document.getElementById('orientation-lock').style.display = 'flex'; document.getElementById('camera-container').style.display = 'none'; fsPrompt.style.display = 'none'; } else { document.getElementById('orientation-lock').style.display = 'none'; if (document.fullscreenElement) { document.getElementById('camera-container').style.display = 'block'; document.getElementById('fullscreen-prompt').style.display = 'none'; resizeElements(); } else { enforceFullscreen(); } } }
        
-       /* [MODIFIED] Logic to strictly center the camera container */
        function resizeElements() { 
             const w = window.innerWidth; 
             const h = window.innerHeight; 
             const isTablet = (w / h) < 1.6; 
             const multiplier = isTablet ? 0.85 : 1.0; 
             const scale = Math.min(w / 800, h / 480) * multiplier; 
-            
-            // Note: because we use position:fixed + translate(-50%, -50%) in CSS, 
-            // we must append the scale to that translation.
             document.getElementById('camera-container').style.transform = `translate(-50%, -50%) scale(${scale})`; 
         }
 
         window.addEventListener('resize', () => { 
             checkOrientation(); 
             resizeElements(); 
-            setTimeout(resizeElements, 300); // Double check centering after rotation settle
+            setTimeout(resizeElements, 300); 
         });
     </script>
 </body>
