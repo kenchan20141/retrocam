@@ -826,7 +826,36 @@ body.is-selfie .exp-dot.center {
                     } else if (u_mode == 8) { // SOFT
                         c = adjustColor(c, 1.1, 0.9, 0.8);
                         c += vec3(0.05, 0.05, 0.08);
-                    }
+                    } else if (u_mode == 9) { // FILM: MOOD (HK 1990 Style)
+        
+        // 1. 色彩映射 (Color Grading)
+        // 經典的杜可風風格：陰影偏綠，高光偏洋紅/黃
+        
+        // 壓低藍色通道 (讓畫面整體偏黃/綠)
+        c.b = c.b * 0.75; 
+        
+        // 拉高綠色通道，但稍微偏移一點紅色以保持膚色
+        c.g = c.g * 1.1 + 0.05;
+        c.r = c.r * 1.05;
+
+        // 2. 強烈對比度 (S-Curve)
+        // 讓暗部更深，亮部更亮，營造戲劇感
+        c = (c - 0.5) * 1.35 + 0.5;
+
+        // 3. 飽和度微調
+       
+        vec3 gray = vec3(dot(c, vec3(0.299, 0.587, 0.114)));
+        c = mix(gray, c, 1.25);
+
+        // 4. 暗角效果 (Vignette)
+        // 模擬窺視感，邊緣明顯變暗
+        float dist = distance(uv, vec2(0.5, 0.5));
+        float vignette = smoothstep(0.8, 0.25, dist * 1.0); // 調整 1.0 可改變暗角範圍
+        c *= vignette;
+        
+        // 5. 輕微的色偏修正 (讓陰影帶點墨綠色)
+        c += vec3(0.0, 0.02, 0.01) * (1.0 - c);
+    }
 
                     // Grain
                     if(u_mode != 1 && u_mode != 2) {
@@ -947,7 +976,8 @@ body.is-selfie .exp-dot.center {
     let currentReviewCanvas = null;
     let exposureCtx = exposureCanvas.getContext('2d');
     
-    const REAL_MODES = [ { id: 'BW', name: 'B&W', sub: 'STREET 400', color: '#000', idx:0 }, { id: 'COLOR', name: 'COLOR', sub: 'GAME-CAM', color: '#c00', idx:1 }, { id: 'CCD', name: 'DIGI', sub: 'CCD SENSOR', color: '#0055cc', idx:2 }, { id: 'HCBW', name: 'HC-BW', sub: 'FINE 100', color: '#555', idx:3 }, { id: 'FILM_TEAL', name: 'FILM: TEAL', sub: 'KYOTO 400', color: '#008080', idx:4 }, { id: 'FILM_SUN', name: 'FILM: SUN', sub: 'CALI 200', color: '#ffcc00', idx:5 }, { id: 'FILM_VIVID', name: 'FILM: VIVID', sub: 'SLIDE 100', color: '#ff0055', idx:6 }, { id: 'FILM_AGED', name: 'FILM: AGED', sub: 'EURO 800', color: '#8b4513', idx:7 }, { id: 'FILM_SOFT', name: 'FILM: SOFT', sub: 'AIRY 400H', color: '#90e0ef', idx:8 } ];
+    const REAL_MODES = [ { id: 'BW', name: 'B&W', sub: 'STREET 400', color: '#000', idx:0 }, { id: 'COLOR', name: 'COLOR', sub: 'GAME-CAM', color: '#c00', idx:1 }, { id: 'CCD', name: 'DIGI', sub: 'CCD SENSOR', color: '#0055cc', idx:2 }, { id: 'HCBW', name: 'HC-BW', sub: 'FINE 100', color: '#555', idx:3 }, { id: 'FILM_TEAL', name: 'FILM: TEAL', sub: 'KYOTO 400', color: '#008080', idx:4 }, { id: 'FILM_SUN', name: 'FILM: SUN', sub: 'CALI 200', color: '#ffcc00', idx:5 }, { id: 'FILM_VIVID', name: 'FILM: VIVID', sub: 'SLIDE 100', color: '#ff0055', idx:6 }, { id: 'FILM_AGED', name: 'FILM: AGED', sub: 'EURO 800', color: '#8b4513', idx:7 }, { id: 'FILM_SOFT', name: 'FILM: SOFT', sub: 'AIRY 400H', color: '#90e0ef', idx:8 }, // --- 新增以下這行 ---
+    { id: 'FILM_MOOD', name: 'FILM: MOOD', sub: 'HK 1990', color: '#006633', idx:9 } ];
     const SKETCH_MODES = [ { id: 'SKETCH_BW', name: 'PENCIL', sub: '2B GRAPHITE', color: '#333', idx:10 }, { id: 'SKETCH_COL', name: 'CRAYON', sub: 'SOFT PASTEL', color: '#d2691e', idx:11 }, { id: 'SKETCH_INK', name: 'INK', sub: 'COMIC PEN', color: '#000', idx:12 }, { id: 'SKETCH_OIL', name: 'OIL', sub: 'IMPASTO', color: '#8b4513', idx:13 }, { id: 'SKETCH_CYBER', name: 'CYBER', sub: 'NEON GRID', color: '#0f0', idx:14 }, { id: 'SKETCH_BLUE', name: 'BLUE', sub: 'BLUEPRINT', color: '#4169e1', idx:15 }, { id: 'SKETCH_HK_NEON', name: 'HK NEON', sub: 'NIGHT LIGHTS', color: '#ff00cc', idx:16 }, { id: 'SKETCH_SHUIMO', name: 'SHUIMO', sub: 'INK WASH', color: '#111', idx:17 } ];
     let savedMode = localStorage.getItem('camModeIdx'); let currentModeIdx = savedMode ? parseInt(savedMode) : 0;
     function getModes() { return isSketchMode ? SKETCH_MODES : REAL_MODES; }
