@@ -818,7 +818,22 @@ body.is-selfie .shutter-release-btn { display: none; }
         }
     }
 
-    vfTrigger.addEventListener('click', (e) => { e.stopPropagation(); fsViewfinder.style.display = 'block'; if(isSketchMode) { splitCircle.style.display = 'none'; fsGuideFrame.style.display = 'none'; } else { splitCircle.style.display = 'block'; fsGuideFrame.style.display = 'block'; } });
+    // [修改] 點擊打開觀景窗時，計算白框大小
+vfTrigger.addEventListener('click', (e) => { 
+    e.stopPropagation(); 
+    fsViewfinder.style.display = 'block'; 
+    
+    // 立即計算一次白框大小
+    updateFSGuideFrame();
+
+    if(isSketchMode) { 
+        splitCircle.style.display = 'none'; 
+        fsGuideFrame.style.display = 'none'; 
+    } else { 
+        splitCircle.style.display = 'block'; 
+        fsGuideFrame.style.display = 'block'; 
+    } 
+});
     frontVfTrigger.addEventListener('click', (e) => { e.stopPropagation(); if (video.readyState >= 2) fsViewfinder.style.display = 'block'; });
     vfCloseBtn.addEventListener('click', (e) => { e.stopPropagation(); fsViewfinder.style.display = 'none'; });
     fsViewfinder.addEventListener('click', (e) => { if(e.target.id !== 'vf-close-btn') handleShutter(e); });
@@ -1064,8 +1079,45 @@ body.is-selfie .shutter-release-btn { display: none; }
     function resetToCameraUI() { exportModal.style.display = 'none'; closeBackDoor(); document.getElementById('review-overlay').style.display = 'none'; pendingPhoto = null; updateLeverUI(); }
     function checkOrientation() { if (window.innerHeight > window.innerWidth) { document.getElementById('orientation-lock').style.display = 'flex'; document.getElementById('camera-container').style.display = 'none'; fsPrompt.style.display = 'none'; } else { document.getElementById('orientation-lock').style.display = 'none'; if (document.fullscreenElement) { document.getElementById('camera-container').style.display = 'block'; document.getElementById('fullscreen-prompt').style.display = 'none'; resizeElements(); } else { enforceFullscreen(); } } }
     function resizeElements() { const container = document.getElementById('camera-container'); const w = window.innerWidth; const h = window.innerHeight; const baseW = 760; const baseH = 420; const isTablet = (w / h) < 1.6; const multiplier = isTablet ? 0.8 : 0.85; const scale = Math.min(w / baseW, h / baseH) * multiplier; container.style.top = '53%'; container.style.left = '50%'; container.style.transform = `translate(-50%, -50%) scale(${scale})`; if (document.fullscreenElement || window.innerHeight < window.innerWidth) { container.style.display = 'block'; } }
-    window.addEventListener('resize', () => { checkOrientation(); resizeElements(); setTimeout(resizeElements, 300); });
-    resizeElements();
+   window.addEventListener('resize', () => { 
+    checkOrientation(); 
+    resizeElements(); 
+    updateFSGuideFrame(); // 加入這一行，旋轉手機時白框會自動修正
+    setTimeout(() => {
+        resizeElements();
+        updateFSGuideFrame(); // 延遲再執行一次確保準確
+    }, 300); 
+});
+
+function updateFSGuideFrame() {
+    const container = document.getElementById('fs-viewfinder');
+    if (container.style.display !== 'block') return;
+
+    const canvas = document.getElementById('process-canvas'); // 這是我們的源頭尺寸
+    const frame = document.getElementById('fsGuideFrame');
+    
+    // 取得當前畫面比例 (通常是 16:9)
+    const imgAspect = canvas.width / canvas.height;
+    const winAspect = window.innerWidth / window.innerHeight;
+    
+    let actualImgW, actualImgH;
+
+    if (winAspect > imgAspect) {
+        // 螢幕比照片寬 (左右有黑邊) -> 照片高度等於螢幕高度
+        actualImgH = window.innerHeight;
+        actualImgW = actualImgH * imgAspect;
+    } else {
+        // 螢幕比照片高 (上下有黑邊) -> 照片寬度等於螢幕寬度
+        actualImgW = window.innerWidth;
+        actualImgH = actualImgW / imgAspect;
+    }
+
+    // 設定白框大小為實際照片範圍的 85%
+    frame.style.width = (actualImgW * 0.85) + 'px';
+    frame.style.height = (actualImgH * 0.85) + 'px';
+}
+
+    
 </script>
 </body>
 </html>
