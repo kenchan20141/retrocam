@@ -26,23 +26,17 @@
     #orientation-lock svg { width: 60px; height: 60px; fill: #fff; animation: rotatePhone 2s infinite; }
     @keyframes rotatePhone { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-90deg); } }
 
+    /* [MODIFIED] Fixed positioning for absolute centering stability */
     #camera-container {
         width: 760px; height: 420px; 
-        
-        /* [關鍵修改] 改為 fixed 定位，強制鎖定視窗中心 */
         position: fixed; 
-        top: 50%; 
-        left: 50%;
-        
-        /* 預設先置中 (JS 會再覆寫這個 transform 加入 scale) */
-        transform: translate(-50%, -50%);
-        
-        transform-origin: center; /* 保持中心縮放 */
-        
+        top: 50%; left: 50%;
+        transform: translate(-50%, -50%); /* Default centered state */
+        transform-origin: center center;
         filter: drop-shadow(0 0 2px rgba(255,255,255,0.25)) drop-shadow(0 30px 60px rgba(0,0,0,0.9)); 
         display: none; 
         transform-style: preserve-3d; 
-        z-index: 100; /* 確保層級夠高 */
+        z-index: 100;
     }
 
     .top-plate {
@@ -52,7 +46,6 @@
         box-shadow: inset 0 1px 0 rgba(255,255,255,0.8);
     }
 
-    /* --- LAYOUT CONFIGURATION --- */
     .viewfinder-wrap { position: absolute; top: 15px; left: 30px; width: 120px; height: 80px; background: #111; border: 3px solid #666; border-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.4); overflow: hidden; cursor: zoom-in; z-index: 12; transition: opacity 0.3s; }
     .vf-glass { width: 100%; height: 100%; opacity: 0.9; display: block; }
     .function-group { position: absolute; top: 18px; left: 170px; width: 100px; height: 80px; display: flex; flex-direction: column; gap: 12px; z-index: 25; }
@@ -82,9 +75,11 @@
     .prism-hump { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); width: 140px; height: 125px; z-index: 11; clip-path: polygon(25% 0%, 75% 0%, 100% 100%, 0% 100%); background: linear-gradient(to bottom, #d0d0d0 0%, #b0b0b0 50%, #808080 100%); box-shadow: inset 0 0 10px rgba(0,0,0,0.2); display: flex; justify-content: center; }
     .prism-hump::after { content: ''; width: 1px; height: 100%; background: rgba(0,0,0,0.1); }
     
-    .lever-base { position: absolute; top: 35px; right: 100px; width: 50px; height: 50px; border-radius: 50%; background: radial-gradient(#ccc, #999); border: 1px solid #666; z-index: 5; box-shadow: inset 0 1px 2px rgba(255,255,255,0.5); }
-    .lever-base.glow { box-shadow: 0 0 15px #ffaa00, inset 0 0 5px #fff; border-color: #ffaa00; animation: glowPulse 1s infinite alternate; }
-    @keyframes glowPulse { from { opacity: 0.6; } to { opacity: 1; } }
+    .lever-base { position: absolute; top: 35px; right: 100px; width: 50px; height: 50px; border-radius: 50%; background: radial-gradient(#ccc, #999); border: 1px solid #666; z-index: 5; box-shadow: inset 0 1px 2px rgba(255,255,255,0.5); transition: box-shadow 0.3s; }
+    /* [MODIFIED] Lever glow to indicate it needs pulling */
+    .lever-base.glow { box-shadow: 0 0 20px #ffaa00, inset 0 0 10px #ffcc00; border-color: #ffaa00; animation: glowPulse 0.8s infinite alternate; }
+    @keyframes glowPulse { from { box-shadow: 0 0 15px #ffaa00, inset 0 0 5px #ffcc00; } to { box-shadow: 0 0 25px #ff5500, inset 0 0 12px #ffdd00; } }
+
     .advance-lever { position: absolute; top: 48px; right: 105px; width: 120px; height: 18px; background: linear-gradient(to right, #222, #444); border-radius: 4px; transform-origin: 110px 9px; transform: rotate(10deg); cursor: grab; box-shadow: 2px 2px 4px rgba(0,0,0,0.6); z-index: 6; display: flex; align-items: center; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
     .lever-grip { width: 30px; height: 24px; background: #111; border-radius: 4px 0 0 4px; margin-left: -2px; box-shadow: inset 1px 1px 2px rgba(255,255,255,0.2); }
     .right-controls { position: absolute; top: 20px; right: 20px; width: 60px; height: 80px; z-index: 15; display: flex; flex-direction: column; align-items: center; }
@@ -96,6 +91,8 @@
     .switch-knob { width: 18px; height: 18px; background: radial-gradient(#eee, #999); border-radius: 50%; position: absolute; top: -2px; left: 0; box-shadow: 0 1px 2px rgba(0,0,0,0.5); border: 1px solid #666; transition: left 0.3s; }
     .mode-switch-container.mode-36 .switch-knob { left: 18px; }
     .ready-light { position: absolute; top: 20px; right: 165px; width: 8px; height: 8px; background: #300; border-radius: 50%; box-shadow: inset 0 0 2px #000; transition: background 0.3s; z-index: 15; }
+    /* Ready light logic inverted: Green when ready to shoot, OFF when needs winding? Or Red when needs winding? 
+       For this sim: Active (Red) means "Needs Winding / Double Exp Ready" */
     .ready-light.active { background: #f00; box-shadow: 0 0 8px #f00, inset 0 0 2px #fff; }
 
     .front-controls-group { display: none; } 
@@ -146,22 +143,11 @@
     .album-photo.selected::after { content: '✔'; position: absolute; top: 2px; right: 2px; background: #c00; color: white; font-size: 12px; padding: 2px 4px; }
     .album-seq { position: absolute; top: 2px; left: 2px; font-family: 'Courier New'; font-size: 10px; color: #ff9900; background: rgba(0,0,0,0.7); padding: 1px 3px; }
 
-    /* --- SEAMLESS FILM STRIP VIEW (No Slices) --- */
+    /* --- SEAMLESS FILM STRIP VIEW --- */
     .film-strip-view {
-        flex: 1;
-        display: none;
-        flex-direction: row;
-        overflow-x: auto;
-        overflow-y: hidden;
-        white-space: nowrap;
-        background: #050505;
-        align-items: center;
-        scroll-behavior: auto;
-        perspective: none; 
-        padding-left: 85px; 
-        position: relative;
-        z-index: 5;
-        /* Masking for the "entering canister" effect */
+        flex: 1; display: none; flex-direction: row; overflow-x: auto; overflow-y: hidden;
+        white-space: nowrap; background: #050505; align-items: center;
+        scroll-behavior: auto; perspective: none; padding-left: 85px; position: relative; z-index: 5;
         mask-image: linear-gradient(to right, transparent 0%, transparent 84px, black 86px);
         -webkit-mask-image: linear-gradient(to right, transparent 0%, transparent 84px, black 86px);
     }
@@ -169,105 +155,48 @@
     .film-strip-view::-webkit-scrollbar { height: 8px; display: none; }
     
     .static-canister-overlay {
-        position: absolute; 
-        left: 15px; top: 42%; /* Moved up slightly */
-        transform: translateY(-50%);
-        width: 65px; height: 210px; z-index: 50 !important;
-        pointer-events: none;
+        position: absolute; left: 15px; top: 42%; transform: translateY(-50%);
+        width: 65px; height: 210px; z-index: 50 !important; pointer-events: none;
         filter: drop-shadow(5px 0 10px rgba(0,0,0,0.8));
     }
-    
     .canister-cylinder {
         width: 100%; height: 100%;
         background: linear-gradient(90deg, #222 0%, #555 30%, #222 60%, #111 100%);
         border-radius: 4px; box-shadow: 8px 0 20px rgba(0,0,0,1);
-        border: 1px solid #333;
-        position: relative;
+        border: 1px solid #333; position: relative;
         display: flex; flex-direction: column; justify-content: center; align-items: center;
     }
     .canister-cylinder::before { content: ''; position: absolute; top: -12px; width: 100%; height: 12px; background: #333; border-radius: 50% 50% 0 0; border: 1px solid #444; background: radial-gradient(circle at 30% 30%, #666, #222); }
     .canister-cylinder::after { content: ''; position: absolute; bottom: -12px; width: 100%; height: 12px; background: #333; border-radius: 0 0 50% 50%; border: 1px solid #444; background: radial-gradient(circle at 30% 30%, #666, #222); }
-    .canister-slot {
-        position: absolute; right: -2px; top: 15%; height: 70%; width: 6px; background: #000;
-        border-left: 1px solid #444; box-shadow: inset 2px 0 4px #000;
-    }
+    .canister-slot { position: absolute; right: -2px; top: 15%; height: 70%; width: 6px; background: #000; border-left: 1px solid #444; box-shadow: inset 2px 0 4px #000; }
     
-    .film-frame-container {
-        display: inline-flex;
-        align-items: center;
-        height: 180px;
-        flex-shrink: 0;
-        margin: 0; 
-        position: relative;
-        background: transparent;
-        border: none;
-        padding: 0;
-        transform-style: flat;
-        width: auto; 
-    }
-    
-    .film-block {
-        position: relative;
-        height: 100%;
-        width: 100%;
-        display: block;
-        background: #000;
-        margin-right: -1px;
-    }
-    
-    /* Sprocket holes */
+    .film-frame-container { display: inline-flex; align-items: center; height: 180px; flex-shrink: 0; margin: 0; position: relative; background: transparent; border: none; padding: 0; transform-style: flat; width: auto; }
+    .film-block { position: relative; height: 100%; width: 100%; display: block; background: #000; margin-right: -1px; }
     .film-block::before, .film-block::after {
         content: ''; position: absolute; left: 0; width: 100%; height: 14px;
-        background-color: #000;
-        background-image: linear-gradient(90deg, #111 60%, transparent 60%);
-        background-size: 18px 100%; 
-        background-repeat: repeat-x; 
-        z-index: 5;
+        background-color: #000; background-image: linear-gradient(90deg, #111 60%, transparent 60%);
+        background-size: 18px 100%; background-repeat: repeat-x; z-index: 5;
     }
     .film-block::before { top: 0; border-bottom: 1px solid #333; }
     .film-block::after { bottom: 0; border-top: 1px solid #333; }
     
-    /* SELECTION GLOW EFFECT (FILM STRIP) */
     .film-frame-container.selected .film-block::before,
     .film-frame-container.selected .film-block::after {
-        /* 背景改為深褐色 */
-        background-color: #8a5a00; 
-        /* 漸層改為柔和的橙色 */
-        background-image: linear-gradient(90deg, #cc8800 60%, transparent 60%);
-        /* 光暈改為較弱的橙光 */
+        background-color: #8a5a00; background-image: linear-gradient(90deg, #cc8800 60%, transparent 60%);
         box-shadow: 0 0 8px rgba(255, 170, 0, 0.6);
     }
 
+    /* [MODIFIED] Positive Film (Slide) Look: "Through-light" transparency effect */
     .film-block-img {
-        position: absolute; 
-        top: 14px; bottom: 14px; 
-        left: 0; right: 0;
+        position: absolute; top: 14px; bottom: 14px; left: 0; right: 0;
         width: 100%; height: auto;
-        background-repeat: no-repeat;
-        background-size: cover; 
-        background-position: center;
-        background-color: #000;
-        z-index: 1; 
-        image-rendering: high-quality; 
+        background-repeat: no-repeat; background-size: cover; background-position: center;
+        background-color: #000; z-index: 1; 
+        box-shadow: 0 0 10px rgba(255,255,255,0.3), inset 0 0 15px rgba(0,0,0,0.5); /* Inner glow + Backlight */
+        filter: contrast(1.1) saturate(1.1); /* Enhance look */
     }
     
-     .film-meta-label { 
-        position: absolute; 
-        
-        /* [修改點] 從 top 改為 bottom */
-        /* 底部齒孔高 14px，設定 18px 讓文字剛好浮在齒孔上方 */
-        bottom: 18px;  
-        left: 8px; 
-        
-        /* 樣式保持不變 */
-        color: rgba(255, 255, 255, 0.85); 
-        font-family: 'Courier New', monospace; 
-        font-size: 12px; 
-        font-weight: bold; 
-        z-index: 20; 
-        text-shadow: 0 1px 2px rgba(0,0,0,0.9); 
-        pointer-events: none; 
-    }
+     .film-meta-label { position: absolute; bottom: 18px; left: 8px; color: rgba(255, 255, 255, 0.85); font-family: 'Courier New', monospace; font-size: 12px; font-weight: bold; z-index: 20; text-shadow: 0 1px 2px rgba(0,0,0,0.9); pointer-events: none; }
 
     .album-controls { height: 50px; background: #181818; border-top: 1px solid #333; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; gap: 10px; }
     .ac-left-group { display: flex; gap: 10px; }
@@ -375,7 +304,6 @@
         </div>
     </div>
 
-    <!-- 3D FILM ROLL SELECTOR -->
     <div id="film-roll-overlay">
         <h2 style="color:white; font-family:'Courier New'; margin-bottom:30px; text-shadow:0 0 5px #fff;">SELECT FILM STOCK</h2>
         <div class="film-roll-container" id="filmRollContainer"></div>
@@ -439,17 +367,13 @@
             <div class="camera-interior">
                 <div class="album-container" id="albumGrid"></div>
                 
-                <!-- STATIC CANISTER OVERLAY -->
                 <div class="static-canister-overlay" id="staticCanister">
                     <div class="canister-cylinder">
                          <div class="canister-slot"></div>
                     </div>
                 </div>
 
-                <!-- SCROLLABLE STRIP -->
-                <div class="film-strip-view active" id="filmStripView">
-                    <!-- Frames Populated by JS -->
-                </div>
+                <div class="film-strip-view active" id="filmStripView"></div>
                 
                 <div class="album-controls">
                     <div class="ac-left-group">
@@ -528,6 +452,11 @@
         /* --- VARS --- */
         let isRollMode = localStorage.getItem('rollMode') === 'true'; let currentFrame = 0; let pendingPhoto = null; let globalSerialCounter = parseInt(localStorage.getItem('global_serial_counter') || '1'); let isSelfieMode = false; let isSketchMode = false; let isOrientationLocked = localStorage.getItem('orientationLocked') === 'true'; let isFilmViewMode = true;
         
+        // Multi-exposure State
+        let isFilmAdvanced = true; // True = Ready to shoot fresh frame. False = Frame exposed, needs winding.
+        let exposureCanvas = document.createElement('canvas'); // Buffer for multi-exposure
+        let exposureCtx = exposureCanvas.getContext('2d');
+        
         const REAL_MODES = [ { id: 'BW', name: 'B&W', sub: 'STREET 400', color: '#000' }, { id: 'COLOR', name: 'COLOR', sub: 'GAME-CAM', color: '#c00' }, { id: 'CCD', name: 'DIGI', sub: 'CCD SENSOR', color: '#0055cc' }, { id: 'HCBW', name: 'HC-BW', sub: 'FINE 100', color: '#555' }, { id: 'FILM_TEAL', name: 'FILM: TEAL', sub: 'KYOTO 400', color: '#008080' }, { id: 'FILM_SUN', name: 'FILM: SUN', sub: 'CALI 200', color: '#ffcc00' }, { id: 'FILM_VIVID', name: 'FILM: VIVID', sub: 'SLIDE 100', color: '#ff0055' }, { id: 'FILM_AGED', name: 'FILM: AGED', sub: 'EURO 800', color: '#8b4513' }, { id: 'FILM_SOFT', name: 'FILM: SOFT', sub: 'AIRY 400H', color: '#90e0ef' } ];
         const SKETCH_MODES = [ { id: 'SKETCH_BW', name: 'PENCIL', sub: '2B GRAPHITE', color: '#333' }, { id: 'SKETCH_COL', name: 'CRAYON', sub: 'SOFT PASTEL', color: '#d2691e' }, { id: 'SKETCH_INK', name: 'INK', sub: 'COMIC PEN', color: '#000' }, { id: 'SKETCH_OIL', name: 'OIL', sub: 'IMPASTO', color: '#8b4513' }, { id: 'SKETCH_CYBER', name: 'CYBER', sub: 'NEON GRID', color: '#0f0' }, { id: 'SKETCH_BLUE', name: 'BLUE', sub: 'BLUEPRINT', color: '#4169e1' }, { id: 'SKETCH_HK_NEON', name: 'HK NEON', sub: 'NIGHT LIGHTS', color: '#ff00cc' }, { id: 'SKETCH_SHUIMO', name: 'SHUIMO', sub: 'INK WASH', color: '#111' } ];
         let savedMode = localStorage.getItem('camModeIdx'); let currentModeIdx = savedMode ? parseInt(savedMode) : 0;
@@ -566,9 +495,20 @@
         function updateModeUI() { const modes = getModes(); if(currentModeIdx >= modes.length) currentModeIdx = 0; const m = modes[currentModeIdx]; modeTitle.textContent = m.name; modeSub.textContent = m.sub; document.getElementById('fs-mode-text').textContent = m.name; const h3 = filmCard.querySelector('h3'); h3.style.color = m.color; const styleEl = document.createElement('style'); styleEl.innerHTML = `.film-card::before, .film-card::after { background: ${m.color} !important; }`; const oldStyle = document.getElementById('film-card-style'); if(oldStyle) oldStyle.remove(); styleEl.id = 'film-card-style'; document.head.appendChild(styleEl); }
         updateModeUI();
 
-        async function initSystem() { await initDB(); initGrainSystem(); if (isRollMode) { rollModeSwitch.classList.add('mode-36'); currentFrame = await getTempCount(); } else { rollModeSwitch.classList.remove('mode-36'); currentFrame = 0; } checkLeverState(); updateCounterDisplay(); if(isOrientationLocked) { orientationBtn.classList.add('locked'); try { if (screen.orientation && screen.orientation.lock) {} } catch(e){} } }
+        async function initSystem() { await initDB(); initGrainSystem(); if (isRollMode) { rollModeSwitch.classList.add('mode-36'); currentFrame = await getTempCount(); } else { rollModeSwitch.classList.remove('mode-36'); currentFrame = 0; } updateCounterDisplay(); updateLeverUI(); if(isOrientationLocked) { orientationBtn.classList.add('locked'); try { if (screen.orientation && screen.orientation.lock) {} } catch(e){} } }
         function updateCounterDisplay() { if (!isRollMode) { frameCounterUI.textContent = "S"; fsCounter.textContent = "1"; } else { if (currentFrame === 0) frameCounterUI.textContent = "S"; else if (currentFrame >= 36) frameCounterUI.textContent = "E"; else frameCounterUI.textContent = currentFrame; fsCounter.textContent = (36 - currentFrame) + " LEFT"; } }
-        function checkLeverState() { if ((isRollMode && currentFrame >= 36) || (!isRollMode && pendingPhoto)) { readyLight.classList.add('active'); leverBase.classList.add('glow'); } else { readyLight.classList.remove('active'); leverBase.classList.remove('glow'); } }
+        
+        function updateLeverUI() {
+            // If film is NOT advanced (shot taken, needs winding), show glow and red light.
+            if (!isFilmAdvanced) {
+                readyLight.classList.add('active'); 
+                leverBase.classList.add('glow');
+            } else {
+                readyLight.classList.remove('active'); 
+                leverBase.classList.remove('glow');
+            }
+        }
+
         document.getElementById('enter-fs-btn').addEventListener('click', () => { startFullscreenAndCamera(); });
         function startFullscreenAndCamera() { const el = document.documentElement; const rfs = el.requestFullscreen || el.webkitRequestFullScreen; if (rfs) { rfs.call(el).then(() => { initSystem().then(initCamera); if(isOrientationLocked && screen.orientation && screen.orientation.lock) { screen.orientation.lock('landscape').catch(()=>{}); } }).catch(() => { initSystem().then(initCamera); }); } }
         async function initCamera() { try { if(video.srcObject) { video.srcObject.getTracks().forEach(track => track.stop()); } const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: isSelfieMode ? 'user' : 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false }); video.srcObject = stream; video.onloadedmetadata = () => { video.play(); renderLoop(); }; } catch (err) { console.error("Camera Error", err); } }
@@ -622,17 +562,233 @@
         shutterBtn.addEventListener('click', handleShutter);
         frontShutterBtn.addEventListener('click', handleShutter);
         cablePlunger.addEventListener('click', (e) => { e.stopPropagation(); cablePlunger.classList.add('pressed'); setTimeout(() => cablePlunger.classList.remove('pressed'), 200); handleShutter(e); });
-        function handleShutter(e) { if(e) e.stopPropagation(); if (e && e.target.id === 'vf-close-btn') return; if (!isSelfieMode && backDoorWrapper.classList.contains('open')) return; if (isRollMode && currentFrame >= 36) return; if (!isRollMode && pendingPhoto) return; const btn = isSelfieMode ? frontShutterBtn : shutterBtn; btn.classList.add('pressed'); playShutterSound(); if (isSelfieMode) { shutterFlash.classList.remove('flash'); void shutterFlash.offsetWidth; shutterFlash.classList.add('flash'); setTimeout(() => shutterFlash.classList.remove('flash'), 150); } else { const container = (fsViewfinder.style.display === 'block') ? fsViewfinder : vfTrigger; const blind = document.createElement('div'); blind.className = container === fsViewfinder ? 'shutter-blind' : 'vf-shutter-blind'; container.appendChild(blind); setTimeout(() => blind.remove(), 150); } setTimeout(() => { performCapture(); btn.classList.remove('pressed'); }, 150); }
+        
+        function handleShutter(e) { 
+            if(e) e.stopPropagation(); 
+            if (e && e.target.id === 'vf-close-btn') return; 
+            if (!isSelfieMode && backDoorWrapper.classList.contains('open')) return; 
+            if (isRollMode && currentFrame >= 36) return; 
+            // In 1-shot mode, we allow unlimited shots if not cleared, creating double exposures as per request.
+            
+            const btn = isSelfieMode ? frontShutterBtn : shutterBtn; 
+            btn.classList.add('pressed'); 
+            playShutterSound(); 
+            
+            if (isSelfieMode) { 
+                shutterFlash.classList.remove('flash'); 
+                void shutterFlash.offsetWidth; 
+                shutterFlash.classList.add('flash'); 
+                setTimeout(() => shutterFlash.classList.remove('flash'), 150); 
+            } else { 
+                const container = (fsViewfinder.style.display === 'block') ? fsViewfinder : vfTrigger; 
+                const blind = document.createElement('div'); 
+                blind.className = container === fsViewfinder ? 'shutter-blind' : 'vf-shutter-blind'; 
+                container.appendChild(blind); 
+                setTimeout(() => blind.remove(), 150); 
+            } 
+            
+            setTimeout(() => { 
+                performCapture(); 
+                btn.classList.remove('pressed'); 
+            }, 150); 
+        }
 
         function generateLightLeak(ctx, w, h, severity = 1) { ctx.save(); ctx.globalCompositeOperation = 'screen'; const baseCount = severity > 1 ? 3 : (Math.random() > 0.7 ? 2 : 1); for(let i=0; i<baseCount; i++) { const type = Math.random(); const opacity = (0.4 + Math.random() * 0.4) * severity; const hue = Math.random() > 0.8 ? 40 + Math.random()*10 : 10 + Math.random()*30; let colorInner = `hsla(${hue}, 90%, 60%, ${opacity})`; let colorOuter = `hsla(${hue-10}, 90%, 40%, 0)`; if (type < 0.4) { const isLeft = Math.random() > 0.5; const width = w * (0.15 + Math.random() * 0.3); const grad = ctx.createLinearGradient(isLeft ? 0 : w, 0, isLeft ? width : w - width, 0); grad.addColorStop(0, colorInner); grad.addColorStop(1, colorOuter); ctx.fillStyle = grad; ctx.fillRect(0, 0, w, h); } else { const cx = Math.random() > 0.5 ? 0 : w; const cy = Math.random() > 0.5 ? 0 : h; const r = Math.max(w, h) * (0.4 + Math.random() * 0.4); const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r); grad.addColorStop(0, `hsla(${hue}, 20%, 90%, ${opacity})`); grad.addColorStop(1, `hsla(${hue}, 90%, 20%, 0)`); ctx.fillStyle = grad; ctx.fillRect(0, 0, w, h); } } ctx.restore(); }
-        async function performCapture() { const modes = getModes(); const mode = modes[currentModeIdx]; const targetW = 1920, targetH = 1080; finalCanvas.width = targetW; finalCanvas.height = targetH; finalCtx.filter = 'none'; finalCtx.globalCompositeOperation = 'source-over'; if (isSelfieMode) { finalCtx.translate(targetW, 0); finalCtx.scale(-1, 1); } finalCtx.imageSmoothingEnabled = (mode.id.startsWith('FILM_') || mode.id === 'HCBW' || mode.id === 'CCD' || mode.id.includes('SKETCH')); finalCtx.drawImage(processCanvas, 0, 0, targetW, targetH); if (mode.id.startsWith('FILM_')) { const severity = (mode.id === 'FILM_AGED') ? 2.0 : 1.0; generateLightLeak(finalCtx, targetW, targetH, severity); } finalCtx.setTransform(1, 0, 0, 1, 0, 0); const highRes = finalCanvas.toDataURL('image/jpeg', 0.92); if (isRollMode) { await saveToTemp(highRes); currentFrame++; updateCounterDisplay(); checkLeverState(); } else { pendingPhoto = highRes; document.getElementById('review-img').src = highRes; document.getElementById('review-overlay').style.display = 'flex'; fsViewfinder.style.display = 'none'; } }
-        document.getElementById('btn-discard').addEventListener('click', () => { pendingPhoto = null; document.getElementById('review-overlay').style.display = 'none'; }); document.getElementById('btn-keep').addEventListener('click', () => { document.getElementById('review-overlay').style.display = 'none'; checkLeverState(); });
-        rollModeSwitch.addEventListener('click', async () => { if(pendingPhoto || (isRollMode && currentFrame > 0 && currentFrame < 36)) { if(!confirm("Switching modes will clear current roll. Continue?")) return; await clearTemp(); pendingPhoto = null; } isRollMode = !isRollMode; localStorage.setItem('rollMode', isRollMode); rollModeSwitch.classList.toggle('mode-36', isRollMode); currentFrame = 0; updateCounterDisplay(); checkLeverState(); });
-        let leverPulled = false; advanceLever.addEventListener('click', async () => { if (!readyLight.classList.contains('active') || leverPulled) return; leverPulled = true; requestAnimationFrame(() => { advanceLever.style.transform = 'rotate(130deg)'; setTimeout(playLeverSound, 50); }); setTimeout(() => { advanceLever.style.transform = 'rotate(10deg)'; styleOverlay.style.display = 'flex'; leverPulled = false; }, 400); });
-        document.querySelectorAll('.style-btn').forEach(btn => { btn.addEventListener('click', async (e) => { const style = e.currentTarget.dataset.style; styleOverlay.style.display = 'none'; readyLight.classList.remove('active'); leverBase.classList.remove('glow'); let photosToProcess = []; if (isRollMode) photosToProcess = await getTempPhotos(); else if (pendingPhoto) photosToProcess = [{ image: pendingPhoto, date: new Date() }]; if(photosToProcess.length > 0) await startDevelopingAnimation(photosToProcess, style); }); });
-        function applyFrameAndDate(imgUrl, dateObj, style) { return new Promise(resolve => { const img = new Image(); img.onload = () => { let w = 1920, h = 1080; let padTop = 0, padSide = 0, padBottom = 0; if (style === 'white') { padTop = 50; padSide = 50; padBottom = 150; w = 1200; h = Math.floor(w * (9/16)) + padTop + padBottom; } else if (style === 'film') { padTop = 80; padSide = 0; padBottom = 80; } finalCanvas.width = w; finalCanvas.height = h; const ctx = finalCanvas.getContext('2d'); ctx.filter = 'none'; if (style === 'white') { ctx.fillStyle = '#fff'; ctx.fillRect(0,0,w,h); ctx.drawImage(img, padSide, padTop, w - padSide*2, h - padTop - padBottom); } else if (style === 'film') { ctx.drawImage(img, 0, padTop, w, h - padTop*2); ctx.fillStyle = '#111'; ctx.fillRect(0, 0, w, padTop); ctx.fillRect(0, h - padBottom, w, padBottom); ctx.fillStyle = '#fff'; const holeW = 30, gap = 20; for(let x = 30; x < w; x += (holeW + gap)) { ctx.fillRect(x, 20, holeW, 40); ctx.fillRect(x, h - 60, holeW, 40); } } else { ctx.drawImage(img, 0, 0, w, h); } const d = new Date(dateObj); const dateStr = `'${d.getFullYear().toString().slice(-2)} ${(d.getMonth()+1).toString().padStart(2,'0')} ${d.getDate().toString().padStart(2,'0')}`; let dateX = (style === 'white') ? w - padSide - 30 : ((style === 'film') ? w - 50 : w - 60); let dateY = (style === 'white' || style === 'film') ? h - padBottom - 30 : h - 50; if (isSketchMode) { ctx.save(); ctx.shadowBlur = 0; const m = SKETCH_MODES[currentModeIdx]; if(m.id === 'SKETCH_CYBER') ctx.fillStyle = '#0f0'; else if(m.id === 'SKETCH_BLUE') ctx.fillStyle = '#fff'; else if(m.id === 'SKETCH_HK_NEON') ctx.fillStyle = '#ff00cc'; else ctx.fillStyle = 'rgba(50, 50, 50, 0.85)'; ctx.font = `normal 45px "Segoe Print", "Comic Sans MS", cursive`; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom'; ctx.translate(dateX, dateY); ctx.rotate(-0.05); ctx.fillText(dateStr, 0, 0); ctx.restore(); } else { ctx.shadowColor = '#ff5500'; ctx.shadowBlur = 15; ctx.fillStyle = 'rgba(255, 170, 50, 0.9)'; const fontSize = style === 'white' ? 40 : 50; ctx.font = `bold ${fontSize}px "Courier New", monospace`; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom'; ctx.fillText(dateStr, dateX, dateY); } resolve(finalCanvas.toDataURL('image/jpeg', 0.9)); }; img.src = imgUrl; }); }
+        
+        async function performCapture() { 
+            const modes = getModes(); 
+            const mode = modes[currentModeIdx]; 
+            const targetW = 1920, targetH = 1080; 
+            
+            // 1. Prepare temp capture from live video
+            const tempC = document.createElement('canvas');
+            tempC.width = targetW; tempC.height = targetH;
+            const tempCtx = tempC.getContext('2d');
+            
+            tempCtx.filter = 'none'; 
+            if (isSelfieMode) { tempCtx.translate(targetW, 0); tempCtx.scale(-1, 1); } 
+            tempCtx.imageSmoothingEnabled = (mode.id.startsWith('FILM_') || mode.id === 'HCBW' || mode.id === 'CCD' || mode.id.includes('SKETCH')); 
+            tempCtx.drawImage(processCanvas, 0, 0, targetW, targetH); 
+            if (mode.id.startsWith('FILM_')) { const severity = (mode.id === 'FILM_AGED') ? 2.0 : 1.0; generateLightLeak(tempCtx, targetW, targetH, severity); } 
+            
+            // 2. EXPOSURE LOGIC (Multi-Exposure)
+            // If film is NOT advanced, we are doing a double exposure (or triple, etc.)
+            // We draw onto the existing exposureCanvas.
+            if (exposureCanvas.width !== targetW) {
+                exposureCanvas.width = targetW; exposureCanvas.height = targetH;
+            }
+
+            if (isFilmAdvanced) {
+                // First shot on this frame: Just draw it.
+                exposureCtx.globalCompositeOperation = 'source-over';
+                exposureCtx.drawImage(tempC, 0, 0);
+                isFilmAdvanced = false; // Now frame is "dirty", needs winding.
+            } else {
+                // Double exposure! Use 'screen' to simulate light adding to film.
+                exposureCtx.globalCompositeOperation = 'screen';
+                // Slightly reduce opacity to prevent total whiteout if multiple shots are bright
+                exposureCtx.globalAlpha = 0.8; 
+                exposureCtx.drawImage(tempC, 0, 0);
+                exposureCtx.globalAlpha = 1.0;
+            }
+
+            // 3. Update UI
+            updateLeverUI();
+        }
+        
+        document.getElementById('btn-discard').addEventListener('click', () => { 
+            pendingPhoto = null; 
+            document.getElementById('review-overlay').style.display = 'none'; 
+        }); 
+        
+        document.getElementById('btn-keep').addEventListener('click', () => { 
+            document.getElementById('review-overlay').style.display = 'none'; 
+            // In 1-shot mode, "keeping" means we are done with this frame.
+            isFilmAdvanced = true; 
+            updateLeverUI();
+        });
+
+        rollModeSwitch.addEventListener('click', async () => { 
+            if(!isFilmAdvanced || (isRollMode && currentFrame > 0 && currentFrame < 36)) { 
+                if(!confirm("Switching modes will clear current roll/frame. Continue?")) return; 
+                await clearTemp(); 
+                // Clear exposure buffer
+                exposureCtx.clearRect(0, 0, exposureCanvas.width, exposureCanvas.height);
+                isFilmAdvanced = true;
+            } 
+            isRollMode = !isRollMode; 
+            localStorage.setItem('rollMode', isRollMode); 
+            rollModeSwitch.classList.toggle('mode-36', isRollMode); 
+            currentFrame = 0; 
+            updateCounterDisplay(); 
+            updateLeverUI(); 
+        });
+        
+        // LEVER LOGIC
+        let leverPulled = false; 
+        advanceLever.addEventListener('click', async () => { 
+            if (isFilmAdvanced || leverPulled) return; // Can't wind if already wound
+            
+            leverPulled = true; 
+            requestAnimationFrame(() => { 
+                advanceLever.style.transform = 'rotate(130deg)'; 
+                setTimeout(playLeverSound, 50); 
+            }); 
+            
+            setTimeout(async () => { 
+                advanceLever.style.transform = 'rotate(10deg)'; 
+                
+                // --- DEVELOP / ADVANCE LOGIC ---
+                const finalImage = exposureCanvas.toDataURL('image/jpeg', 0.92);
+                
+                if (isRollMode) {
+                    // 36 Mode: Save to Temp, Clear, Advance Counter
+                    await saveToTemp(finalImage);
+                    currentFrame++;
+                    updateCounterDisplay();
+                    isFilmAdvanced = true;
+                    // Clear buffer for next shot
+                    exposureCtx.clearRect(0,0, exposureCanvas.width, exposureCanvas.height);
+                    updateLeverUI();
+                    leverPulled = false;
+                } else {
+                    // 1 Shot Mode: Open Development/Style Selector immediately
+                    // Prompt asks for style selection for "developed" photos.
+                    // We treat the lever pull as "Developing" the shot.
+                    styleOverlay.style.display = 'flex';
+                    // We temporarily store the image to pendingPhoto
+                    pendingPhoto = finalImage;
+                    // Note: isFilmAdvanced stays false until "Keep" is pressed or Style selected?
+                    // Actually, selecting style -> animation -> save to album.
+                    // So we handle the reset inside the style selector callback.
+                    leverPulled = false;
+                }
+            }, 400); 
+        });
+
+        document.querySelectorAll('.style-btn').forEach(btn => { 
+            btn.addEventListener('click', async (e) => { 
+                const style = e.currentTarget.dataset.style; 
+                styleOverlay.style.display = 'none'; 
+                
+                // Clear mechanical state
+                isFilmAdvanced = true; 
+                updateLeverUI();
+                exposureCtx.clearRect(0,0, exposureCanvas.width, exposureCanvas.height);
+
+                let photosToProcess = []; 
+                if (isRollMode) {
+                    // This logic only triggers if we manually trigger development for 36 mode? 
+                    // No, usually 36 mode develops at end. But if we reuse this UI...
+                    // Current flow: Lever in 1-mode opens this.
+                    // Lever in 36-mode just advances.
+                    // So this block is mostly for 1-mode or "Finish Roll" logic.
+                } 
+                
+                if (pendingPhoto && !isRollMode) {
+                   photosToProcess = [{ image: pendingPhoto, date: new Date() }];
+                   pendingPhoto = null;
+                   fsViewfinder.style.display = 'none';
+                   await startDevelopingAnimation(photosToProcess, style);
+                }
+            }); 
+        });
+
+        function applyFrameAndDate(imgUrl, dateObj, style) { 
+            return new Promise(resolve => { 
+                const img = new Image(); 
+                img.onload = () => { 
+                    let w = 1920, h = 1080; 
+                    let padTop = 0, padSide = 0, padBottom = 0; 
+                    if (style === 'white') { padTop = 50; padSide = 50; padBottom = 150; w = 1200; h = Math.floor(w * (9/16)) + padTop + padBottom; } 
+                    else if (style === 'film') { padTop = 80; padSide = 0; padBottom = 80; } 
+                    
+                    finalCanvas.width = w; finalCanvas.height = h; 
+                    const ctx = finalCanvas.getContext('2d'); 
+                    ctx.filter = 'none'; 
+                    
+                    if (style === 'white') { 
+                        ctx.fillStyle = '#fff'; ctx.fillRect(0,0,w,h); 
+                        ctx.drawImage(img, padSide, padTop, w - padSide*2, h - padTop - padBottom); 
+                    } else if (style === 'film') { 
+                        ctx.drawImage(img, 0, padTop, w, h - padTop*2); 
+                        ctx.fillStyle = '#111'; ctx.fillRect(0, 0, w, padTop); ctx.fillRect(0, h - padBottom, w, padBottom); 
+                        ctx.fillStyle = '#fff'; const holeW = 30, gap = 20; 
+                        for(let x = 30; x < w; x += (holeW + gap)) { ctx.fillRect(x, 20, holeW, 40); ctx.fillRect(x, h - 60, holeW, 40); } 
+                    } else { 
+                        ctx.drawImage(img, 0, 0, w, h); 
+                    } 
+                    
+                    // [MODIFIED] Positive Film Effect Calculation
+                    // Enhance contrast and saturation for the final output
+                    ctx.globalCompositeOperation = 'overlay';
+                    ctx.fillStyle = 'rgba(10, 10, 20, 0.2)'; // Slight dark cast for depth
+                    ctx.fillRect(0, 0, w, h);
+                    ctx.globalCompositeOperation = 'source-over';
+
+                    const d = new Date(dateObj); 
+                    const dateStr = `'${d.getFullYear().toString().slice(-2)} ${(d.getMonth()+1).toString().padStart(2,'0')} ${d.getDate().toString().padStart(2,'0')}`; 
+                    let dateX = (style === 'white') ? w - padSide - 30 : ((style === 'film') ? w - 50 : w - 60); 
+                    let dateY = (style === 'white' || style === 'film') ? h - padBottom - 30 : h - 50; 
+                    
+                    if (isSketchMode) { 
+                        ctx.save(); ctx.shadowBlur = 0; 
+                        const m = SKETCH_MODES[currentModeIdx]; 
+                        if(m.id === 'SKETCH_CYBER') ctx.fillStyle = '#0f0'; else if(m.id === 'SKETCH_BLUE') ctx.fillStyle = '#fff'; else if(m.id === 'SKETCH_HK_NEON') ctx.fillStyle = '#ff00cc'; else ctx.fillStyle = 'rgba(50, 50, 50, 0.85)'; 
+                        ctx.font = `normal 45px "Segoe Print", "Comic Sans MS", cursive`; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom'; ctx.translate(dateX, dateY); ctx.rotate(-0.05); ctx.fillText(dateStr, 0, 0); ctx.restore(); 
+                    } else { 
+                        ctx.shadowColor = '#ff5500'; ctx.shadowBlur = 15; ctx.fillStyle = 'rgba(255, 170, 50, 0.9)'; 
+                        const fontSize = style === 'white' ? 40 : 50; 
+                        ctx.font = `bold ${fontSize}px "Courier New", monospace`; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom'; ctx.fillText(dateStr, dateX, dateY); 
+                    } 
+                    resolve(finalCanvas.toDataURL('image/jpeg', 0.9)); 
+                }; 
+                img.src = imgUrl; 
+            }); 
+        }
+        
         function overlaySerial(imgUrl, serialNo, style) { return new Promise(resolve => { const img = new Image(); img.onload = () => { finalCanvas.width = img.width; finalCanvas.height = img.height; const ctx = finalCanvas.getContext('2d'); ctx.drawImage(img, 0, 0); let x = 30, y = 30, color = '#fff'; if (style === 'white') { x = 50; y = img.height - 80; color = '#333'; } else if (style === 'film') { x = 40; y = 100; color = 'rgba(255,255,255,0.8)'; } else { color = 'rgba(255,255,255,0.8)'; } ctx.shadowColor = style === 'white' ? 'transparent' : '#000'; ctx.shadowBlur = 2; ctx.fillStyle = color; ctx.font = `bold 36px "Courier New", monospace`; ctx.textAlign = 'left'; ctx.textBaseline = 'top'; ctx.fillText(`No.${serialNo}`, x, y); resolve(finalCanvas.toDataURL('image/jpeg', 0.9)); }; img.src = imgUrl; }); }
-        async function startDevelopingAnimation(photos, style) { devOverlay.style.display = 'flex'; devStatus.textContent = "PREPARING..."; const processed = []; for (let p of photos) { const thisSerial = globalSerialCounter++; localStorage.setItem('global_serial_counter', globalSerialCounter); const finalImg = await applyFrameAndDate(p.image, p.date, style); processed.push({ img: finalImg, serial: thisSerial, style: style }); } for (let i = 0; i < processed.length; i++) { devStatus.textContent = `DEVELOPING ${i+1}/${processed.length}`; devImageWrap.src = processed[i].img; devImageWrap.style.border = style === 'white' ? 'none' : '8px solid white'; devImageWrap.style.animation = 'none'; devImageWrap.offsetHeight; devImageWrap.style.animation = 'developProcess 3s forwards'; await new Promise(r => setTimeout(r, 3200)); await saveToAlbum(processed[i].img, processed[i].serial, processed[i].style); } devStatus.textContent = "FINISHED"; await new Promise(r => setTimeout(r, 800)); devOverlay.style.display = 'none'; if (isRollMode) { await clearTemp(); currentFrame = 0; updateCounterDisplay(); } else { pendingPhoto = null; } checkLeverState(); }
+        async function startDevelopingAnimation(photos, style) { devOverlay.style.display = 'flex'; devStatus.textContent = "PREPARING..."; const processed = []; for (let p of photos) { const thisSerial = globalSerialCounter++; localStorage.setItem('global_serial_counter', globalSerialCounter); const finalImg = await applyFrameAndDate(p.image, p.date, style); processed.push({ img: finalImg, serial: thisSerial, style: style }); } for (let i = 0; i < processed.length; i++) { devStatus.textContent = `DEVELOPING ${i+1}/${processed.length}`; devImageWrap.src = processed[i].img; devImageWrap.style.border = style === 'white' ? 'none' : '8px solid white'; devImageWrap.style.animation = 'none'; devImageWrap.offsetHeight; devImageWrap.style.animation = 'developProcess 3s forwards'; await new Promise(r => setTimeout(r, 3200)); await saveToAlbum(processed[i].img, processed[i].serial, processed[i].style); } devStatus.textContent = "FINISHED"; await new Promise(r => setTimeout(r, 800)); devOverlay.style.display = 'none'; if (isRollMode) { await clearTemp(); currentFrame = 0; updateCounterDisplay(); } else { pendingPhoto = null; } updateLeverUI(); }
 
         backLock.addEventListener('click', () => { const isOpen = backDoorWrapper.classList.contains('open'); if (!isOpen) { latchAudio.currentTime = 0; latchAudio.play(); backDoorWrapper.classList.add('open'); backLock.style.transform = 'translateX(5px)'; loadAlbum(); } else { closeBackDoor(); } });
         function closeBackDoor() { backDoorWrapper.classList.remove('open'); backLock.style.transform = 'translateX(0)'; setTimeout(() => { latchAudio.currentTime = 0; latchAudio.play(); }, 250); }
@@ -646,114 +802,50 @@
         btnViewGrid.addEventListener('click', () => { isFilmViewMode = false; updateViewVisibility(); });
 
        async function loadAlbum() {
-            // 1. 初始化與清理
             albumGrid.innerHTML = ''; 
             filmStripView.innerHTML = ''; 
             selectedAlbumIds.clear(); 
-            
-            // 2. 獲取並排序數據 (新到舊)
             currentAlbumData = await getAlbumPhotos(); 
             currentAlbumData.sort((a,b) => b.timestamp - a.timestamp); 
             
-            // 3. 處理空相簿狀態
             if(currentAlbumData.length === 0) { 
                 const emptyMsg = '<p style="color:#555; width:100%; text-align:center; margin-top:50px; font-family:monospace;">ALBUM EMPTY</p>';
                 albumGrid.innerHTML = emptyMsg; filmStripView.innerHTML = emptyMsg;
             } else {
-                // 4. 生成照片內容
                 for (const p of currentAlbumData) {
-                    // --- A. Grid View (網格視圖 - 小圖模式) ---
-                    const div = document.createElement('div'); 
-                    div.className = 'album-photo'; 
-                    div.dataset.id = p.id;
-                    
-                    const img = document.createElement('img'); 
-                    img.src = p.image;
-                    
-                    const seq = document.createElement('div'); 
-                    seq.className = 'album-seq'; 
-                    seq.textContent = `No.${p.serial}`;
-                    
-                    div.appendChild(img); 
-                    div.appendChild(seq);
-                    
-                    // 點擊邏輯：短按選取，長按/雙擊放大 (或是透過 Timeout 區分)
-                    div.onclick = (e) => { 
-                        if (div.clickTimeout) { 
-                            clearTimeout(div.clickTimeout); 
-                            div.clickTimeout = null; 
-                            showZoom(p.image); 
-                        } else { 
-                            div.clickTimeout = setTimeout(() => { 
-                                div.clickTimeout = null; 
-                                toggleSelectionAll(p.id); 
-                            }, 250); 
-                        } 
-                    };
+                    // Grid View
+                    const div = document.createElement('div'); div.className = 'album-photo'; div.dataset.id = p.id;
+                    const img = document.createElement('img'); img.src = p.image;
+                    const seq = document.createElement('div'); seq.className = 'album-seq'; seq.textContent = `No.${p.serial}`;
+                    div.appendChild(img); div.appendChild(seq);
+                    div.onclick = (e) => { if (div.clickTimeout) { clearTimeout(div.clickTimeout); div.clickTimeout = null; showZoom(p.image); } else { div.clickTimeout = setTimeout(() => { div.clickTimeout = null; toggleSelectionAll(p.id); }, 250); } };
                     albumGrid.appendChild(div);
 
-                    // --- B. Film Strip View (菲林視圖 - 無縫平移模式) ---
-                    
-                    // B1. 預讀取圖片以計算正確的長寬比
-                    const tempImg = new Image();
-                    tempImg.src = p.image;
-                    // 等待解碼，確保 width/height 可用
+                    // Film Strip View (Translucent Positive Film Look)
+                    const tempImg = new Image(); tempImg.src = p.image;
                     await tempImg.decode().catch(() => {}); 
-                    
-                    // B2. 計算顯示尺寸
-                    const visibleHeight = 152; // 180px 總高 - 28px (上下齒孔)
+                    const visibleHeight = 152; 
                     const naturalRatio = tempImg.width / tempImg.height;
                     const totalWidth = visibleHeight * naturalRatio; 
 
-                    // B3. 創建外層容器
-                    const frameContainer = document.createElement('div'); 
-                    frameContainer.className = 'film-frame-container'; 
-                    frameContainer.dataset.id = p.id;
-                    frameContainer.style.width = `${totalWidth}px`; // 由內容撐開寬度
+                    const frameContainer = document.createElement('div'); frameContainer.className = 'film-frame-container'; frameContainer.dataset.id = p.id;
+                    frameContainer.style.width = `${totalWidth}px`; 
                     
-                    // B4. 創建菲林區塊 (Wrapper)
-                    const block = document.createElement('div');
-                    block.className = 'film-block';
-                    
-                    // B5. 創建照片圖層
-                    const blockImg = document.createElement('div');
-                    blockImg.className = 'film-block-img';
+                    const block = document.createElement('div'); block.className = 'film-block';
+                    const blockImg = document.createElement('div'); blockImg.className = 'film-block-img';
                     blockImg.style.backgroundImage = `url(${p.image})`;
                     
-                    // B6. 創建序號標籤 (與導出樣式一致)
-                    const meta = document.createElement('div'); 
-                    meta.className = 'film-meta-label'; 
-                    meta.textContent = `No.${p.serial}`;
+                    const meta = document.createElement('div'); meta.className = 'film-meta-label'; meta.textContent = `No.${p.serial}`;
                     
-                    // [關鍵修訂] 將圖片和序號都放入 block 中
-                    // 這樣序號會定位於 block 的左上角，與照片一起移動
-                    block.appendChild(blockImg);
-                    block.appendChild(meta);
-                    
-                    // 將區塊放入容器
+                    block.appendChild(blockImg); block.appendChild(meta);
                     frameContainer.appendChild(block);
-                    
-                    // B7. 綁定事件
                     frameContainer.onclick = (e) => { 
-                        // 自動捲動到置中
                         frameContainer.scrollIntoView({behavior: "smooth", block: "center", inline: "center"}); 
-                        
-                        if (frameContainer.clickTimeout) { 
-                            clearTimeout(frameContainer.clickTimeout); 
-                            frameContainer.clickTimeout = null; 
-                            showZoom(p.image); 
-                        } else { 
-                            frameContainer.clickTimeout = setTimeout(() => { 
-                                frameContainer.clickTimeout = null; 
-                                toggleSelectionAll(p.id); 
-                            }, 250); 
-                        } 
+                        if (frameContainer.clickTimeout) { clearTimeout(frameContainer.clickTimeout); frameContainer.clickTimeout = null; showZoom(p.image); } else { frameContainer.clickTimeout = setTimeout(() => { frameContainer.clickTimeout = null; toggleSelectionAll(p.id); }, 250); } 
                     };
-                    
                     filmStripView.appendChild(frameContainer);
                 }
             }
-            // 5. 更新視圖顯示狀態
             updateViewVisibility();
         }
         
@@ -771,8 +863,10 @@
         document.getElementById('exp-no-serial').addEventListener('click', () => processExport(false));
         document.getElementById('exp-with-serial').addEventListener('click', () => processExport(true));
         async function processExport(addSerial) { const selectedData = currentAlbumData.filter(p => selectedAlbumIds.has(p.id)); const filesToShare = []; for (let p of selectedData) { let finalDataUrl = p.image; if (addSerial) finalDataUrl = await overlaySerial(p.image, p.serial, p.style); const fileName = `RETRO_No${p.serial}_${Date.now()}.jpg`; if (exportActionType === 'download') { const link = document.createElement('a'); link.download = fileName; link.href = finalDataUrl; link.click(); await new Promise(r => setTimeout(r, 200)); } else { const blob = await (await fetch(finalDataUrl)).blob(); filesToShare.push(new File([blob], fileName, { type: 'image/jpeg' })); } } if (exportActionType === 'share' && filesToShare.length > 0) { try { await navigator.share({ files: filesToShare }); } catch (e) {} } const idsToRemove = selectedData.map(p => p.id); await deleteFromAlbum(idsToRemove); resetToCameraUI(); }
-        function resetToCameraUI() { exportModal.style.display = 'none'; closeBackDoor(); document.getElementById('review-overlay').style.display = 'none'; pendingPhoto = null; checkLeverState(); }
+        function resetToCameraUI() { exportModal.style.display = 'none'; closeBackDoor(); document.getElementById('review-overlay').style.display = 'none'; pendingPhoto = null; updateLeverUI(); }
         function checkOrientation() { if (window.innerHeight > window.innerWidth) { document.getElementById('orientation-lock').style.display = 'flex'; document.getElementById('camera-container').style.display = 'none'; fsPrompt.style.display = 'none'; } else { document.getElementById('orientation-lock').style.display = 'none'; if (document.fullscreenElement) { document.getElementById('camera-container').style.display = 'block'; document.getElementById('fullscreen-prompt').style.display = 'none'; resizeElements(); } else { enforceFullscreen(); } } }
+       
+       /* [MODIFIED] Logic to strictly center the camera container */
        function resizeElements() { 
             const w = window.innerWidth; 
             const h = window.innerHeight; 
@@ -780,17 +874,15 @@
             const multiplier = isTablet ? 0.85 : 1.0; 
             const scale = Math.min(w / 800, h / 480) * multiplier; 
             
-            // [關鍵修改] 必須同時保留 translate (置中) 和 scale (縮放)
+            // Note: because we use position:fixed + translate(-50%, -50%) in CSS, 
+            // we must append the scale to that translation.
             document.getElementById('camera-container').style.transform = `translate(-50%, -50%) scale(${scale})`; 
         }
 
-        // [額外優化] 監聽 resize 時增加一個微小的延遲
-        // 這能解決旋轉瞬間螢幕尺寸還沒算好導致錯位的問題
         window.addEventListener('resize', () => { 
             checkOrientation(); 
             resizeElements(); 
-            // 雙重保險：旋轉後 300ms 再算一次，確保位置絕對正確
-            setTimeout(resizeElements, 300);
+            setTimeout(resizeElements, 300); // Double check centering after rotation settle
         });
     </script>
 </body>
