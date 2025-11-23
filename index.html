@@ -195,7 +195,32 @@
     .camera-front-face { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 6; background-color: var(--leather-color); background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='leather'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='4' stitchTiles='stitch' result='noise'/%3E%3CfeSpecularLighting in='noise' specularConstant='1.5' specularExponent='30' surfaceScale='4.0' lighting-color='%23eee'%3E%3CfeDistantLight azimuth='45' elevation='50'/%3E%3C/feSpecularLighting%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23leather)' opacity='0.5'/%3E%3C/svg%3E"); background-size: 140px 140px; border-radius: 0 0 8px 8px; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08), inset 0 0 50px rgba(0,0,0,0.9); display: none; justify-content: center; align-items: center; }
     .realistic-lens { width: 220px; height: 220px; border-radius: 50%; background: linear-gradient(135deg, #333 0%, #111 100%); border: 4px solid #222; box-shadow: 0 10px 25px rgba(0,0,0,0.8), inset 0 2px 5px rgba(255,255,255,0.1); display: flex; justify-content: center; align-items: center; position: relative; }
     .lens-barrel { width: 200px; height: 200px; border-radius: 50%; border: 8px solid #111; background: #000; display: flex; justify-content: center; align-items: center; position: relative; }
-    .lens-glass-element { width: 160px; height: 160px; border-radius: 50%; background: radial-gradient(circle at 50% 50%, #1a0b2e 0%, #000 80%); position: relative; overflow: hidden; box-shadow: inset 0 0 40px #000; }
+    .lens-glass-element {
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+
+    /* 1. 核心光學質感：模擬鏡頭鍍膜的深紫色/深藍色漸層，而非純黑 */
+    /* circle at 60% 40% 讓光點稍微偏右上，製造球體凸出的錯覺 */
+    background: radial-gradient(circle at 60% 40%, #2a1b3e 0%, #0d0518 45%, #000000 85%);
+
+    position: relative;
+    overflow: hidden; /* 確保內部的快門葉片與反光不會溢出 */
+
+    /* 2. 物理深度與玻璃厚度 */
+    box-shadow: 
+        /* 最深層的內陰影：模擬鏡桶深處的暗度 */
+        inset 0 0 40px rgba(0,0,0,0.95),
+        
+        /* 左上邊緣的高光：模擬玻璃凸起的邊緣受光 */
+        inset 3px 3px 6px rgba(255,255,255,0.15),
+        
+        /* 右下邊緣的微光：勾勒出玻璃的輪廓 */
+        inset -2px -2px 5px rgba(255,255,255,0.05);
+
+    /* 確保這層在鏡筒之上，但在反光層之下 */
+    z-index: 10; 
+}
     .lens-glass-element::before { content: ''; position: absolute; top: -30%; left: -30%; width: 160%; height: 160%; background: radial-gradient(circle at 35% 35%, rgba(138, 43, 226, 0.25) 0%, transparent 50%); filter: blur(8px); pointer-events: none; }
     .lens-reflection { position: absolute; top: 25%; left: 25%; width: 30px; height: 15px; background: rgba(255,255,255,0.3); border-radius: 50%; transform: rotate(-45deg); filter: blur(4px); pointer-events: none; z-index: 2; }
     .shutter-flash-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #fff; border-radius: 50%; opacity: 0; pointer-events: none; z-index: 5; }
