@@ -8,7 +8,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Lumigraph WebGL</title>
+<title>Lumigraph</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -190,9 +190,52 @@
     #fs-viewfinder { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 10000; display: none; cursor: crosshair; touch-action: none; }
     #fs-canvas { width: 100%; height: 100%; object-fit: contain; }
     .fs-ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; box-shadow: inset 0 0 150px rgba(0,0,0,0.7); }
-    .fs-guide-frame { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 85%; height: 85%; border: 1px solid rgba(255,255,255,0.3); transition: opacity 0.3s; }
-    .split-image-circle { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 60px; height: 60px; border: 3px solid rgba(255,255,255,0.4); border-radius: 50%; transition: border-color 0.2s, box-shadow 0.2s; }
-    .split-image-circle.focused { border-color: #0f0; box-shadow: 0 0 20px #0f0, inset 0 0 10px #0f0; }
+   .fs-guide-frame {
+    position: absolute; 
+    top: 50%; left: 50%; 
+    transform: translate(-50%, -50%);
+    
+    /* [關鍵] 這是第一版的樣式 */
+    border: 1px solid rgba(255,255,255,0.3) !important; 
+    box-shadow: none !important; /* 移除復古陰影 */
+    background: transparent !important;
+    
+    pointer-events: none;
+    z-index: 5;
+}
+
+/* 2. 還原圓圈：單純的白色粗線圓圈，沒有背景色 */
+.split-image-circle {
+    position: absolute; 
+    top: 50%; left: 50%; 
+    transform: translate(-50%, -50%);
+    
+    /* [關鍵] 這是第一版的尺寸與樣式 */
+    width: 60px !important; 
+    height: 60px !important;
+    border: 3px solid rgba(255,255,255,0.4) !important;
+    border-radius: 50%;
+    
+    /* 移除復古版的背景與特效 */
+    background: transparent !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    
+    transition: border-color 0.2s, box-shadow 0.2s;
+    z-index: 6;
+}
+
+/* 3. 還原綠色對焦效果：經典的亮綠色光暈 */
+.split-image-circle.focused {
+    border-color: #0f0 !important;
+    box-shadow: 0 0 20px #0f0, inset 0 0 10px #0f0 !important;
+}
+
+/* 4. 防止文字重疊 (保留上次的微調) */
+.vf-data-top {
+    top: 10px; /* 貼近頂部 */
+    z-index: 20;
+}
     .fs-data { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); color: #0f0; font-family: 'Courier New', monospace; font-size: 20px; text-shadow: 0 0 5px #0f0; display: flex; gap: 30px; background: rgba(0,0,0,0.5); padding: 5px 15px; border-radius: 4px; }
     #vf-close-btn { position: absolute; top: 20px; left: 20px; pointer-events: auto; color: #fff; font-size: 40px; cursor: pointer; opacity: 0.6; font-family: Arial, sans-serif; line-height: 0.5; text-shadow: 0 0 4px #000; z-index: 10001; }
     #vf-close-btn:hover { opacity: 1; }
@@ -263,6 +306,135 @@ body.is-selfie .shutter-release-btn { display: none; }
 .rd-btn.confirm { color: #ff3333; text-shadow: 0 0 5px rgba(255, 50, 50, 0.4); }
 .rd-btn.confirm:active { background: #300; }
 .rd-btn.alert-ok { color: #fff; display: none; }
+
+/* 1. 光學質感層：暗角 + 微微的磨砂感 */
+.vf-optic-layer {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none;
+    background: radial-gradient(circle at center, transparent 50%, rgba(0,0,0,0.6) 90%, rgba(0,0,0,0.95) 100%),
+                url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cmVjdCB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjZmZmIiBmaWxsLW9wYWNpdHk9IjAuMDUiLz4KPC9zdmc+'); /* 微弱雜訊 */
+    box-shadow: inset 0 0 50px rgba(0,0,0,0.8);
+    z-index: 1;
+}
+
+/* 2. 指引框：移除原本的實線，改用角落標記 */
+.fs-guide-frame {
+    /* 位置由 JS 動態計算，這裡只設樣式 */
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    border: none; /* 移除舊邊框 */
+    pointer-events: none;
+    z-index: 2;
+}
+
+/* 角落標記 (Crop Marks) */
+.corner {
+    position: absolute; width: 20px; height: 20px;
+    border-color: rgba(255, 255, 255, 0.7);
+    border-style: solid;
+    border-width: 0;
+    box-shadow: 0 0 4px rgba(255,255,255,0.4);
+}
+.c-tl { top: 0; left: 0; border-top-width: 2px; border-left-width: 2px; }
+.c-tr { top: 0; right: 0; border-top-width: 2px; border-right-width: 2px; }
+.c-bl { bottom: 0; left: 0; border-bottom-width: 2px; border-left-width: 2px; }
+.c-br { bottom: 0; right: 0; border-bottom-width: 2px; border-right-width: 2px; }
+
+/* 中央十字 */
+.center-cross {
+    position: absolute; top: 50%; left: 50%; width: 20px; height: 20px;
+    transform: translate(-50%, -50%);
+}
+.center-cross::before { content:''; position:absolute; top:9px; left:0; width:100%; height:2px; background:rgba(255,255,255,0.4); }
+.center-cross::after { content:''; position:absolute; left:9px; top:0; height:100%; width:2px; background:rgba(255,255,255,0.4); }
+
+/* 3. 裂像對焦圈優化 */
+.split-image-circle {
+    /* 保持 JS 控制顯示/隱藏 */
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.5), inset 0 0 10px rgba(0,0,0,0.2);
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: contrast(1.2); /* 讓圈內稍微亮一點 */
+    z-index: 3;
+}
+/* 裂像中間的水平線 */
+.split-line {
+    position: absolute; top: 50%; left: 0; width: 100%; height: 1px;
+    background: rgba(255,255,255,0.4);
+}
+
+/* 4. 復古數據介面 (OSD) */
+.fs-ui-layer {
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    color: #50ff50; /* 經典電子綠 */
+    text-shadow: 0 0 5px rgba(80, 255, 80, 0.8);
+    z-index: 10;
+}
+
+/* 頂部 */
+.vf-data-top {
+    position: absolute; top: 20px; left: 60px; right: 20px;
+    display: flex; justify-content: space-between; align-items: center;
+}
+.vf-mode-badge {
+    border: 2px solid #50ff50;
+    padding: 2px 8px;
+    border-radius: 2px;
+    font-size: 16px;
+    background: rgba(0, 50, 0, 0.5);
+}
+.vf-batt { display: flex; align-items: center; gap: 5px; font-size: 12px; }
+.batt-icon { width: 24px; height: 10px; border: 2px solid #50ff50; padding: 1px; position: relative; }
+.batt-icon::after { content:''; position:absolute; right:-4px; top:2px; width:2px; height:4px; background:#50ff50; }
+.batt-level { width: 70%; height: 100%; background: #50ff50; animation: battBlink 5s infinite; }
+@keyframes battBlink { 0%,90% {opacity:1;} 95% {opacity:0.2;} 100% {opacity:1;} }
+
+/* 底部 */
+.vf-data-bottom {
+    position: absolute; bottom: 20px; width: 100%;
+    display: flex; justify-content: space-between; align-items: flex-end;
+    padding: 0 40px;
+}
+
+/* 曝光表 */
+.exp-meter { display: flex; align-items: center; gap: 5px; font-size: 14px; margin-bottom: 5px; }
+.exp-scale { display: flex; gap: 6px; position: relative; align-items: center; margin: 0 5px; }
+.exp-dot { width: 4px; height: 4px; background: #50ff50; opacity: 0.5; border-radius: 50%; }
+.exp-dot.center { width: 6px; height: 6px; opacity: 1; background: #ff5050; box-shadow: 0 0 5px #ff0000; } /* 中央紅點 */
+.exp-needle { 
+    position: absolute; bottom: -8px; left: 50%; 
+    width: 0; height: 0; 
+    border-left: 4px solid transparent; border-right: 4px solid transparent; border-bottom: 6px solid #50ff50;
+    transform: translateX(-50%);
+    animation: meterShake 2s infinite ease-in-out;
+}
+@keyframes meterShake { 0% {left:50%} 20% {left:45%} 40% {left:55%} 60% {left:48%} 100% {left:50%} }
+
+/* 參數文字 */
+.vf-params { display: flex; gap: 20px; font-size: 18px; letter-spacing: 1px; }
+.vf-yellow { color: #ffff50; text-shadow: 0 0 5px rgba(255, 255, 80, 0.8); } /* 黃色數值 */
+
+/* 計數器 */
+.vf-counter-box { text-align: right; }
+.vf-label { font-size: 10px; display: block; opacity: 0.8; }
+.vf-big-num { font-size: 28px; line-height: 1; color: #ff5050; text-shadow: 0 0 8px #ff0000; }
+
+/* 關閉按鈕稍微調整位置以避開 UI */
+#vf-close-btn { top: 15px; left: 20px; font-size: 32px; text-shadow: none; opacity: 0.5; }
+
+/* 自拍模式下的顏色變化 (變成紅色錄影風) */
+body.is-selfie .fs-ui-layer, 
+body.is-selfie .vf-mode-badge, 
+body.is-selfie .batt-icon, 
+body.is-selfie .exp-dot,
+body.is-selfie .exp-needle {
+    color: #ff5050; border-color: #ff5050; background-color: transparent;
+}
+body.is-selfie .batt-level,
+body.is-selfie .exp-dot {
+    background-color: #ff5050;
+}
+    
 </style>
 </head>
 <body>
@@ -285,14 +457,38 @@ body.is-selfie .shutter-release-btn { display: none; }
     <div id="orientation-lock"><svg viewBox="0 0 24 24"><path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/></svg><p>ROTATE DEVICE</p></div>
 
     <div id="fs-viewfinder">
-        <canvas id="fs-canvas"></canvas>
-        <div class="fs-ui-layer">
-            <div id="vf-close-btn" title="Exit Viewfinder">×</div>
-            <div class="fs-guide-frame" id="fsGuideFrame"></div>
-            <div class="split-image-circle" id="splitCircle"></div>
-            <div class="fs-data"><span id="fs-mode-text">B&W</span><span>1/250</span><span>f/2.8</span><span id="fs-counter">36</span></div>
+    <!-- 1. 畫布 (不變) -->
+    <canvas id="fs-canvas"></canvas>
+    
+    <!-- 2. 復古光學質感層 (保留，增加質感) -->
+    <div class="vf-optic-layer"></div>
+    
+    <!-- 3. UI 層 -->
+    <div class="fs-ui-layer">
+        <div id="vf-close-btn" title="Exit">×</div>
+        
+        <!-- [還原] 1. 導引框：變回最單純的空 div，沒有內部的角落標記 -->
+        <div class="fs-guide-frame" id="fsGuideFrame"></div>
+
+        <!-- [還原] 2. 對焦圈：變回最單純的空 div，沒有內部的裂像線 -->
+        <div class="split-image-circle" id="splitCircle"></div>
+
+        <!-- [保留] 3. 復古數據文字 (這些你說沒問題，我們保留) -->
+        <div class="vf-data-top">
+            <div class="vf-mode-badge" id="fs-mode-text">B&W</div>
+            <div class="vf-batt"><span>BAT</span><div class="batt-icon"><div class="batt-level"></div></div></div>
+        </div>
+        <div class="vf-data-bottom">
+            <div class="exp-meter">
+                <span>-</span>
+                <div class="exp-scale"><div class="exp-dot"></div><div class="exp-dot"></div><div class="exp-dot center"></div><div class="exp-dot"></div><div class="exp-dot"></div><div class="exp-needle"></div></div>
+                <span>+</span>
+            </div>
+            <div class="vf-params"><span class="vf-yellow">1/125</span><span class="vf-yellow">F2.8</span><span class="vf-iso">ISO 400</span></div>
+            <div class="vf-counter-box"><span class="vf-label">REM</span><span id="fs-counter" class="vf-big-num">36</span></div>
         </div>
     </div>
+</div>
 
     <div id="film-roll-overlay">
         <h2 style="color:white; font-family:'Courier New'; margin-bottom:30px; text-shadow:0 0 5px #fff;">SELECT FILM STOCK</h2>
@@ -819,38 +1015,128 @@ body.is-selfie .shutter-release-btn { display: none; }
     }
 
     // [修改] 點擊打開觀景窗時，計算白框大小
-vfTrigger.addEventListener('click', (e) => { 
-    e.stopPropagation(); 
-    fsViewfinder.style.display = 'block'; 
-    
-    // 立即計算一次白框大小
-    updateFSGuideFrame();
+ vfTrigger.addEventListener('click', (e) => { 
+        e.stopPropagation(); 
+        fsViewfinder.style.display = 'block'; 
+        
+        // 1. 立即計算白框大小 (85%)
+        updateFSGuideFrame();
+        
+        // 2. 更新復古數值
+        randomizeOSD();
 
-    if(isSketchMode) { 
-        splitCircle.style.display = 'none'; 
-        fsGuideFrame.style.display = 'none'; 
-    } else { 
-        splitCircle.style.display = 'block'; 
-        fsGuideFrame.style.display = 'block'; 
-    } 
-});
-    frontVfTrigger.addEventListener('click', (e) => { e.stopPropagation(); if (video.readyState >= 2) fsViewfinder.style.display = 'block'; });
+        // 3. 確保剛打開時圓圈是白色的 (移除 focused)
+        const circle = document.getElementById('splitCircle');
+        if(circle) circle.classList.remove('focused');
+
+        // 素描模式隱藏對焦框邏輯
+        if(isSketchMode) { 
+            splitCircle.style.display = 'none'; 
+            fsGuideFrame.style.display = 'none'; 
+        } else { 
+            splitCircle.style.display = 'block'; 
+            fsGuideFrame.style.display = 'block'; 
+        } 
+    });
+    
     vfCloseBtn.addEventListener('click', (e) => { e.stopPropagation(); fsViewfinder.style.display = 'none'; });
     fsViewfinder.addEventListener('click', (e) => { if(e.target.id !== 'vf-close-btn') handleShutter(e); });
     shutterBtn.addEventListener('click', handleShutter);
     frontShutterBtn.addEventListener('click', handleShutter);
     cablePlunger.addEventListener('click', (e) => { e.stopPropagation(); cablePlunger.classList.add('pressed'); setTimeout(() => cablePlunger.classList.remove('pressed'), 200); handleShutter(e); });
-        
-    function handleShutter(e) { 
+
+
+// [新增] 模擬自動對焦：先白圈，0.8秒後變綠圈
+// [新增] 模擬自動對焦：先白圈，0.8秒後變綠圈
+function simulateAutoFocus() {
+    const circle = document.getElementById('splitCircle');
+    const viewfinder = document.getElementById('fs-viewfinder');
+    
+    if(!circle || !viewfinder) return;
+    
+    // 1. 重置狀態：移除 focused 類別 (變回白色粗框)
+    circle.classList.remove('focused');
+    
+    // 2. 設定延遲：模擬鏡頭對焦的時間 (800毫秒)
+    setTimeout(() => {
+        // 只有當觀景窗還「開著」的時候才變綠
+        // 防止使用者快速開關導致觀景窗關閉後還觸發變綠
+        if(viewfinder.style.display === 'block') {
+            circle.classList.add('focused');
+            
+            // (選用) 如果你想加入「逼逼」的對焦音效，可以在這裡呼叫
+            // if(actx.state !== 'suspended') playFocusBeep(); 
+        }
+    }, 800);
+}
+
+    
+// [新增] 模擬按下快門時，光圈快門數值跳動
+function randomizeOSD() {
+    const shutters = ['1/60', '1/125', '1/250', '1/500', '1/1000'];
+    const apertures = ['F1.4', 'F2.0', 'F2.8', 'F4.0', 'F5.6', 'F8.0'];
+    
+    const s = shutters[Math.floor(Math.random() * shutters.length)];
+    const a = apertures[Math.floor(Math.random() * apertures.length)];
+    
+    const params = document.querySelectorAll('.vf-yellow');
+    if(params.length >= 2) {
+        params[0].textContent = s;
+        params[1].textContent = a;
+    }
+}
+
+    
+  function handleShutter(e) { 
         if(e) e.stopPropagation(); 
         if (e && e.target.id === 'vf-close-btn') return; 
+        
+        // 檢查條件
         if (!isSelfieMode && backDoorWrapper.classList.contains('open')) return; 
         if (isRollMode && currentFrame >= 36) return; 
+        
         const btn = isSelfieMode ? document.getElementById('selfieShutterBtn') : shutterBtn; 
+        const circle = document.getElementById('splitCircle');
+        
+        // --- 時間點 T=0：按下瞬間 ---
+        
+        // 1. 按鈕視覺下壓
         btn.classList.add('pressed'); 
-        playShutterSound(); 
-        if (isSelfieMode) { shutterFlash.classList.remove('flash'); void shutterFlash.offsetWidth; shutterFlash.classList.add('flash'); setTimeout(() => shutterFlash.classList.remove('flash'), 150); } else { const container = (fsViewfinder.style.display === 'block') ? fsViewfinder : vfTrigger; const blind = document.createElement('div'); blind.className = container === fsViewfinder ? 'shutter-blind' : 'vf-shutter-blind'; container.appendChild(blind); setTimeout(() => blind.remove(), 150); } 
-        setTimeout(() => { performCapture(); btn.classList.remove('pressed'); }, 150); 
+        
+        // 2. [關鍵] 圓圈立刻變綠 (先讓你看見綠圈)
+        if(circle) circle.classList.add('focused');
+
+        // --- 時間點 T=0.1秒：執行快門 ---
+        setTimeout(() => {
+            
+            // 3. 播放快門聲
+            playShutterSound(); 
+            
+            // 4. 播放快門簾黑屏/閃光動畫
+            if (isSelfieMode) { 
+                shutterFlash.classList.remove('flash'); 
+                void shutterFlash.offsetWidth; 
+                shutterFlash.classList.add('flash'); 
+                setTimeout(() => shutterFlash.classList.remove('flash'), 150); 
+            } else { 
+                const container = (fsViewfinder.style.display === 'block') ? fsViewfinder : vfTrigger; 
+                const blind = document.createElement('div'); 
+                blind.className = container === fsViewfinder ? 'shutter-blind' : 'vf-shutter-blind'; 
+                container.appendChild(blind); 
+                setTimeout(() => blind.remove(), 150); 
+            } 
+
+            // --- 時間點 T=0.6秒：切換畫面 ---
+            // (從快門聲後再等 0.5秒，確保你有足夠時間感受到綠圈與拍照的過程)
+            setTimeout(() => { 
+                performCapture(); 
+                
+                // 復原狀態
+                btn.classList.remove('pressed'); 
+                if(circle) circle.classList.remove('focused');
+            }, 400);
+
+        }, 100); // <--- 這裡控制「變綠」到「聲音」的 0.1 秒延遲
     }
 
     function generateLightLeak(ctx, w, h, severity = 1) { ctx.save(); ctx.globalCompositeOperation = 'screen'; const baseCount = severity > 1 ? 3 : (Math.random() > 0.7 ? 2 : 1); for(let i=0; i<baseCount; i++) { const type = Math.random(); const opacity = (0.4 + Math.random() * 0.4) * severity; const hue = Math.random() > 0.8 ? 40 + Math.random()*10 : 10 + Math.random()*30; let colorInner = `hsla(${hue}, 90%, 60%, ${opacity})`; let colorOuter = `hsla(${hue-10}, 90%, 40%, 0)`; if (type < 0.4) { const isLeft = Math.random() > 0.5; const width = w * (0.15 + Math.random() * 0.3); const grad = ctx.createLinearGradient(isLeft ? 0 : w, 0, isLeft ? width : w - width, 0); grad.addColorStop(0, colorInner); grad.addColorStop(1, colorOuter); ctx.fillStyle = grad; ctx.fillRect(0, 0, w, h); } else { const cx = Math.random() > 0.5 ? 0 : w; const cy = Math.random() > 0.5 ? 0 : h; const r = Math.max(w, h) * (0.4 + Math.random() * 0.4); const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r); grad.addColorStop(0, `hsla(${hue}, 20%, 90%, ${opacity})`); grad.addColorStop(1, `hsla(${hue}, 90%, 20%, 0)`); ctx.fillStyle = grad; ctx.fillRect(0, 0, w, h); } } ctx.restore(); }
