@@ -23,8 +23,29 @@
     }
 
     * { box-sizing: border-box; touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none; }
-    body { margin: 0; padding: 0; background-color: #000; display: flex; justify-content: center; align-items: center; height: 100vh; width: 100vw; overflow: hidden; font-family: 'Arial', sans-serif; color: #333; perspective: 1200px; }
-
+   
+    /* [修改] 強制鎖定視窗，解決相機位置亂跑的問題 */
+html, body { 
+    width: 100%; 
+    height: 100%; 
+    margin: 0; 
+    padding: 0; 
+    background-color: #000; 
+    
+    /* 關鍵：防止手機瀏覽器滾動導致的高度計算錯誤 */
+    position: fixed; 
+    top: 0; 
+    left: 0;
+    overflow: hidden; 
+    
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    font-family: 'Arial', sans-serif; 
+    color: #333; 
+    perspective: 1200px; 
+}
+    
     #fullscreen-prompt, #orientation-lock { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 10000; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #fff; text-align: center; }
     #orientation-lock { display: none; background: #111; z-index: 9999; }
     #enter-fs-btn { padding: 15px 30px; background: #c00; color: white; border: 1px solid #fff; font-family: 'Courier New', monospace; font-size: 18px; cursor: pointer; animation: pulseBtn 2s infinite; margin-top: 20px; }
@@ -1236,20 +1257,51 @@ document.getElementById('alb-share').addEventListener('click', () => {
         function resetToCameraUI() { exportModal.style.display = 'none'; closeBackDoor(); document.getElementById('review-overlay').style.display = 'none'; pendingPhoto = null; updateLeverUI(); }
         function checkOrientation() { if (window.innerHeight > window.innerWidth) { document.getElementById('orientation-lock').style.display = 'flex'; document.getElementById('camera-container').style.display = 'none'; fsPrompt.style.display = 'none'; } else { document.getElementById('orientation-lock').style.display = 'none'; if (document.fullscreenElement) { document.getElementById('camera-container').style.display = 'block'; document.getElementById('fullscreen-prompt').style.display = 'none'; resizeElements(); } else { enforceFullscreen(); } } }
        
-       function resizeElements() { 
-            const w = window.innerWidth; 
-            const h = window.innerHeight; 
-            const isTablet = (w / h) < 1.6; 
-            const multiplier = isTablet ? 0.85 : 1.0; 
-            const scale = Math.min(w / 800, h / 480) * multiplier; 
-            document.getElementById('camera-container').style.transform = `translate(-50%, -50%) scale(${scale})`; 
-        }
+       // [修改] 優化版縮放函數，確保相機永遠在畫面正中央
+function resizeElements() { 
+    const container = document.getElementById('camera-container');
+    const w = window.innerWidth; 
+    const h = window.innerHeight; 
+    
+    const baseW = 760;
+    const baseH = 420;
+    
+    const isTablet = (w / h) < 1.6; 
+    
+    // 縮放倍率 (維持上一步驟的設定，或者你可以微調)
+    const multiplier = isTablet ? 0.8 : 0.85; 
+    
+    const scale = Math.min(w / baseW, h / baseH) * multiplier; 
+    
+    container.style.position = 'absolute';
+    
+    // [關鍵修改] 垂直位置調整
+    // 50% 是正中間
+    // 改成 54% 代表「往下移」一點點，讓相機離底部近一些
+    // 如果覺得還不夠近，可以試試 55% 或 56%
+    container.style.top = '54%'; 
+    
+    container.style.left = '50%';
+    container.style.margin = '0'; 
+    
+    // 這裡保持不變，依然是以自身中心點為基準
+    container.style.transform = `translate(-50%, -50%) scale(${scale})`; 
+    
+    if (document.fullscreenElement || window.innerHeight < window.innerWidth) {
+       container.style.display = 'block';
+    }
+}
 
-        window.addEventListener('resize', () => { 
-            checkOrientation(); 
-            resizeElements(); 
-            setTimeout(resizeElements, 300); 
-        });
+// 監聽視窗大小改變 (包含旋轉手機)
+window.addEventListener('resize', () => { 
+    checkOrientation(); 
+    resizeElements(); 
+    // 延遲執行一次，應對某些瀏覽器轉向時的動畫延遲
+    setTimeout(resizeElements, 300); 
+});
+
+// 初始執行一次
+resizeElements();
     </script>
 </body>
 </html>
