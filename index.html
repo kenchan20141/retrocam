@@ -472,6 +472,185 @@ body.is-selfie .engraved-brand {
     to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
+/* [新增] 自拍模式專用的 FILM 按鍵樣式 */
+.film-select-btn {
+    position: absolute;
+    /* 位置：機頂最左側 (原本觀景窗的位置) */
+    top: 25px; 
+    left: 40px; 
+    
+    /* 大小與質感：模仿 LOCK 鍵的風格 */
+    width: 50px; 
+    height: 26px; 
+    background: linear-gradient(to bottom, #f0f0f0, #ccc); 
+    border: 1px solid #888; 
+    border-radius: 2px; 
+    
+    /* 文字樣式 */
+    font-family: sans-serif; 
+    font-size: 10px; 
+    font-weight: bold; 
+    color: #333; 
+    letter-spacing: 1px; 
+    
+    /* 排版 */
+    display: none; /* 預設隱藏 */
+    justify-content: center; 
+    align-items: center; 
+    cursor: pointer; 
+    z-index: 40; 
+    
+    /* 立體陰影 */
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.8);
+}
+
+/* 按下時的效果 */
+.film-select-btn:active {
+    background: #bbb;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.4);
+    transform: translateY(1px);
+    color: #000;
+}
+
+/* [新增] 只有在自拍模式下，這顆按鈕才會出現 */
+body.is-selfie .film-select-btn {
+    display: flex;
+}
+
+
+    /* [新增] 自拍模式專用的左側快門鍵樣式 */
+.selfie-shutter-btn {
+    position: absolute;
+    top: -12px;
+    left: 55px; /* 對稱於右側的 55px */
+    
+    /* 複製右側快門鍵的完全相同樣式 */
+    width: 46px;
+    height: 18px;
+    background: linear-gradient(to bottom, #e0e0e0, #999); /* var(--shutter-grey) */
+    border-radius: 4px 4px 0 0;
+    border: 1px solid #888;
+    border-bottom: none;
+    cursor: pointer;
+    z-index: 5;
+    box-shadow: inset 0 1px 2px rgba(255,255,255,0.8), 0 -2px 5px rgba(0,0,0,0.2);
+    transition: transform 0.1s cubic-bezier(0.1, 0.7, 1.0, 0.1);
+    
+    display: none; /* 預設隱藏 */
+}
+
+/* 按下時的動畫效果 */
+.selfie-shutter-btn.pressed {
+    transform: translateY(8px);
+    transition: transform 0.05s ease-out;
+}
+
+/* [新增] 自拍模式下的快門鍵顯示邏輯 */
+/* 1. 顯示左側新快門鍵 */
+body.is-selfie .selfie-shutter-btn {
+    display: block;
+}
+/* 2. 隱藏原本右側的快門鍵 (因為轉過來了，右邊不該有按鍵) */
+body.is-selfie .shutter-release-btn {
+    display: none;
+}
+
+    /* [新增] 通用復古對話框樣式 */
+#retro-dialog-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.85); /* 深色遮罩 */
+    z-index: 99999; /* 確保在最上層 */
+    display: none; /* 預設隱藏 */
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(2px);
+}
+
+.retro-dialog-box {
+    width: 320px;
+    max-width: 85%;
+    background: #111;
+    border: 2px solid #666; /* 銀灰色邊框 */
+    box-shadow: 0 0 20px #000, inset 0 0 10px rgba(0,0,0,0.8);
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+    animation: dialogScaleIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes dialogScaleIn {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.rd-header {
+    background: #222;
+    color: #888;
+    font-family: 'Arial', sans-serif;
+    font-size: 10px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    padding: 8px 12px;
+    border-bottom: 1px solid #333;
+    text-transform: uppercase;
+}
+
+.rd-body {
+    padding: 25px 20px;
+    color: #fff;
+    font-family: 'Courier New', monospace; /* 打字機字體 */
+    font-size: 14px;
+    line-height: 1.5;
+    text-align: center;
+    white-space: pre-wrap; /* 保留換行符號 */
+    font-weight: bold;
+    text-shadow: 0 0 2px rgba(255,255,255,0.3);
+}
+
+.rd-footer {
+    display: flex;
+    border-top: 1px solid #333;
+    height: 50px;
+}
+
+.rd-btn {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s;
+    text-transform: uppercase;
+}
+
+.rd-btn:active {
+    background: #333;
+}
+
+/* 取消按鈕 (左側) */
+.rd-btn.cancel {
+    border-right: 1px solid #333;
+    color: #888;
+}
+
+/* 確認按鈕 (右側) - 紅色警告色 */
+.rd-btn.confirm {
+    color: #ff3333;
+    text-shadow: 0 0 5px rgba(255, 50, 50, 0.4);
+}
+.rd-btn.confirm:active {
+    background: #300;
+}
+
+/* 純提示視窗的 OK 按鈕 */
+.rd-btn.alert-ok {
+    color: #fff;
+    display: none; /* 預設隱藏，只有 Alert 模式顯示 */
+}
     
 </style>
 </head>
@@ -530,6 +709,10 @@ body.is-selfie .engraved-brand {
                 <canvas class="vf-glass" id="smallCanvas"></canvas>
             </div>
 
+             <!-- [新增] 自拍模式專用的底片選擇鍵 -->
+    <!-- 放在 top-plate 直接子層，利用 CSS 定位到最左側 -->
+    <div class="film-select-btn" id="filmSelectBtn">FILM</div>
+
      <div class="function-group">
     <!-- 品牌名稱 -->
     <div class="engraved-brand">LUMIGRAPH</div>
@@ -546,9 +729,16 @@ body.is-selfie .engraved-brand {
     </div>
 </div>
 
+            <!-- [新增] 自拍模式專用的左側快門鍵 -->
+    <div class="selfie-shutter-btn" id="selfieShutterBtn"></div>
+
             <div id="back-controls-group">
                 <div class="lever-base" id="leverBase"></div>
                 <div class="advance-lever" id="advanceLever"><div class="lever-grip"></div></div>
+
+
+
+                
                 <div class="shutter-release-btn" id="shutterBtn"></div>
                 <div class="right-controls">
                     <div class="counter-window"><span class="counter-digits" id="frameCounter">S</span></div>
@@ -671,6 +861,21 @@ body.is-selfie .engraved-brand {
     <canvas id="grain-canvas" style="display:none"></canvas>
     <canvas id="sketch-canvas" style="display:none"></canvas>
 
+<!-- [新增] 通用復古對話框 (取代原生 Alert/Confirm) -->
+<div id="retro-dialog-overlay">
+    <div class="retro-dialog-box">
+        <div class="rd-header">SYSTEM MESSAGE</div>
+        <div class="rd-body" id="rd-message"></div>
+        <div class="rd-footer">
+            <button class="rd-btn cancel" id="rd-btn-cancel">CANCEL</button>
+            <button class="rd-btn confirm" id="rd-btn-confirm">CONFIRM</button>
+            <button class="rd-btn alert-ok" id="rd-btn-ok">OK</button>
+        </div>
+    </div>
+</div>
+
+
+              
     <script>
         /* --- DATABASE & INIT --- */
         const DB_NAME = "RetroCamDB_ProMax"; const TEMP_STORE = "temp_roll"; const ALBUM_STORE = "user_album"; let db;
@@ -699,12 +904,69 @@ function saveToAlbum(processedImage, serialNumber, styleInfo, w, h) {
         /* --- VARS --- */
         let isRollMode = localStorage.getItem('rollMode') === 'true'; let currentFrame = 0; let pendingPhoto = null; let globalSerialCounter = parseInt(localStorage.getItem('global_serial_counter') || '1'); let isSelfieMode = false; let isSketchMode = false; let isOrientationLocked = localStorage.getItem('orientationLocked') === 'true'; let isFilmViewMode = true;
 
+
+/* --- CUSTOM DIALOG SYSTEM --- */
+const rdOverlay = document.getElementById('retro-dialog-overlay');
+const rdMessage = document.getElementById('rd-message');
+const rdBtnCancel = document.getElementById('rd-btn-cancel');
+const rdBtnConfirm = document.getElementById('rd-btn-confirm');
+const rdBtnOk = document.getElementById('rd-btn-ok');
+
+// [通用] 顯示訊息視窗
+function showRetroDialogUI(msg, type = 'confirm') {
+    return new Promise((resolve) => {
+        rdMessage.textContent = msg;
+        rdOverlay.style.display = 'flex';
+        
+        // 重置按鈕顯示
+        rdBtnCancel.style.display = 'none';
+        rdBtnConfirm.style.display = 'none';
+        rdBtnOk.style.display = 'none';
+
+        // 移除舊的監聽器 (防止重複觸發)
+        const newCancel = rdBtnCancel.cloneNode(true);
+        const newConfirm = rdBtnConfirm.cloneNode(true);
+        const newOk = rdBtnOk.cloneNode(true);
+        rdBtnCancel.parentNode.replaceChild(newCancel, rdBtnCancel);
+        rdBtnConfirm.parentNode.replaceChild(newConfirm, rdBtnConfirm);
+        rdBtnOk.parentNode.replaceChild(newOk, rdBtnOk);
+
+        // 重新獲取引用
+        const finalCancel = document.getElementById('rd-btn-cancel');
+        const finalConfirm = document.getElementById('rd-btn-confirm');
+        const finalOk = document.getElementById('rd-btn-ok');
+
+        if (type === 'confirm') {
+            finalCancel.style.display = 'block';
+            finalConfirm.style.display = 'block';
+            
+            finalConfirm.onclick = () => { rdOverlay.style.display = 'none'; resolve(true); };
+            finalCancel.onclick = () => { rdOverlay.style.display = 'none'; resolve(false); };
+        } else {
+            // Alert 模式
+            finalOk.style.display = 'block';
+            finalOk.onclick = () => { rdOverlay.style.display = 'none'; resolve(true); };
+        }
+    });
+}
+
+// 供外部呼叫的簡化函數
+async function retroConfirm(text) {
+    return await showRetroDialogUI(text, 'confirm');
+}
+
+async function retroAlert(text) {
+    return await showRetroDialogUI(text, 'alert');
+}
+
+        
 // [新增] 用於控制選單是否強制鎖定的變數
 let isMenuLocked = false;
         
         // Multi-exposure State
         let isFilmAdvanced = true; // True = Ready to shoot fresh frame. False = Frame exposed, needs winding.
         let exposureCanvas = document.createElement('canvas'); // Buffer for multi-exposure
+        let currentReviewCanvas = null;
         let exposureCtx = exposureCanvas.getContext('2d');
         
         const REAL_MODES = [ { id: 'BW', name: 'B&W', sub: 'STREET 400', color: '#000' }, { id: 'COLOR', name: 'COLOR', sub: 'GAME-CAM', color: '#c00' }, { id: 'CCD', name: 'DIGI', sub: 'CCD SENSOR', color: '#0055cc' }, { id: 'HCBW', name: 'HC-BW', sub: 'FINE 100', color: '#555' }, { id: 'FILM_TEAL', name: 'FILM: TEAL', sub: 'KYOTO 400', color: '#008080' }, { id: 'FILM_SUN', name: 'FILM: SUN', sub: 'CALI 200', color: '#ffcc00' }, { id: 'FILM_VIVID', name: 'FILM: VIVID', sub: 'SLIDE 100', color: '#ff0055' }, { id: 'FILM_AGED', name: 'FILM: AGED', sub: 'EURO 800', color: '#8b4513' }, { id: 'FILM_SOFT', name: 'FILM: SOFT', sub: 'AIRY 400H', color: '#90e0ef' } ];
@@ -790,6 +1052,22 @@ let isMenuLocked = false;
 });
         orientationBtn.addEventListener('click', async () => { isOrientationLocked = !isOrientationLocked; orientationBtn.classList.toggle('locked', isOrientationLocked); localStorage.setItem('orientationLocked', isOrientationLocked); if (isOrientationLocked) { try { if (screen.orientation && screen.orientation.lock) { await screen.orientation.lock('landscape'); } } catch (e) { console.log("Orientation Lock not supported or failed", e); } } else { try { if (screen.orientation && screen.orientation.unlock) { screen.orientation.unlock(); } } catch (e) {} } });
 
+// [新增] 自拍模式左側 FILM 按鍵監聽器
+document.getElementById('filmSelectBtn').addEventListener('click', () => {
+    // 這是用戶主動點擊更換，非強制模式切換，因此不鎖定
+    isMenuLocked = false; 
+    
+    // 開啟底片選擇介面
+    openFilmSelector();
+});
+
+// [新增] 左側快門鍵監聽器
+const selfieShutterBtn = document.getElementById('selfieShutterBtn');
+selfieShutterBtn.addEventListener('click', handleShutter);
+        
+
+
+        
         function renderFilmSelector() { const modes = getModes(); filmRollContainer.innerHTML = ''; modes.forEach((m, index) => { const canister = document.createElement('div'); canister.className = 'film-canister'; if (index === currentModeIdx) canister.classList.add('active'); const labelStyle = `border: 4px solid ${m.color}; background: #f4e9c5;`; const nameStyle = `color: ${m.color};`; canister.innerHTML = `<div class="canister-cap cap-top"></div><div class="canister-body"><div class="canister-label" style="${labelStyle}"><div class="cl-name" style="${nameStyle}">${m.name}</div><div class="cl-sub">${m.sub}</div><div class="cl-iso">ISO</div></div></div><div class="sprocket-lip"></div><div class="canister-cap cap-bottom"></div>`; canister.addEventListener('click', (e) => { e.stopPropagation(); selectModeFromRoll(index); }); filmRollContainer.appendChild(canister); }); }
         function openFilmSelector() { if (backDoorWrapper.classList.contains('open')) return; renderFilmSelector(); filmRollOverlay.style.display = 'flex'; void filmRollOverlay.offsetWidth; filmRollOverlay.classList.add('visible'); }
        // [修改] 選擇底片後的處理函數
@@ -892,102 +1170,157 @@ filmRollOverlay.addEventListener('click', (e) => {
         frontShutterBtn.addEventListener('click', handleShutter);
         cablePlunger.addEventListener('click', (e) => { e.stopPropagation(); cablePlunger.classList.add('pressed'); setTimeout(() => cablePlunger.classList.remove('pressed'), 200); handleShutter(e); });
         
-        function handleShutter(e) { 
-            if(e) e.stopPropagation(); 
-            if (e && e.target.id === 'vf-close-btn') return; 
-            if (!isSelfieMode && backDoorWrapper.classList.contains('open')) return; 
-            if (isRollMode && currentFrame >= 36) return; 
-            
-            const btn = isSelfieMode ? frontShutterBtn : shutterBtn; 
-            btn.classList.add('pressed'); 
-            playShutterSound(); 
-            
-            if (isSelfieMode) { 
-                shutterFlash.classList.remove('flash'); 
-                void shutterFlash.offsetWidth; 
-                shutterFlash.classList.add('flash'); 
-                setTimeout(() => shutterFlash.classList.remove('flash'), 150); 
-            } else { 
-                const container = (fsViewfinder.style.display === 'block') ? fsViewfinder : vfTrigger; 
-                const blind = document.createElement('div'); 
-                blind.className = container === fsViewfinder ? 'shutter-blind' : 'vf-shutter-blind'; 
-                container.appendChild(blind); 
-                setTimeout(() => blind.remove(), 150); 
-            } 
-            
-            setTimeout(() => { 
-                performCapture(); 
-                btn.classList.remove('pressed'); 
-            }, 150); 
-        }
+       function handleShutter(e) { 
+    if(e) e.stopPropagation(); 
+    if (e && e.target.id === 'vf-close-btn') return; 
+    
+    // 如果不是自拍模式，且背蓋開著，禁止拍攝
+    if (!isSelfieMode && backDoorWrapper.classList.contains('open')) return; 
+    // 如果底片拍完，禁止拍攝
+    if (isRollMode && currentFrame >= 36) return; 
+    
+    // [關鍵修改] 根據模式選擇要產生動畫的實體按鈕
+    // 如果是自拍模式，選左側新按鈕(selfieShutterBtn)；否則選右側原按鈕(shutterBtn)
+    const btn = isSelfieMode ? document.getElementById('selfieShutterBtn') : shutterBtn; 
+    
+    btn.classList.add('pressed'); 
+    playShutterSound(); 
+    
+    if (isSelfieMode) { 
+        // 自拍模式：鏡頭閃光特效
+        shutterFlash.classList.remove('flash'); 
+        void shutterFlash.offsetWidth; 
+        shutterFlash.classList.add('flash'); 
+        setTimeout(() => shutterFlash.classList.remove('flash'), 150); 
+    } else { 
+        // 一般模式：觀景窗黑屏特效
+        const container = (fsViewfinder.style.display === 'block') ? fsViewfinder : vfTrigger; 
+        const blind = document.createElement('div'); 
+        blind.className = container === fsViewfinder ? 'shutter-blind' : 'vf-shutter-blind'; 
+        container.appendChild(blind); 
+        setTimeout(() => blind.remove(), 150); 
+    } 
+    
+    setTimeout(() => { 
+        performCapture(); 
+        btn.classList.remove('pressed'); 
+    }, 150); 
+}
 
         function generateLightLeak(ctx, w, h, severity = 1) { ctx.save(); ctx.globalCompositeOperation = 'screen'; const baseCount = severity > 1 ? 3 : (Math.random() > 0.7 ? 2 : 1); for(let i=0; i<baseCount; i++) { const type = Math.random(); const opacity = (0.4 + Math.random() * 0.4) * severity; const hue = Math.random() > 0.8 ? 40 + Math.random()*10 : 10 + Math.random()*30; let colorInner = `hsla(${hue}, 90%, 60%, ${opacity})`; let colorOuter = `hsla(${hue-10}, 90%, 40%, 0)`; if (type < 0.4) { const isLeft = Math.random() > 0.5; const width = w * (0.15 + Math.random() * 0.3); const grad = ctx.createLinearGradient(isLeft ? 0 : w, 0, isLeft ? width : w - width, 0); grad.addColorStop(0, colorInner); grad.addColorStop(1, colorOuter); ctx.fillStyle = grad; ctx.fillRect(0, 0, w, h); } else { const cx = Math.random() > 0.5 ? 0 : w; const cy = Math.random() > 0.5 ? 0 : h; const r = Math.max(w, h) * (0.4 + Math.random() * 0.4); const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r); grad.addColorStop(0, `hsla(${hue}, 20%, 90%, ${opacity})`); grad.addColorStop(1, `hsla(${hue}, 90%, 20%, 0)`); ctx.fillStyle = grad; ctx.fillRect(0, 0, w, h); } } ctx.restore(); }
         
-        async function performCapture() { 
-            const modes = getModes(); 
-            const mode = modes[currentModeIdx]; 
-            const targetW = 1920, targetH = 1080; 
-            
-            const tempC = document.createElement('canvas');
-            tempC.width = targetW; tempC.height = targetH;
-            const tempCtx = tempC.getContext('2d');
-            
-            tempCtx.filter = 'none'; 
-            if (isSelfieMode) { tempCtx.translate(targetW, 0); tempCtx.scale(-1, 1); } 
-            tempCtx.imageSmoothingEnabled = (mode.id.startsWith('FILM_') || mode.id === 'HCBW' || mode.id === 'CCD' || mode.id.includes('SKETCH')); 
-            tempCtx.drawImage(processCanvas, 0, 0, targetW, targetH); 
-            if (mode.id.startsWith('FILM_')) { const severity = (mode.id === 'FILM_AGED') ? 2.0 : 1.0; generateLightLeak(tempCtx, targetW, targetH, severity); } 
-            
-            if (exposureCanvas.width !== targetW) {
-                exposureCanvas.width = targetW; exposureCanvas.height = targetH;
-            }
+      async function performCapture() { 
+    // [修正 2] 拍攝後強制關閉放大觀景窗，避免擋住 Review 介面
+    fsViewfinder.style.display = 'none';
+    
+    const modes = getModes(); 
+    const mode = modes[currentModeIdx]; 
+    const targetW = 1920, targetH = 1080; 
+    
+    // 1. 準備當前這一張的影像 (Temp Canvas)
+    const tempC = document.createElement('canvas');
+    tempC.width = targetW; tempC.height = targetH;
+    const tempCtx = tempC.getContext('2d');
+    
+    tempCtx.filter = 'none'; 
+    // 自拍模式鏡像翻轉
+    if (isSelfieMode) { tempCtx.translate(targetW, 0); tempCtx.scale(-1, 1); } 
+    
+    // 繪製影像與濾鏡效果
+    tempCtx.imageSmoothingEnabled = (mode.id.startsWith('FILM_') || mode.id === 'HCBW' || mode.id === 'CCD' || mode.id.includes('SKETCH')); 
+    tempCtx.drawImage(processCanvas, 0, 0, targetW, targetH); 
+    
+    // 加入漏光效果
+    if (mode.id.startsWith('FILM_')) { const severity = (mode.id === 'FILM_AGED') ? 2.0 : 1.0; generateLightLeak(tempCtx, targetW, targetH, severity); } 
+    
+    // [關鍵修改] 將這張處理好的照片暫存到全域變數，等待用戶按 KEEP
+    currentReviewCanvas = tempC;
 
-            if (isFilmAdvanced) {
-                exposureCtx.globalCompositeOperation = 'source-over';
-                exposureCtx.drawImage(tempC, 0, 0);
-                isFilmAdvanced = false; 
-            } else {
-                exposureCtx.globalCompositeOperation = 'screen';
-                exposureCtx.globalAlpha = 0.8; 
-                exposureCtx.drawImage(tempC, 0, 0);
-                exposureCtx.globalAlpha = 1.0;
-            }
+    // 2. 顯示 Review 介面 (只顯示當前這一張，而不是多重曝光的結果)
+    if (!isRollMode) {
+        // 1張模式：顯示 Review
+        const previewData = tempC.toDataURL('image/jpeg', 0.9);
+        document.getElementById('review-img').src = previewData;
+        document.getElementById('review-overlay').style.display = 'flex';
+    } else {
+        // 36張模式：直接保存 (模擬自動過片邏輯，或您也可以選擇不自動過片，但這裡維持原邏輯較順暢)
+        // 如果您希望36張模式也是 "Keep才合成"，請告訴我，目前維持直接合成：
+        if (exposureCanvas.width !== targetW) { exposureCanvas.width = targetW; exposureCanvas.height = targetH; }
+        exposureCtx.globalCompositeOperation = isFilmAdvanced ? 'source-over' : 'screen';
+        exposureCtx.drawImage(tempC, 0, 0);
+        isFilmAdvanced = false; 
+        updateLeverUI();
+    }
+}
+        
+       // [修改] DISCARD 按鈕：放棄當前這一張，不進行疊加
+document.getElementById('btn-discard').addEventListener('click', () => { 
+    // 清空暫存
+    currentReviewCanvas = null;
+    pendingPhoto = null; 
+    document.getElementById('review-overlay').style.display = 'none'; 
+    
+    // 注意：這裡不重置 isFilmAdvanced。
+    // 如果這是多重曝光的第2張並被放棄，我們希望狀態保持在「已拍第1張(未過片)」，
+    // 讓用戶可以重新拍第2張來疊加。
+}); 
 
-            updateLeverUI();
+// [修改] KEEP 按鈕：確認保留，執行疊加運算
+document.getElementById('btn-keep').addEventListener('click', () => { 
+    document.getElementById('review-overlay').style.display = 'none'; 
+    
+    if (currentReviewCanvas) {
+        const w = currentReviewCanvas.width;
+        const h = currentReviewCanvas.height;
+
+        // 確保曝光緩衝區尺寸正確
+        if (exposureCanvas.width !== w) {
+            exposureCanvas.width = w; exposureCanvas.height = h;
         }
-        
-        document.getElementById('btn-discard').addEventListener('click', () => { 
-            pendingPhoto = null; 
-            document.getElementById('review-overlay').style.display = 'none'; 
-        }); 
-        
-        document.getElementById('btn-keep').addEventListener('click', () => { 
-            document.getElementById('review-overlay').style.display = 'none'; 
-            isFilmAdvanced = true; 
-            updateLeverUI();
-        });
 
-       rollModeSwitch.addEventListener('click', async () => { 
-    // 判斷條件修改：
-    // 1. pendingPhoto: 1張模式下有未保存的照片
-    // 2. (isRollMode && currentFrame > 0): 36張模式下，只要拍了超過 0 張 (包含 36 張滿)，都要警告
+        // [核心邏輯] 執行合成
+        if (isFilmAdvanced) {
+            // 這是新的一張底片 (Base Layer)
+            exposureCtx.globalCompositeOperation = 'source-over';
+            exposureCtx.drawImage(currentReviewCanvas, 0, 0);
+            
+            // 標記為「已曝光，未過片」
+            // 這樣下次再拍就會進入 else (多重曝光)
+            isFilmAdvanced = false; 
+        } else {
+            // 這是多重曝光的疊加層 (Overlay Layer)
+            exposureCtx.globalCompositeOperation = 'screen';
+            // 可以微調透明度讓疊加更自然
+            exposureCtx.globalAlpha = 0.8; 
+            exposureCtx.drawImage(currentReviewCanvas, 0, 0);
+            exposureCtx.globalAlpha = 1.0;
+        }
+
+        updateLeverUI();
+    }
+    
+    // 清空暫存
+    currentReviewCanvas = null;
+});
+
+       // [修改] 模式切換按鈕 - 使用復古對話框
+rollModeSwitch.addEventListener('click', async () => { 
+    // 判斷條件：1張模式有未存照片 OR 36張模式已拍攝張數>0
     if(pendingPhoto || (isRollMode && currentFrame > 0)) { 
         
-        // 彈出明確的警告視窗
         const msg = isRollMode 
-            ? `WARNING: Switching modes will DELETE all ${currentFrame} photos in this roll.\n\nContinue?`
+            ? `WARNING:\nSwitching modes will DELETE all ${currentFrame} photos in this roll.\n\nContinue?`
             : "Discard current photo and switch mode?";
 
-        if(!confirm(msg)) return; // 如果使用者按「取消」，則不執行任何動作
+        // [修改] 使用自製的 retroConfirm
+        const userConfirmed = await retroConfirm(msg);
+        if(!userConfirmed) return; 
         
         // 使用者按「確定」，開始清除
         await clearTemp(); 
-        
-        // [重要] 清除多重曝光的緩存，避免切換後上一張的殘影留到新模式
         exposureCtx.clearRect(0, 0, exposureCanvas.width, exposureCanvas.height);
-        
         pendingPhoto = null; 
-        isFilmAdvanced = true; // 重置過片狀態
+        isFilmAdvanced = true; 
     } 
     
     // 執行模式切換
@@ -997,14 +1330,7 @@ filmRollOverlay.addEventListener('click', (e) => {
     currentFrame = 0; 
     
     updateCounterDisplay(); 
-    
-    // 修正切換後的燈號狀態 (引用之前修復的邏輯)
-    if (typeof updateLeverUI === "function") {
-        updateLeverUI();
-    } else {
-        // 如果您還沒把 updateLeverUI 獨立出來，則使用原本的 checkLeverState
-        checkLeverState(); 
-    }
+    if (typeof updateLeverUI === "function") { updateLeverUI(); } else { checkLeverState(); }
 });
         
         let leverPulled = false; 
@@ -1534,21 +1860,50 @@ zoomOverlay.addEventListener('click', () => {
         function toggleSelectionAll(id) { if (selectedAlbumIds.has(id)) { selectedAlbumIds.delete(id); } else { selectedAlbumIds.add(id); } syncSelectionUI(); }
         function syncSelectionUI() { document.querySelectorAll('.album-photo').forEach(el => { const pid = parseInt(el.dataset.id); if(selectedAlbumIds.has(pid)) el.classList.add('selected'); else el.classList.remove('selected'); }); document.querySelectorAll('.film-frame-container').forEach(el => { const pid = parseInt(el.dataset.id); if(selectedAlbumIds.has(pid)) el.classList.add('selected'); else el.classList.remove('selected'); }); }
         document.getElementById('alb-sel-all').addEventListener('click', () => { const allSelected = selectedAlbumIds.size === currentAlbumData.length; if (allSelected) selectedAlbumIds.clear(); else currentAlbumData.forEach(p => selectedAlbumIds.add(p.id)); syncSelectionUI(); });
-        document.getElementById('alb-delete').addEventListener('click', async () => { if (!checkSelection()) return; if (confirm("DELETE SELECTED PHOTOS?")) { const idsToRemove = Array.from(selectedAlbumIds); await deleteFromAlbum(idsToRemove); await loadAlbum(); } });
+        // [修改] 刪除按鈕 - 使用復古對話框
+document.getElementById('alb-delete').addEventListener('click', async () => { 
+    // [修改] 使用自製 Alert
+    if (!checkSelection()) {
+        retroAlert("SELECT PHOTOS FIRST");
+        return;
+    }
+
+    // [修改] 使用自製 Confirm
+    const userConfirmed = await retroConfirm("DELETE SELECTED PHOTOS?\n(Cannot be undone)");
+    if (userConfirmed) { 
+        const idsToRemove = Array.from(selectedAlbumIds); 
+        await deleteFromAlbum(idsToRemove); 
+        await loadAlbum(); 
+    } 
+});
         const exportModal = document.getElementById('export-modal'); let exportActionType = ''; 
-        function checkSelection() { if (selectedAlbumIds.size === 0) { alert("SELECT PHOTOS FIRST"); return false; } return true; }
+       function checkSelection() { 
+    if (selectedAlbumIds.size === 0) { 
+        return false; 
+    } 
+    return true; 
+}
        document.getElementById('alb-download').addEventListener('click', () => { 
-    if(!checkSelection()) return; 
+    if(!checkSelection()) {
+        retroAlert("SELECT PHOTOS FIRST"); // [修改]
+        return; 
+    }
     exportActionType = 'download'; 
-    document.getElementById('exp-text-input').value = ""; // [新增] 清空輸入框
+    document.getElementById('exp-text-input').value = ""; 
     exportModal.style.display = 'flex'; 
 });
 
 document.getElementById('alb-share').addEventListener('click', () => { 
-    if(!checkSelection()) return; 
-    if(!navigator.share) { alert("SHARING NOT SUPPORTED"); return; } 
+    if(!checkSelection()) {
+        retroAlert("SELECT PHOTOS FIRST"); // [修改]
+        return; 
+    }
+    if(!navigator.share) { 
+        retroAlert("SHARING NOT SUPPORTED"); // [修改]
+        return; 
+    } 
     exportActionType = 'share'; 
-    document.getElementById('exp-text-input').value = ""; // [新增] 清空輸入框
+    document.getElementById('exp-text-input').value = ""; 
     exportModal.style.display = 'flex'; 
 });
         document.getElementById('exp-cancel').addEventListener('click', () => exportModal.style.display = 'none');
@@ -1594,9 +1949,9 @@ document.getElementById('alb-share').addEventListener('click', () => {
         await loadAlbum();
         resetToCameraUI(); 
 
-    } catch (err) {
+   } catch (err) {
         console.error("Export failed:", err);
-        alert("EXPORT ERROR");
+        retroAlert("EXPORT ERROR\nCheck console for details"); // [修改]
     } finally {
         document.body.style.cursor = 'default';
     }
