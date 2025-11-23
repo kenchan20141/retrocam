@@ -9,6 +9,12 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Retrocam</title>
+
+<!-- [新增] 引入 Google Fonts 書法字體 (Ma Shan Zheng) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600&display=swap" rel="stylesheet">
+    
 <style>
     :root {
         --leather-color: #151515;
@@ -480,7 +486,20 @@
     <div id="review-overlay"><img id="review-img" src="" alt="Review"><div class="review-controls"><button class="btn-retro" id="btn-discard">DISCARD</button><button class="btn-retro" id="btn-keep">KEEP</button></div></div>
     <div id="developing-overlay"><div class="photo-paper-container"><img id="dev-image-wrap" src="" alt="Developing"></div><div class="dev-status-text" id="devStatus">DEVELOPING...</div></div>
     <div id="zoom-overlay"><img id="zoom-img" src="" alt="Zoomed Photo"></div>
-    <div id="export-modal"><h2 style="color:#c00; font-family:'Courier New'">EXPORT OPTIONS</h2><p style="color:#fff; font-family:sans-serif">Include Serial Number?</p><div class="export-opt-group"><button class="btn-retro" id="exp-no-serial">NO SERIAL</button><button class="btn-retro" id="exp-with-serial" style="border-color:#c00; color:#c00">WITH SERIAL</button></div><button class="btn-retro" id="exp-cancel" style="margin-top:30px; border:none; opacity:0.5">CANCEL</button></div>
+    <div id="export-modal">
+    <h2 style="color:#c00; font-family:'Courier New'">EXPORT OPTIONS</h2>
+    
+<input type="text" id="exp-text-input" placeholder="Enter caption..." maxlength="20" style="margin-top:15px; padding:10px; width:220px; font-family:'Noto Serif TC', serif; font-weight:600; font-size: 18px; background:#222; border:1px solid #666; color:#fff; text-align:center; outline:none;">
+
+
+        
+    <p style="color:#fff; font-family:sans-serif; margin-top:15px;">Include Serial Number?</p>
+    <div class="export-opt-group">
+        <button class="btn-retro" id="exp-no-serial">NO SERIAL</button>
+        <button class="btn-retro" id="exp-with-serial" style="border-color:#c00; color:#c00">WITH SERIAL</button>
+    </div>
+    <button class="btn-retro" id="exp-cancel" style="margin-top:30px; border:none; opacity:0.5">CANCEL</button>
+</div>
 
     <video id="video-source" autoplay playsinline style="display:none"></video>
     <canvas id="process-canvas" style="display:none"></canvas>
@@ -834,8 +853,70 @@
 
 function applyFrameAndDate(imgUrl, dateObj, style) { return new Promise(resolve => { const img = new Image(); img.onload = () => { let w = 1920, h = 1080; let padTop = 0, padSide = 0, padBottom = 0; if (style === 'white') { padTop = 50; padSide = 50; padBottom = 150; w = 1200; h = Math.floor(w * (9/16)) + padTop + padBottom; } else if (style === 'film') { padTop = 80; padSide = 0; padBottom = 80; } finalCanvas.width = w; finalCanvas.height = h; const ctx = finalCanvas.getContext('2d'); ctx.filter = 'none'; if (style === 'white') { ctx.fillStyle = '#fff'; ctx.fillRect(0,0,w,h); ctx.drawImage(img, padSide, padTop, w - padSide*2, h - padTop - padBottom); } else if (style === 'film') { ctx.drawImage(img, 0, padTop, w, h - padTop*2); ctx.fillStyle = '#111'; ctx.fillRect(0, 0, w, padTop); ctx.fillRect(0, h - padBottom, w, padBottom); ctx.fillStyle = '#fff'; const holeW = 30, gap = 20; for(let x = 30; x < w; x += (holeW + gap)) { ctx.fillRect(x, 20, holeW, 40); ctx.fillRect(x, h - 60, holeW, 40); } } else { ctx.drawImage(img, 0, 0, w, h); } const d = new Date(dateObj); const dateStr = `'${d.getFullYear().toString().slice(-2)} ${(d.getMonth()+1).toString().padStart(2,'0')} ${d.getDate().toString().padStart(2,'0')}`; let dateX = (style === 'white') ? w - padSide - 30 : ((style === 'film') ? w - 50 : w - 60); let dateY = (style === 'white' || style === 'film') ? h - padBottom - 30 : h - 50; if (isSketchMode) { ctx.save(); ctx.shadowBlur = 0; const m = SKETCH_MODES[currentModeIdx]; if(m.id === 'SKETCH_CYBER') ctx.fillStyle = '#0f0'; else if(m.id === 'SKETCH_BLUE') ctx.fillStyle = '#fff'; else if(m.id === 'SKETCH_HK_NEON') ctx.fillStyle = '#ff00cc'; else ctx.fillStyle = 'rgba(50, 50, 50, 0.85)'; ctx.font = `normal 45px "Segoe Print", "Comic Sans MS", cursive`; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom'; ctx.translate(dateX, dateY); ctx.rotate(-0.05); ctx.fillText(dateStr, 0, 0); ctx.restore(); } else { ctx.shadowColor = '#ff5500'; ctx.shadowBlur = 15; ctx.fillStyle = 'rgba(255, 170, 50, 0.9)'; const fontSize = style === 'white' ? 40 : 50; ctx.font = `bold ${fontSize}px "Courier New", monospace`; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom'; ctx.fillText(dateStr, dateX, dateY); } resolve(finalCanvas.toDataURL('image/jpeg', 0.9)); }; img.src = imgUrl; }); }
         
-        function overlaySerial(imgUrl, serialNo, style) { return new Promise(resolve => { const img = new Image(); img.onload = () => { finalCanvas.width = img.width; finalCanvas.height = img.height; const ctx = finalCanvas.getContext('2d'); ctx.drawImage(img, 0, 0); let x = 30, y = 30, color = '#fff'; if (style === 'white') { x = 50; y = img.height - 80; color = '#333'; } else if (style === 'film') { x = 40; y = 100; color = 'rgba(255,255,255,0.8)'; } else { color = 'rgba(255,255,255,0.8)'; } ctx.shadowColor = style === 'white' ? 'transparent' : '#000'; ctx.shadowBlur = 2; ctx.fillStyle = color; ctx.font = `bold 36px "Courier New", monospace`; ctx.textAlign = 'left'; ctx.textBaseline = 'top'; ctx.fillText(`No.${serialNo}`, x, y); resolve(finalCanvas.toDataURL('image/jpeg', 0.9)); }; img.src = imgUrl; }); }
+     function overlaySerial(imgUrl, serialNo, style, customText) { 
+    return new Promise(async (resolve) => { 
         
+        // 1. 確保 Noto Serif TC 字體已加載
+        try {
+            await document.fonts.load('600 40px "Noto Serif TC"');
+        } catch (e) {
+            console.log("Font loading skipped or failed");
+        }
+
+        const img = new Image(); 
+        img.onload = () => { 
+            finalCanvas.width = img.width; 
+            finalCanvas.height = img.height; 
+            const ctx = finalCanvas.getContext('2d'); 
+            
+            // 繪製底圖
+            ctx.drawImage(img, 0, 0); 
+            
+            // 繪製 Serial Number (保持不變)
+            let x = 30, y = 30, color = '#fff'; 
+            if (style === 'white') { 
+                x = 50; y = img.height - 80; color = '#333'; 
+            } else if (style === 'film') { 
+                x = 40; y = 100; color = 'rgba(255,255,255,0.8)'; 
+            } else { 
+                color = 'rgba(255,255,255,0.8)'; 
+            } 
+            
+            ctx.shadowColor = style === 'white' ? 'transparent' : '#000'; 
+            ctx.shadowBlur = 2; 
+            ctx.fillStyle = color; 
+            ctx.font = `bold 36px "Courier New", monospace`; 
+            ctx.textAlign = 'left'; 
+            ctx.textBaseline = 'top'; 
+            
+            if (serialNo !== "") {
+                ctx.fillText(`No.${serialNo}`, x, y);
+            }
+
+            // [重點修改] 繪製自定義文字 (思源宋體)
+            if (style === 'white' && customText && customText.trim() !== "") {
+                // 設定深黑色
+                ctx.fillStyle = '#111'; 
+                ctx.shadowBlur = 0;
+                
+                // 字體大小：設定為 38px (精緻小標題感)
+                const fontSize = 38;
+                
+                // 使用 Noto Serif TC，權重 600 (SemiBold)
+                ctx.font = `600 ${fontSize}px "Noto Serif TC", serif`; 
+                
+                ctx.textAlign = 'center'; 
+                ctx.textBaseline = 'bottom'; 
+                
+                // 位置：距離底部 45px
+                ctx.fillText(customText, img.width / 2, img.height - 45);
+            }
+
+            resolve(finalCanvas.toDataURL('image/jpeg', 0.9)); 
+        }; 
+        img.src = imgUrl; 
+    }); 
+}
        /* [MODIFIED] Smooth Transition Version */
 async function startDevelopingAnimation(photos, style) { 
     devOverlay.style.display = 'flex'; 
@@ -1009,12 +1090,71 @@ async function startDevelopingAnimation(photos, style) {
         document.getElementById('alb-delete').addEventListener('click', async () => { if (!checkSelection()) return; if (confirm("DELETE SELECTED PHOTOS?")) { const idsToRemove = Array.from(selectedAlbumIds); await deleteFromAlbum(idsToRemove); await loadAlbum(); } });
         const exportModal = document.getElementById('export-modal'); let exportActionType = ''; 
         function checkSelection() { if (selectedAlbumIds.size === 0) { alert("SELECT PHOTOS FIRST"); return false; } return true; }
-        document.getElementById('alb-download').addEventListener('click', () => { if(!checkSelection()) return; exportActionType = 'download'; exportModal.style.display = 'flex'; });
-        document.getElementById('alb-share').addEventListener('click', () => { if(!checkSelection()) return; if(!navigator.share) { alert("SHARING NOT SUPPORTED"); return; } exportActionType = 'share'; exportModal.style.display = 'flex'; });
+       document.getElementById('alb-download').addEventListener('click', () => { 
+    if(!checkSelection()) return; 
+    exportActionType = 'download'; 
+    document.getElementById('exp-text-input').value = ""; // [新增] 清空輸入框
+    exportModal.style.display = 'flex'; 
+});
+
+document.getElementById('alb-share').addEventListener('click', () => { 
+    if(!checkSelection()) return; 
+    if(!navigator.share) { alert("SHARING NOT SUPPORTED"); return; } 
+    exportActionType = 'share'; 
+    document.getElementById('exp-text-input').value = ""; // [新增] 清空輸入框
+    exportModal.style.display = 'flex'; 
+});
         document.getElementById('exp-cancel').addEventListener('click', () => exportModal.style.display = 'none');
         document.getElementById('exp-no-serial').addEventListener('click', () => processExport(false));
         document.getElementById('exp-with-serial').addEventListener('click', () => processExport(true));
-        async function processExport(addSerial) { const selectedData = currentAlbumData.filter(p => selectedAlbumIds.has(p.id)); const filesToShare = []; for (let p of selectedData) { let finalDataUrl = p.image; if (addSerial) finalDataUrl = await overlaySerial(p.image, p.serial, p.style); const fileName = `RETRO_No${p.serial}_${Date.now()}.jpg`; if (exportActionType === 'download') { const link = document.createElement('a'); link.download = fileName; link.href = finalDataUrl; link.click(); await new Promise(r => setTimeout(r, 200)); } else { const blob = await (await fetch(finalDataUrl)).blob(); filesToShare.push(new File([blob], fileName, { type: 'image/jpeg' })); } } if (exportActionType === 'share' && filesToShare.length > 0) { try { await navigator.share({ files: filesToShare }); } catch (e) {} } const idsToRemove = selectedData.map(p => p.id); await deleteFromAlbum(idsToRemove); resetToCameraUI(); }
+       async function processExport(addSerial) { 
+    // [新增] 獲取輸入框文字
+    const customText = document.getElementById('exp-text-input').value;
+    
+    const selectedData = currentAlbumData.filter(p => selectedAlbumIds.has(p.id)); 
+    const filesToShare = []; 
+    
+    for (let p of selectedData) { 
+        let finalDataUrl = p.image; 
+        
+        // [修改] 無論是否要加 Serial，我們都調用 overlaySerial 來處理自定義文字
+        // 邏輯：如果用戶選 NO SERIAL，我們傳一個空字串或不繪製 Serial，但仍需繪製自定義文字
+        // 為了保持簡單，這裡稍微改寫邏輯：
+        
+        // 如果需要 Serial 或 有輸入自定義文字，都要重新繪製
+        if (addSerial || (p.style === 'white' && customText)) {
+             // 如果選 NO SERIAL，傳入空字串給 serialNo (或者在 overlaySerial 裡判斷，這裡用空字串稍微取巧但有效)
+             // 但為了不破壞原本 No.XXX 的格式，我們這樣做：
+             const serialToPrint = addSerial ? p.serial : ""; 
+             
+             // 注意：如果 serialToPrint 是空字串，overlaySerial 會印出 "No."，我們微調一下 overlaySerial 避免這個狀況
+             // 為了最少修改，建議直接傳入 p.serial，但如果 addSerial 為 false，我們稍微 hack 一下 overlaySerial 的顯示
+             // 更好的方式是直接傳遞：
+             finalDataUrl = await overlaySerial(p.image, addSerial ? p.serial : "", p.style, customText);
+        }
+
+        const fileName = `RETRO_${Date.now()}_${p.serial}.jpg`; 
+        
+        if (exportActionType === 'download') { 
+            const link = document.createElement('a'); 
+            link.download = fileName; 
+            link.href = finalDataUrl; 
+            link.click(); 
+            await new Promise(r => setTimeout(r, 200)); 
+        } else { 
+            const blob = await (await fetch(finalDataUrl)).blob(); 
+            filesToShare.push(new File([blob], fileName, { type: 'image/jpeg' })); 
+        } 
+    } 
+    
+    if (exportActionType === 'share' && filesToShare.length > 0) { 
+        try { await navigator.share({ files: filesToShare }); } catch (e) {} 
+    } 
+    
+    const idsToRemove = selectedData.map(p => p.id); 
+    await deleteFromAlbum(idsToRemove); 
+    resetToCameraUI(); 
+}
         function resetToCameraUI() { exportModal.style.display = 'none'; closeBackDoor(); document.getElementById('review-overlay').style.display = 'none'; pendingPhoto = null; updateLeverUI(); }
         function checkOrientation() { if (window.innerHeight > window.innerWidth) { document.getElementById('orientation-lock').style.display = 'flex'; document.getElementById('camera-container').style.display = 'none'; fsPrompt.style.display = 'none'; } else { document.getElementById('orientation-lock').style.display = 'none'; if (document.fullscreenElement) { document.getElementById('camera-container').style.display = 'block'; document.getElementById('fullscreen-prompt').style.display = 'none'; resizeElements(); } else { enforceFullscreen(); } } }
        
