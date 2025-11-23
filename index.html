@@ -905,52 +905,54 @@ function saveToAlbum(processedImage, serialNumber, styleInfo, w, h) {
         let isRollMode = localStorage.getItem('rollMode') === 'true'; let currentFrame = 0; let pendingPhoto = null; let globalSerialCounter = parseInt(localStorage.getItem('global_serial_counter') || '1'); let isSelfieMode = false; let isSketchMode = false; let isOrientationLocked = localStorage.getItem('orientationLocked') === 'true'; let isFilmViewMode = true;
 
 
-/* --- CUSTOM DIALOG SYSTEM --- */
+/* --- CUSTOM DIALOG SYSTEM (修正版) --- */
+// 1. 這裡只獲取一次 DOM 元素引用
 const rdOverlay = document.getElementById('retro-dialog-overlay');
 const rdMessage = document.getElementById('rd-message');
 const rdBtnCancel = document.getElementById('rd-btn-cancel');
 const rdBtnConfirm = document.getElementById('rd-btn-confirm');
 const rdBtnOk = document.getElementById('rd-btn-ok');
 
-// [通用] 顯示訊息視窗
+// [修正] 通用顯示函數 - 移除 cloneNode，改用直接覆蓋 onclick
 function showRetroDialogUI(msg, type = 'confirm') {
     return new Promise((resolve) => {
+        // 設定文字與顯示遮罩
         rdMessage.textContent = msg;
         rdOverlay.style.display = 'flex';
         
-        // 重置按鈕顯示
+        // 先隱藏所有按鈕
         rdBtnCancel.style.display = 'none';
         rdBtnConfirm.style.display = 'none';
         rdBtnOk.style.display = 'none';
 
-        // 移除舊的監聽器 (防止重複觸發)
-        const newCancel = rdBtnCancel.cloneNode(true);
-        const newConfirm = rdBtnConfirm.cloneNode(true);
-        const newOk = rdBtnOk.cloneNode(true);
-        rdBtnCancel.parentNode.replaceChild(newCancel, rdBtnCancel);
-        rdBtnConfirm.parentNode.replaceChild(newConfirm, rdBtnConfirm);
-        rdBtnOk.parentNode.replaceChild(newOk, rdBtnOk);
-
-        // 重新獲取引用
-        const finalCancel = document.getElementById('rd-btn-cancel');
-        const finalConfirm = document.getElementById('rd-btn-confirm');
-        const finalOk = document.getElementById('rd-btn-ok');
-
         if (type === 'confirm') {
-            finalCancel.style.display = 'block';
-            finalConfirm.style.display = 'block';
+            // 顯示 Confirm 模式的按鈕
+            rdBtnCancel.style.display = 'block';
+            rdBtnConfirm.style.display = 'block';
             
-            finalConfirm.onclick = () => { rdOverlay.style.display = 'none'; resolve(true); };
-            finalCancel.onclick = () => { rdOverlay.style.display = 'none'; resolve(false); };
+            // [關鍵修正] 直接覆蓋 onclick，這樣保證每次都能觸發
+            rdBtnConfirm.onclick = () => { 
+                rdOverlay.style.display = 'none'; 
+                resolve(true); // 回傳 true
+            };
+            
+            rdBtnCancel.onclick = () => { 
+                rdOverlay.style.display = 'none'; 
+                resolve(false); // 回傳 false
+            };
         } else {
-            // Alert 模式
-            finalOk.style.display = 'block';
-            finalOk.onclick = () => { rdOverlay.style.display = 'none'; resolve(true); };
+            // 顯示 Alert 模式的按鈕
+            rdBtnOk.style.display = 'block';
+            
+            rdBtnOk.onclick = () => { 
+                rdOverlay.style.display = 'none'; 
+                resolve(true); 
+            };
         }
     });
 }
 
-// 供外部呼叫的簡化函數
+// 供外部呼叫的簡化函數 (保持不變)
 async function retroConfirm(text) {
     return await showRetroDialogUI(text, 'confirm');
 }
