@@ -8,7 +8,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Lumigraph</title>
+<title>Lumigraph WebGL</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -395,10 +395,11 @@ body.is-selfie .shutter-release-btn { display: none; }
 
 <script>
     /* --- 1. WEBGL RENDERER CLASS (NEW) --- */
-    class WebGLRenderer {
+      class WebGLRenderer {
         constructor(canvas) {
             this.canvas = canvas;
-            this.gl = canvas.getContext('webgl', { preserveDrawingBuffer: true });
+            // [修正 1] 嘗試使用 alpha: false 提升效能並減少透明度合成錯誤
+            this.gl = canvas.getContext('webgl', { preserveDrawingBuffer: true, alpha: false });
             if (!this.gl) { console.error("WebGL not supported"); return; }
             this.program = null;
             this.texture = null;
@@ -408,7 +409,7 @@ body.is-selfie .shutter-release-btn { display: none; }
         init() {
             const gl = this.gl;
             
-            // Vertex Shader (Standard Quad)
+            // Vertex Shader (不變)
             const vsSource = `
                 attribute vec2 a_position;
                 attribute vec2 a_texCoord;
@@ -424,13 +425,18 @@ body.is-selfie .shutter-release-btn { display: none; }
                 }
             `;
 
-            // Fragment Shader (The heavy lifting)
+            // Fragment Shader (修正核心邏輯)
             const fsSource = `
-                precision mediump float;
+                // [修正 2] 提升精度至 highp，消除低階設備上的虛線與雜訊
+                precision highp float;
+                
                 uniform sampler2D u_image;
                 varying vec2 v_texCoord;
-                uniform int u_mode; // 0=BW,1=COL,2=CCD,3=HCBW,4=TEAL,5=SUN,6=VIVID,7=AGED,8=SOFT, 10+=Sketch
+                uniform int u_mode; 
                 uniform float u_seed;
+                
+                // [修正 3] 新增傳入畫布尺寸，讓像素對齊完美
+                uniform vec2 u_texSize; 
 
                 float rand(vec2 co){
                     return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
@@ -452,17 +458,27 @@ body.is-selfie .shutter-release-btn { display: none; }
 
                     // Sketch Modes (10+)
                     if (u_mode >= 10) {
-                        float w = 1.0/800.0; float h = 1.0/600.0;
+                        // [修正 4] 使用動態計算的像素步長，徹底消除虛線干擾
+                        float w = 1.0 / u_texSize.x; 
+                        float h = 1.0 / u_texSize.y;
+                        
+                        // 抓取右邊和下面的像素進行比對
                         vec3 cR = texture2D(u_image, uv + vec2(w, 0.0)).rgb;
                         vec3 cB = texture2D(u_image, uv + vec2(0.0, h)).rgb;
+                        
                         float gray = dot(c, vec3(0.333));
                         float grayR = dot(cR, vec3(0.333));
                         float grayB = dot(cB, vec3(0.333));
+                        
+                        // 計算差異 (邊緣檢測)
                         float diff = abs(gray - grayR) + abs(gray - grayB);
                         
+                        // 增加一點數值穩定性，避免微小雜訊被當成邊緣
+                        if (diff < 0.01) diff = 0.0;
+
                         if (u_mode == 10) { // Pencil
-                            if(diff > 0.06) gl_FragColor = vec4(vec3(0.1), 1.0);
-                            else gl_FragColor = vec4(vec3(0.9 + rand(uv)*0.1), 1.0);
+                            if(diff > 0.06) gl_FragColor = vec4(vec3(0.15), 1.0);
+                            else gl_FragColor = vec4(vec3(0.92 + rand(uv)*0.08), 1.0);
                         } else if (u_mode == 12) { // Ink
                             if(diff > 0.08 || gray < 0.3) gl_FragColor = vec4(vec3(0.05), 1.0);
                             else gl_FragColor = vec4(1.0);
@@ -481,25 +497,38 @@ body.is-selfie .shutter-release-btn { display: none; }
                         } else if (u_mode == 11) { // Crayon
                             float noise = (rand(uv) - 0.5) * 0.2;
                             c = c + noise;
-                            if(diff > 0.06) gl_FragColor = vec4(c * 0.5, 1.0);
-                            else gl_FragColor = vec4(c + 0.3, 1.0);
+                            if(diff > 0.06) gl_FragColor = vec4(c * 0.6, 1.0);
+                            else gl_FragColor = vec4(c + 0.2, 1.0);
+                        } else if (u_mode == 15) { // Blueprint
+                            if(diff > 0.06) gl_FragColor = vec4(0.9, 0.95, 1.0, 1.0);
+                            else gl_FragColor = vec4(0.0, 0.2, 0.5 + rand(uv)*0.1, 1.0);
+                        } else if (u_mode == 13) { // Oil
+                             c = floor(c * 6.0) / 6.0; // Quantize colors
+                             if(diff > 0.05) c *= 0.8; // Darken edges
+                             gl_FragColor = vec4(c, 1.0);
+                        } else if (u_mode == 17) { // Shuimo
+                             float ink = gray;
+                             if (diff > 0.05) ink -= 0.3; // Darken edges
+                             ink = clamp(ink, 0.0, 1.0);
+                             // Contrast curve for ink wash look
+                             ink = smoothstep(0.2, 0.9, ink); 
+                             gl_FragColor = vec4(vec3(ink), 1.0);
                         } else {
-                            // Generic Edge
                             float edge = step(0.06, diff);
                             gl_FragColor = vec4(mix(vec3(1.0), vec3(0.0), edge), 1.0);
                         }
                         return;
                     }
 
-                    // Real Modes
+                    // Real Modes (保持不變)
                     if (u_mode == 0) { // BW
                         float gray = dot(c, vec3(0.3, 0.59, 0.11));
-                        gray = pow(gray, 1.1); // High contrast
+                        gray = pow(gray, 1.1); 
                         c = vec3(gray);
                         float noise = (rand(uv*u_seed) - 0.5) * 0.1;
                         c += noise;
-                    } else if (u_mode == 1) { // COLOR (Game Cam)
-                         c = floor(c * 5.0) / 5.0;
+                    } else if (u_mode == 1) { // COLOR
+                         c = floor(c * 8.0) / 8.0; // Slightly smoother than before
                     } else if (u_mode == 3) { // HCBW
                          float gray = dot(c, vec3(0.3));
                          gray = (gray - 0.2) * 1.3;
@@ -524,7 +553,7 @@ body.is-selfie .shutter-release-btn { display: none; }
                         c += vec3(0.05, 0.05, 0.08);
                     }
 
-                    // General Grain for film modes
+                    // Grain
                     if(u_mode != 1 && u_mode != 2) {
                         float noise = (rand(uv * u_seed) - 0.5) * 0.08;
                         c += noise;
@@ -538,24 +567,23 @@ body.is-selfie .shutter-release-btn { display: none; }
             const fragmentShader = this.compileShader(gl, gl.FRAGMENT_SHADER, fsSource);
             this.program = this.createProgram(gl, vertexShader, fragmentShader);
 
-            // Buffers
             const positionBuffer = gl.createBuffer();
             gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
             gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
 
             const texCoordBuffer = gl.createBuffer();
             gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0,1, 1,1, 0,0, 1,0]), gl.STATIC_DRAW); // Flip Y for WebGL coords
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0,1, 1,1, 0,0, 1,0]), gl.STATIC_DRAW); 
 
-            // Attributes & Uniforms
             this.a_position = gl.getAttribLocation(this.program, 'a_position');
             this.a_texCoord = gl.getAttribLocation(this.program, 'a_texCoord');
             this.u_flipY = gl.getUniformLocation(this.program, 'u_flipY');
             this.u_flipX = gl.getUniformLocation(this.program, 'u_flipX');
             this.u_mode = gl.getUniformLocation(this.program, 'u_mode');
             this.u_seed = gl.getUniformLocation(this.program, 'u_seed');
+            // [修正 5] 獲取新 uniform 的位置
+            this.u_texSize = gl.getUniformLocation(this.program, 'u_texSize');
 
-            // Texture
             this.texture = gl.createTexture();
             gl.bindTexture(gl.TEXTURE_2D, this.texture);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
@@ -593,14 +621,12 @@ body.is-selfie .shutter-release-btn { display: none; }
             gl.viewport(0, 0, this.canvas.width, this.canvas.height);
             gl.useProgram(this.program);
 
-            // Bind Texture
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_2D, this.texture);
             gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, videoElement);
 
-            // Set Attributes
             gl.enableVertexAttribArray(this.a_position);
-            gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); // Re-binding for safety
+            gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
             gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
             gl.vertexAttribPointer(this.a_position, 2, gl.FLOAT, false, 0, 0);
 
@@ -609,11 +635,13 @@ body.is-selfie .shutter-release-btn { display: none; }
             gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0,1, 1,1, 0,0, 1,0]), gl.STATIC_DRAW);
             gl.vertexAttribPointer(this.a_texCoord, 2, gl.FLOAT, false, 0, 0);
 
-            // Set Uniforms
-            gl.uniform1f(this.u_flipY, 0.0); // Always 0 here as we handled vertex coords
+            gl.uniform1f(this.u_flipY, 0.0);
             gl.uniform1f(this.u_flipX, isSelfie ? 1.0 : 0.0);
             gl.uniform1i(this.u_mode, modeIndex);
             gl.uniform1f(this.u_seed, Math.random());
+            
+            // [修正 6] 將畫布的寬高傳入 Shader，確保線條運算正確
+            gl.uniform2f(this.u_texSize, this.canvas.width, this.canvas.height);
 
             gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
         }
