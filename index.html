@@ -35,7 +35,25 @@
 
    #camera-container { width: 760px; height: 420px; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); transform-origin: center center; filter: drop-shadow(0 0 2px rgba(255,255,255,0.25)) drop-shadow(0 30px 60px rgba(0,0,0,0.9)); display: none; transform-style: preserve-3d; z-index: 100; contain: layout size; }
 
-    .top-plate { width: 100%; height: 110px; background: var(--metal-grad); border-radius: 12px 12px 2px 2px; position: relative; z-index: 10; border: 1px solid rgba(255,255,255,0.3); border-bottom: 1px solid #555; box-shadow: inset 0 1px 0 rgba(255,255,255,0.8); }
+    /* [用此版本完整替換舊的 .top-plate 規則] */
+
+.top-plate { 
+    width: 100%; 
+    height: 110px; 
+    background: var(--metal-grad); 
+    border-radius: 12px 12px 2px 2px; 
+    position: relative; 
+    z-index: 10; 
+    border: 1px solid rgba(255,255,255,0.2); 
+    border-bottom: 1px solid #555; 
+    
+    /* [核心修改] 使用多層次的內外陰影來打造精緻的金屬邊緣質感 */
+    box-shadow: 
+        /* 1. 頂部邊緣的內側高光，模擬金屬反光 */
+        inset 0 1px 1px rgba(255,255,255,0.7),
+        /* 2. 底部邊緣的深色線條，強化與機身的分割線 */
+        0 1px 0 #555;
+}
    /* [修改] 機頂取景器外框 */
 .viewfinder-wrap { 
     position: absolute; 
@@ -190,10 +208,46 @@
 
     .back-door-wrapper { width: 100%; height: 100%; position: absolute; top: 0; left: 0; transform-origin: left center; transform-style: preserve-3d; transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1); z-index: 5; }
     .back-door-wrapper.open { transform: rotateY(-100deg); }
-    .back-door-face { width: 100%; height: 100%; position: absolute; top: 0; left: 0; background-color: var(--leather-color); background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='leather'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='4' stitchTiles='stitch' result='noise'/%3E%3CfeSpecularLighting in='noise' specularConstant='1.5' specularExponent='30' surfaceScale='4.0' lighting-color='%23eee'%3E%3CfeDistantLight azimuth='45' elevation='50'/%3E%3C/feSpecularLighting%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23leather)' opacity='0.5'/%3E%3C/svg%3E"); background-size: 140px 140px; border-radius: 0 0 8px 8px; border-left: 1px solid #333; border-right: 1px solid #333; border-bottom: 1px solid #333; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08), inset 0 0 50px rgba(0,0,0,0.9); backface-visibility: hidden; }
+    /* --- 相機背面 --- */
+.back-door-face { 
+    width: 100%; height: 100%; 
+    position: absolute; top: 0; left: 0; 
+    border-radius: 0 0 8px 8px; 
+    backface-visibility: hidden; 
+
+    /* [核心修改] 使用多層背景來疊加紋理和光影 */
+    background-image: 
+        /* 第一層 (最頂)：SVG 皮革紋理 */
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='leather'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='4' stitchTiles='stitch' result='noise'/%3E%3CfeSpecularLighting in='noise' specularConstant='1.5' specularExponent='30' surfaceScale='4.0' lighting-color='%23eee'%3E%3CfeDistantLight azimuth='45' elevation='50'/%3E%3C/feSpecularLighting%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23leather)' opacity='0.5'/%3E%3C/svg%3E"),
+        /* 第二層 (最底)：從上到下的整體光影漸變 */
+        linear-gradient(to bottom, #282828, #151515);
+    background-size: 140px 140px, auto;
+    
+    /* [核心修改] 使用多層內陰影來雕刻立體感 */
+    box-shadow: 
+        /* 1. (最關鍵) 頂部內陰影：模擬頂板投射在機身上的陰影 (環境光遮蔽) */
+        inset 0 6px 8px -4px rgba(0,0,0,0.85),
+        /* 2. 底部內高光：模擬光線勾勒底部邊緣 */
+        inset 0 -1px 1px rgba(255,255,255,0.05);
+}
     .back-door-interior { width: 100%; height: 100%; position: absolute; top: 0; left: 0; background: #1a1a1a; border-radius: 0 0 8px 8px; transform: rotateY(180deg); backface-visibility: hidden; box-shadow: inset 0 0 20px #000; display: flex; justify-content: center; align-items: center; border: 1px solid #333; }
     .pressure-plate { width: 90%; height: 80%; background: repeating-linear-gradient(90deg, #222, #222 20px, #111 20px, #111 22px); border: 2px solid #000; box-shadow: inset 0 0 10px #000; }
-    .camera-front-face { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 6; background-color: var(--leather-color); background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='leather'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='4' stitchTiles='stitch' result='noise'/%3E%3CfeSpecularLighting in='noise' specularConstant='1.5' specularExponent='30' surfaceScale='4.0' lighting-color='%23eee'%3E%3CfeDistantLight azimuth='45' elevation='50'/%3E%3C/feSpecularLighting%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23leather)' opacity='0.5'/%3E%3C/svg%3E"); background-size: 140px 140px; border-radius: 0 0 8px 8px; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08), inset 0 0 50px rgba(0,0,0,0.9); display: none; justify-content: center; align-items: center; }
+    /* --- 相機正面 --- */
+.camera-front-face { 
+    width: 100%; height: 100%; 
+    position: absolute; top: 0; left: 0; z-index: 6; 
+    border-radius: 0 0 8px 8px; 
+    display: none; justify-content: center; align-items: center; 
+
+    /* [核心修改] 應用與背面完全相同的光影和紋理效果 */
+    background-image: 
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='leather'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='4' stitchTiles='stitch' result='noise'/%3E%3CfeSpecularLighting in='noise' specularConstant='1.5' specularExponent='30' surfaceScale='4.0' lighting-color='%23eee'%3E%3CfeDistantLight azimuth='45' elevation='50'/%3E%3C/feSpecularLighting%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23leather)' opacity='0.5'/%3E%3C/svg%3E"),
+        linear-gradient(to bottom, #282828, #151515);
+    background-size: 140px 140px, auto;
+    box-shadow: 
+        inset 0 6px 8px -4px rgba(0,0,0,0.85),
+        inset 0 -1px 1px rgba(255,255,255,0.05);
+}
     .realistic-lens { width: 220px; height: 220px; border-radius: 50%; background: linear-gradient(135deg, #333 0%, #111 100%); border: 4px solid #222; box-shadow: 0 10px 25px rgba(0,0,0,0.8), inset 0 2px 5px rgba(255,255,255,0.1); display: flex; justify-content: center; align-items: center; position: relative; }
     .lens-barrel { width: 200px; height: 200px; border-radius: 50%; border: 8px solid #111; background: #000; display: flex; justify-content: center; align-items: center; position: relative; }
     .lens-glass-element {
