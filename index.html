@@ -2439,24 +2439,12 @@ currentRollState = Math.random();
         
         exportActionType = 'download'; 
         
-        // 1. 取得選中的照片資料
-        const selectedPhotos = currentAlbumData.filter(p => selectedAlbumIds.has(p.id));
-        
-        // 2. 檢查是否有任何一張是「拍立得 (white)」風格
-        const hasInstantStyle = selectedPhotos.some(p => p.style === 'white');
-        
-        // 3. 獲取輸入框元素
+        // 獲取輸入框元素
         const inputEl = document.getElementById('exp-text-input');
         
-        // 4. 清空舊文字
+        // [修訂] 強制隱藏 CAPTION 輸入框並清空內容，不再判斷風格
         inputEl.value = ""; 
-        
-        // 5. 決定是否顯示輸入框
-        if (hasInstantStyle) {
-            inputEl.style.display = 'block'; // 顯示
-        } else {
-            inputEl.style.display = 'none';  // 隱藏 (菲林/標準模式不需要)
-        }
+        inputEl.style.display = 'none';  
         
         exportModal.style.display = 'flex'; 
     });
@@ -2475,24 +2463,12 @@ currentRollState = Math.random();
         
         exportActionType = 'share'; 
         
-        // 1. 取得選中的照片資料
-        const selectedPhotos = currentAlbumData.filter(p => selectedAlbumIds.has(p.id));
-        
-        // 2. 檢查是否有任何一張是「拍立得 (white)」風格
-        const hasInstantStyle = selectedPhotos.some(p => p.style === 'white');
-        
-        // 3. 獲取輸入框元素
+        // 獲取輸入框元素
         const inputEl = document.getElementById('exp-text-input');
         
-        // 4. 清空舊文字
+        // [修訂] 強制隱藏 CAPTION 輸入框並清空內容，不再判斷風格
         inputEl.value = ""; 
-        
-        // 5. 決定是否顯示輸入框
-        if (hasInstantStyle) {
-            inputEl.style.display = 'block'; // 顯示
-        } else {
-            inputEl.style.display = 'none';  // 隱藏
-        }
+        inputEl.style.display = 'none';  
         
         exportModal.style.display = 'flex'; 
     });
