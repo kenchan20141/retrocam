@@ -1135,25 +1135,21 @@ function annotateExportPhoto(imgUrl, serialNo, style, customText) {
 
         const img = new Image();
         img.onload = () => {
-            // 使用圖片原本的大小（因為已經包含邊框了）
             const w = img.width;
             const h = img.height;
             
-            // 建立畫布
             const canvas = document.createElement('canvas');
             canvas.width = w;
             canvas.height = h;
             const ctx = canvas.getContext('2d');
             
-            // 1. 繪製原本的照片（包含既有的日期與邊框）
+            // 1. 繪製原圖
             ctx.drawImage(img, 0, 0);
 
-            // 2. 補上序號 (如果需要)
-            // 只有當 serialNo 有值時才繪製
+            // 2. 補上序號
             if (serialNo && serialNo !== "") {
                 let serX = 30, serY = 30, serColor = 'rgba(255,255,255,0.8)';
                 
-                // 根據風格決定位置 (配合原本 processFinalPhoto 的邏輯)
                 if (style === 'white') {
                     serX = 50; serY = h - 60; serColor = '#333'; 
                 } else if (style === 'film') {
@@ -1176,8 +1172,10 @@ function annotateExportPhoto(imgUrl, serialNo, style, customText) {
                 ctx.font = `600 38px "Noto Serif TC", serif`; 
                 ctx.textAlign = 'center'; 
                 ctx.textBaseline = 'bottom'; 
-                // 繪製在底部中央
-                ctx.fillText(customText, w / 2, h - 40);
+                
+                // [修改] 改為 h - 85 (原本是 h - 40)
+                // 這樣文字會往上移，位於白邊的視覺中心
+                ctx.fillText(customText, w / 2, h - 85);
             }
 
             resolve(canvas.toDataURL('image/jpeg', 0.92));
