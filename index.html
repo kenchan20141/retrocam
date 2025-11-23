@@ -1485,38 +1485,61 @@ function randomizeOSD() {
         }); 
     });
 
+   // 1. 處理顯示用的最終照片 (修正 Serial 位置)
     function processFinalPhoto(imgUrl, dateObj, serialNo, style, customText) { 
         return new Promise(async (resolve) => { 
             try { await document.fonts.load('600 40px "Noto Serif TC"'); } catch (e) {}
             const img = new Image(); 
             img.onload = () => { 
                 let w = 1920, h = 1080; let padTop = 0, padSide = 0, padBottom = 0; 
+                // 設定畫布尺寸與邊距
                 if (style === 'white') { padTop = 50; padSide = 50; padBottom = 180; w = 1200; h = Math.floor(w * (img.height / img.width)) + padTop + padBottom; } 
                 else if (style === 'film') { padTop = 80; padSide = 0; padBottom = 80; w = img.width; h = img.height + padTop + padBottom; } 
                 else { w = img.width; h = img.height; }
 
                 finalCanvas.width = w; finalCanvas.height = h; const ctx = finalCanvas.getContext('2d'); ctx.filter = 'none'; 
+                
+                // 繪製背景與圖片
                 if (style === 'white') { ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h); ctx.drawImage(img, padSide, padTop, w - padSide*2, h - padTop - padBottom); } 
                 else if (style === 'film') { ctx.fillStyle = '#111'; ctx.fillRect(0, 0, w, h); ctx.drawImage(img, 0, padTop, w, img.height); ctx.fillStyle = '#fff'; const holeW = 30, gap = 20; for(let x = 30; x < w; x += (holeW + gap)) { ctx.fillRect(x, 25, holeW, 30); } for(let x = 30; x < w; x += (holeW + gap)) { ctx.fillRect(x, h - 55, holeW, 30); } } 
                 else { ctx.drawImage(img, 0, 0, w, h); } 
 
+                // 繪製日期
                 const d = new Date(dateObj); const dateStr = `'${d.getFullYear().toString().slice(-2)} ${(d.getMonth()+1).toString().padStart(2,'0')} ${d.getDate().toString().padStart(2,'0')}`; 
                 let dateX = w - 60; let dateY = h - 50;
-                if (style === 'white') { dateX = w - padSide - 30; dateY = h - padBottom - 30; } else if (style === 'film') { dateX = w - 50; dateY = h - padBottom - 40; }
+                // [日期位置微調]
+                if (style === 'white') { dateX = w - padSide - 30; dateY = h - padBottom - 30; } 
+                else if (style === 'film') { dateX = w - 50; dateY = h - padBottom - 40; }
 
                 if (isSketchMode) { ctx.save(); ctx.shadowBlur = 0; ctx.fillStyle = 'rgba(50, 50, 50, 0.85)'; ctx.font = `normal 45px "Segoe Print", cursive`; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom'; ctx.translate(dateX, dateY); ctx.rotate(-0.05); ctx.fillText(dateStr, 0, 0); ctx.restore(); } 
                 else { ctx.shadowColor = '#ff5500'; ctx.shadowBlur = 15; ctx.fillStyle = 'rgba(255, 170, 50, 0.9)'; const fontSize = style === 'white' ? 40 : 50; ctx.font = `bold ${fontSize}px "Courier New", monospace`; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom'; ctx.fillText(dateStr, dateX, dateY); }
 
-                let serX = 30, serY = 30, serColor = 'rgba(255,255,255,0.8)';
-                if (style === 'white') { serX = 50; serY = h - 60; serColor = '#333'; } else if (style === 'film') { serX = 40; serY = h - 40; serColor = 'rgba(255,255,255,0.6)'; }
+                // [修正重點] SERIAL NUMBER 位置調整
+                let serX = 30, serY = 70, serColor = 'rgba(255,255,255,0.8)';
+                
+                if (style === 'white') { 
+                    serX = 50; 
+                    // [修改] 標準模式位置改為 h - 65 (原本是 h - 60)
+                    serY = h - 65; 
+                    serColor = '#333'; 
+               } else if (style === 'film') { 
+    serX = 40; 
+    serY = h - 80;  // [修改] 同樣改為 h - 80
+    serColor = 'rgba(255,255,255,0.6)'; useShadow = true; 
+}
+                
                 ctx.shadowColor = style === 'white' ? 'transparent' : '#000'; ctx.shadowBlur = 2; ctx.fillStyle = serColor; ctx.font = `bold 36px "Courier New", monospace`; ctx.textAlign = 'left'; ctx.textBaseline = 'bottom'; 
                 if (serialNo !== "") { ctx.fillText(`No.${serialNo}`, serX, serY); }
+                
+                // 繪製自定義文字 (Instant Style)
                 if (style === 'white' && customText && customText.trim() !== "") { ctx.fillStyle = '#111'; ctx.shadowBlur = 0; ctx.font = `600 38px "Noto Serif TC", serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.fillText(customText, w / 2, h - 40); }
+                
                 resolve(finalCanvas.toDataURL('image/jpeg', 0.9)); 
             }; img.src = imgUrl; 
         }); 
     }
 
+    // 2. 處理匯出用的照片 (修正 Serial 位置，確保與預覽一致)
     function annotateExportPhoto(imgUrl, serialNo, style, customText) {
         return new Promise(async (resolve) => {
             try { await document.fonts.load('600 40px "Noto Serif TC"'); } catch (e) {}
@@ -1524,12 +1547,28 @@ function randomizeOSD() {
             const img = new Image(); img.onload = () => {
                 const w = img.width; const h = img.height; const canvas = document.createElement('canvas'); canvas.width = w; canvas.height = h; const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0);
                 const hasCaption = (customText && customText.trim() !== "");
-                if (serialNo && serialNo !== "") {
-                    let serX = 30, serY = 30, serColor = '#fff', useShadow = true;
-                    if (style === 'white') { if (hasCaption) { serX = 50; serY = h - 190; serColor = 'rgba(255, 255, 255, 0.9)'; useShadow = true; } else { serX = 50; serY = h - 60; serColor = '#333'; useShadow = false; } } else if (style === 'film') { serX = 40; serY = h - 40; serColor = 'rgba(255,255,255,0.6)'; useShadow = true; }
+                
+               if (serialNo && serialNo !== "") {
+    let serX = 30, serY = 70, serColor = '#fff', useShadow = true; 
+                    if (style === 'white') { 
+                        if (hasCaption) { 
+                            serX = 50; serY = h - 190; serColor = 'rgba(255, 255, 255, 0.9)'; useShadow = true; 
+                        } else { 
+                            serX = 50; 
+                            // [修改] 標準模式無 Caption 時，位置統一為 h - 65
+                            serY = h - 65; 
+                            serColor = '#333'; useShadow = false; 
+                        } 
+                    } else if (style === 'film') { 
+    serX = 40; 
+    serY = h - 80;  // [修改] 改為 h - 80，讓文字更明顯地高於底部齒孔
+    serColor = 'rgba(255,255,255,0.6)'; 
+}
+                    
                     if (useShadow) { ctx.shadowColor = '#000'; ctx.shadowBlur = 4; ctx.shadowOffsetX = 1; ctx.shadowOffsetY = 1; } else { ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; }
                     ctx.fillStyle = serColor; ctx.font = `bold 36px "Courier New", monospace`; ctx.textAlign = 'left'; ctx.textBaseline = 'bottom'; ctx.fillText(`No.${serialNo}`, serX, serY);
                 }
+                
                 if (style === 'white' && hasCaption) { ctx.fillStyle = '#111'; ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; ctx.font = `600 42px "Noto Serif TC", serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.fillText(customText, w / 2, h - 90); }
                 resolve(canvas.toDataURL('image/jpeg', 0.92));
             }; img.src = imgUrl;
