@@ -36,7 +36,8 @@
    #camera-container { width: 760px; height: 420px; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); transform-origin: center center; filter: drop-shadow(0 0 2px rgba(255,255,255,0.25)) drop-shadow(0 30px 60px rgba(0,0,0,0.9)); display: none; transform-style: preserve-3d; z-index: 100; contain: layout size; }
 
     .top-plate { width: 100%; height: 110px; background: var(--metal-grad); border-radius: 12px 12px 2px 2px; position: relative; z-index: 10; border: 1px solid rgba(255,255,255,0.3); border-bottom: 1px solid #555; box-shadow: inset 0 1px 0 rgba(255,255,255,0.8); }
-   .viewfinder-wrap { 
+   /* [修改] 機頂取景器外框 */
+.viewfinder-wrap { 
     position: absolute; 
     top: 15px; 
     left: 30px; 
@@ -139,7 +140,7 @@
     .cable-plunger-wrapper.pressed .cable-button-head { transform: translateY(12px); }
     .cable-plunger-wrapper.pressed .cable-stem { height: 8px; transform: translateY(12px); }
 
-   .front-viewfinder-frame { 
+    .front-viewfinder-frame { 
     position: absolute; 
     top: 15px; 
     right: 40px; 
@@ -457,10 +458,23 @@ body.is-selfie .shutter-release-btn { display: none; }
 .vf-optic-layer {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;
     pointer-events: none;
-    background: radial-gradient(circle at center, transparent 50%, rgba(0,0,0,0.6) 90%, rgba(0,0,0,0.95) 100%),
-                url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cmVjdCB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjZmZmIiBmaWxsLW9wYWNpdHk9IjAuMDUiLz4KPC9zdmc+'); /* 微弱雜訊 */
-    box-shadow: inset 0 0 50px rgba(0,0,0,0.8);
+    
+    /* 1. 調整漸層：透明區域從 50% 擴大到 65%，邊緣黑色不透明度從 0.95 降到 0.4 */
+    background: radial-gradient(circle at center, transparent 65%, rgba(0,0,0,0.2) 90%, rgba(0,0,0,0.4) 100%),
+                url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cmVjdCB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjZmZmIiBmaWxsLW9wYWNpdHk9IjAuMDUiLz4KPC9zdmc+'); 
+    
+    /* 2. 減弱內陰影 */
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.3);
     z-index: 1;
+}
+
+/* [修改] 移除 UI 層的厚重暗角 */
+.fs-ui-layer {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+    pointer-events: none; 
+    
+    /* [關鍵] 將原本的 box-shadow: inset 0 0 150px... 改為 none 或極淡 */
+    box-shadow: none; 
 }
 
 /* 2. 指引框：移除原本的實線，改用角落標記 */
@@ -872,6 +886,9 @@ body.is-selfie .exp-dot.center {
     </div>
 
 <script>
+
+let currentRollState = Math.random(); // 這是控制底片風格的靜態亂數
+    
     /* --- 1. WEBGL RENDERER CLASS (NEW) --- */
         class WebGLRenderer {
         constructor(canvas) {
@@ -911,13 +928,14 @@ body.is-selfie .exp-dot.center {
             `;
 
             // Fragment Shader：包含所有濾鏡模式 (含 HK 1990)
-            const fsSource = `
+           const fsSource = `
                 precision highp float;
                 
                 uniform sampler2D u_image;
                 varying vec2 v_texCoord;
                 uniform int u_mode; 
                 uniform float u_seed;
+                uniform float u_stat_seed;
                 uniform vec2 u_texSize; 
 
                 float rand(vec2 co){
@@ -938,8 +956,16 @@ body.is-selfie .exp-dot.center {
                     vec4 color = texture2D(u_image, uv);
                     vec3 c = color.rgb;
 
-                    // Sketch Modes (10+)
-                    if (u_mode >= 10) {
+                     // --- [核心新增] ---
+                    // 新增一個索引為 11 的「直通模式」，不進行任何處理，直接輸出原始畫面。
+                    if (u_mode == 11) { // NEUTRAL PASSTHROUGH
+                        gl_FragColor = color;
+                        return; // 直接結束，跳過後續所有濾鏡效果
+                    }
+                    // --- [新增結束] ---
+
+                    // [修改] 素描模式現在是 20 以上
+                    if (u_mode >= 20) {
                         float w = 1.0 / u_texSize.x; 
                         float h = 1.0 / u_texSize.y;
                         
@@ -954,43 +980,45 @@ body.is-selfie .exp-dot.center {
                         
                         if (diff < 0.01) diff = 0.0;
 
-                        if (u_mode == 10) { // Pencil
+                        // 注意：這裡的 index 也要對應上面 JS 的修改 (20, 21, ...)
+                        if (u_mode == 20) { // Pencil
                             if(diff > 0.06) gl_FragColor = vec4(vec3(0.15), 1.0);
                             else gl_FragColor = vec4(vec3(0.92 + rand(uv)*0.08), 1.0);
-                        } else if (u_mode == 12) { // Ink
+                        } else if (u_mode == 22) { // Ink
                             if(diff > 0.08 || gray < 0.3) gl_FragColor = vec4(vec3(0.05), 1.0);
                             else gl_FragColor = vec4(1.0);
-                        } else if (u_mode == 14) { // Cyber
+                        } else if (u_mode == 24) { // Cyber
                              if(diff > 0.1) gl_FragColor = vec4(0.0, 1.0, 0.2, 1.0);
                              else {
                                 float grid = (mod(gl_FragCoord.y, 4.0) < 1.0) ? 0.1 : 0.0;
                                 gl_FragColor = vec4(0.0, grid, 0.0, 1.0);
                              }
-                        } else if (u_mode == 16) { // HK Neon
+                        } else if (u_mode == 26) { // HK Neon
                              if(diff > 0.08) {
                                  if(c.r > c.g && c.r > c.b) gl_FragColor = vec4(1.0, 0.0, 0.3, 1.0);
                                  else if(c.b > 0.5) gl_FragColor = vec4(0.0, 0.6, 1.0, 1.0);
                                  else gl_FragColor = vec4(1.0);
                              } else gl_FragColor = vec4(0.05, 0.02, 0.06, 1.0);
-                        } else if (u_mode == 11) { // Crayon
+                        } else if (u_mode == 21) { // Crayon
                             float noise = (rand(uv) - 0.5) * 0.2;
                             c = c + noise;
                             if(diff > 0.06) gl_FragColor = vec4(c * 0.6, 1.0);
                             else gl_FragColor = vec4(c + 0.2, 1.0);
-                        } else if (u_mode == 15) { // Blueprint
+                        } else if (u_mode == 25) { // Blueprint
                             if(diff > 0.06) gl_FragColor = vec4(0.9, 0.95, 1.0, 1.0);
                             else gl_FragColor = vec4(0.0, 0.2, 0.5 + rand(uv)*0.1, 1.0);
-                        } else if (u_mode == 13) { // Oil
+                        } else if (u_mode == 23) { // Oil
                              c = floor(c * 6.0) / 6.0; 
                              if(diff > 0.05) c *= 0.8; 
                              gl_FragColor = vec4(c, 1.0);
-                        } else if (u_mode == 17) { // Shuimo
+                        } else if (u_mode == 27) { // Shuimo
                              float ink = gray;
                              if (diff > 0.05) ink -= 0.3; 
                              ink = clamp(ink, 0.0, 1.0);
                              ink = smoothstep(0.2, 0.9, ink); 
                              gl_FragColor = vec4(vec3(ink), 1.0);
                         } else {
+                            // Default Edge
                             float edge = step(0.06, diff);
                             gl_FragColor = vec4(mix(vec3(1.0), vec3(0.0), edge), 1.0);
                         }
@@ -998,55 +1026,192 @@ body.is-selfie .exp-dot.center {
                     }
 
                     // Real Modes
-                    if (u_mode == 0) { // BW
-                        float gray = dot(c, vec3(0.3, 0.59, 0.11));
-                        gray = pow(gray, 1.1); 
-                        c = vec3(gray);
-                        float noise = (rand(uv*u_seed) - 0.5) * 0.1;
+                    if (u_mode == 0) { // [BW] STREET 400 - 經典人文黑白
+                        // 模擬黃色濾鏡：稍微壓暗藍色天空，提亮膚色
+                        float gray = dot(c, vec3(0.4, 0.5, 0.1)); 
+                        // S型曲線增加中間調對比
+                        c = vec3(smoothstep(0.05, 0.95, gray));
+                        // 輕微提升暗部，模擬 Tri-X 沖洗特性
+                        c = mix(vec3(0.02), vec3(1.0), c); 
+                        float noise = (rand(uv*u_seed) - 0.5) * 0.12; // 顆粒稍粗
                         c += noise;
-                    } else if (u_mode == 1) { // COLOR
-                         c = floor(c * 8.0) / 8.0; 
-                    } else if (u_mode == 3) { // HCBW
-                         float gray = dot(c, vec3(0.3));
-                         gray = (gray - 0.2) * 1.3;
-                         c = vec3(clamp(gray, 0.0, 1.0));
-                    } else if (u_mode == 4) { // TEAL
-                        c.r = max(0.15, c.r * 0.96);
-                        c.b = c.b * 1.04 + 0.1;
-                        c = adjustColor(c, 1.0, 1.1, 0.8);
-                    } else if (u_mode == 5) { // SUN
-                        c.r = pow(c.r, 0.9) * 1.05 + 0.05;
-                        c.b = c.b * 0.92;
+                    } 
+                    else if (u_mode == 1) { // [COLOR] GAME-CAM - 復古低像素
+                        // 先稍微增加飽和度，讓色彩量化後更鮮豔
+                        c = adjustColor(c, 1.0, 1.1, 1.2);
+                        c = floor(c * 8.0) / 8.0; 
+                    } 
+                    else if (u_mode == 2) { // [DIGI] CCD SENSOR - 早期數碼相機
+                        // 模擬 CCD 的高光溢出 (Highlight Bloom) 和偏洋紅膚色
+                        c = adjustColor(c, 1.05, 1.1, 1.1);
+                        c.g *= 0.98; // 稍微減綠，讓膚色透紅
+                        c.b = floor(c.b * 16.0) / 16.0; // 藍色通道位元深度較低
+                    }
+                    else if (u_mode == 3) { // [HCBW] FINE 100 - 森山大道風格高反差
+                        // 模擬紅色濾鏡：大幅壓暗藍色，天空變黑
+                        float gray = dot(c, vec3(0.6, 0.35, 0.05));
+                        // 強烈 S 曲線
+                        gray = smoothstep(0.15, 0.85, gray);
+                        // 死黑，但保留極高光細節
+                        c = vec3(pow(gray, 1.2));
+                        float noise = (rand(uv*u_seed) - 0.5) * 0.15; // 粗顆粒
+                        c += noise;
+                    } 
+                    else if (u_mode == 4) { // [FILM: TEAL] KYOTO 400 - 日系電影感
+                        // 暗部注入青色，亮部注入暖橘 (Split Toning)
+                        // 1. 基礎調整
+                        c = adjustColor(c, 1.0, 0.95, 0.9);
+                        
+                        // 2. 膚色保護 (Skin Protection)：偵測紅色區域，減少被青色污染
+                        float skinMask = smoothstep(0.1, 0.6, c.r - c.b);
+                        
+                        // 3. 暗部推向青藍 (Teal Shadow)
+                        c.b = max(c.b, 0.15 * (1.0 - c.r)); 
+                        c.g = mix(c.g, c.b * 0.9, 0.3 * (1.0 - skinMask)); // 避開皮膚
+                        
+                        // 4. 亮部微暖
+                        c.r += c.r * 0.1 * c.g; 
+                    } 
+                    else if (u_mode == 5) { // [FILM: SUN] CALI 200 - 西海岸暖陽
+                        // 金色調：亮部偏奶油黃，暗部偏暖褐
                         c = adjustColor(c, 1.05, 1.0, 1.2);
-                    } else if (u_mode == 6) { // VIVID
-                        c = adjustColor(c, 1.0, 1.3, 1.4);
-                        c.b *= 1.05;
-                    } else if (u_mode == 7) { // AGED
-                        c.r = c.r * 0.7 + 0.2;
-                        c.g = c.g * 0.7 + 0.25;
-                        c.b = c.b * 0.6 + 0.1;
-                    } else if (u_mode == 8) { // SOFT
-                        c = adjustColor(c, 1.1, 0.9, 0.8);
-                        c += vec3(0.05, 0.05, 0.08);
-                    } else if (u_mode == 9) { // FILM: MOOD (HK 1990)
-                        c.b = c.b * 0.75; 
-                        c.g = c.g * 1.1 + 0.05;
-                        c.r = c.r * 1.05;
-                        c = (c - 0.5) * 1.35 + 0.5;
-                        vec3 gray = vec3(dot(c, vec3(0.299, 0.587, 0.114)));
-                        c = mix(gray, c, 1.25);
-                       // 利用 u_seed 產生隨機偏移量 (-0.1 到 +0.1 之間)
-float offX = (rand(vec2(u_seed, 11.0)) - 0.5) * 0.015; 
-float offY = (rand(vec2(u_seed, 22.0)) - 0.5) * 0.015;
+                        
+                        // 亮部注入黃色 (Add Yellow to Highlights)
+                        float lum = dot(c, vec3(0.333));
+                        c.r += lum * 0.15;
+                        c.g += lum * 0.10;
+                        
+                        // 暗部微暖紅
+                        vec3 warmShadow = vec3(0.05, 0.02, 0.0);
+                        c = max(c, warmShadow);
+                        
+                        // 稍微降低藍色，製造復古暖感
+                        c.b *= 0.85; 
+                    } 
+                    else if (u_mode == 6) { // [FILM: VIVID] SLIDE 100 - 正片負沖/Ektar
+                        // 高飽和、高對比、黑色下沉
+                        c = adjustColor(c, 1.0, 1.3, 1.45);
+                        
+                        // 模擬正片的紅綠色偏移 (Reds/Greens pop)
+                        c.r = pow(c.r, 0.95); // 紅色更厚實
+                        c.b *= 0.95; // 藍色稍暗，像偏振鏡效果
+                        
+                        // 加深暗部 (Crush Blacks)
+                        c = pow(c, vec3(1.1));
+                     }  else if (u_mode == 7) { // [FILM: AGED] RANDOM EXPIRED (穩定版)
+                        
+                        // 使用 u_stat_seed (靜態種子) 來決定這張照片的命運
+                        // 這樣取景時不會閃爍，但每張照片的效果都不同
+                        
+                        // 1. 決定隨機參數
+                        float rndType = rand(vec2(u_stat_seed, 10.0));      // 決定偏色類型
+                        float rndPush = rand(vec2(u_stat_seed, 20.0));      // 決定谷沖強度 (對比度)
+                        float rndGrainSize = rand(vec2(u_stat_seed, 30.0)); // 決定顆粒粗細
 
-// 計算距離
-float dist = distance(uv, vec2(0.5 + offX, 0.5 + offY));
-                        float vignette = smoothstep(1.2, 0.25, dist * 1.0); 
+                        // 2. 隨機谷沖 (Random Push Processing)
+                        // rndPush 越大，對比越高，飽和度越低 (模擬迫沖)
+                        // Contrast 範圍: 1.0 (正常) ~ 1.35 (高反差)
+                        float dynamicContrast = 1.0 + (rndPush * 0.35); 
+                        float dynamicSat = 1.2 - (rndPush * 0.3);       
+                        c = adjustColor(c, 1.05, dynamicContrast, dynamicSat);
+
+                        // 3. 穩定的隨機偏色 (三種過期命運)
+                        if (rndType < 0.33) { 
+                            // [Type A] 嚴重偏藍/青 (Blue Shift)
+                            c.r *= 0.85; 
+                            c.g *= 0.95;
+                            c.b *= 1.15; 
+                            vec3 blueFog = vec3(0.02, 0.05, 0.12);
+                            c = max(c, blueFog);
+                            c = pow(c, vec3(0.95)); // 稍微過曝感
+                        } 
+                        else if (rndType < 0.66) { 
+                            // [Type B] 灰綠褪色 (Faded Green)
+                            c = mix(vec3(dot(c, vec3(0.333))), c, 0.7); // 額外降低飽和
+                            c.g += 0.05;
+                            c.r += 0.02;
+                            c = mix(vec3(0.08, 0.1, 0.08), vec3(1.0), c); // 霧化暗部
+                        } 
+                        else { 
+                            // [Type C] 暖褐洋紅 (Magenta/Brown Shift)
+                            c.b *= 0.75; 
+                            c.r *= 1.1; 
+                            vec3 brownShadow = vec3(0.08, 0.04, 0.02);
+                            c = max(c, brownShadow);
+                            // 高光偏黃
+                            c.r += (1.0-c.r) * 0.08;
+                            c.g += (1.0-c.g) * 0.04;
+                        }
+
+                        // 4. 隨機暗角 (隨機強度與大小)
+                        float vignetteStr = 0.3 + (rndPush * 0.5); // 谷沖越強，暗角越重
+                        float dist = distance(uv, vec2(0.5));
+                        float vignette = smoothstep(1.3, 0.3, dist * (0.8 + rndType * 0.4));
+                        c *= mix(1.0, vignette, vignetteStr);
+
+                        // 5. 隨機銀鹽顆粒 (Random Grain)
+                        // 這是你要求的：不一定全部粗糙
+                        // grainStrength 範圍從 0.04 (極細) 到 0.16 (極粗)
+                        float grainStrength = 0.04 + (rndGrainSize * 0.12);
+                        
+                        // 使用 u_seed (動態種子) 讓噪點位置跳動，避免看起來像靜態貼圖
+                        float noise = (rand(uv * u_seed * 2.0) - 0.5) * grainStrength;
+                        c += noise;
+                    }
+
+                    else if (u_mode == 8) { // [FILM: SOFT] AIRY 400H - 空氣感/人像
+                        // 提亮暗部 + 柔光
+                        c = adjustColor(c, 1.15, 0.85, 0.9);
+                        
+                        // 注入微量粉嫩色調 (Pinkish tint) 讓膚色好看
+                        c.r += 0.03;
+                        c.b += 0.02;
+                        
+                        // 霧面暗部 (Matte Shadow)
+                        c = mix(vec3(0.05, 0.04, 0.05), vec3(1.0), c);
+                    } 
+                    else if (u_mode == 9) { // [FILM: MOOD] HK 1990 - 王家衛電影風格
+                        // 強化綠色暗部 + 洋紅亮部 (Cinematic Green/Magenta split)
+                        
+                        // 1. 對比度增強
+                        c = adjustColor(c, 1.0, 1.2, 1.1);
+                        
+                        // 2. 暗部強烈偏綠
+                        float lum = dot(c, vec3(0.333));
+                        float shadowFactor = 1.0 - smoothstep(0.0, 0.7, lum);
+                        c.g += shadowFactor * 0.15;
+                        c.b = mix(c.b, c.g * 0.5, shadowFactor); // 暗部藍色減少
+                        
+                        // 3. 亮部補償洋紅 (保持膚色不發綠)
+                        float highlightFactor = smoothstep(0.6, 1.0, lum);
+                        c.r += highlightFactor * 0.1;
+                        c.b += highlightFactor * 0.08;
+                        
+                        // 4. 經典暗角
+                        float offX = (rand(vec2(u_seed, 11.0)) - 0.5) * 0.015; 
+                        float offY = (rand(vec2(u_seed, 22.0)) - 0.5) * 0.015;
+                        float dist = distance(uv, vec2(0.5 + offX, 0.5 + offY));
+                        float vignette = smoothstep(1.1, 0.35, dist); 
                         c *= vignette;
-                        c += vec3(0.0, 0.02, 0.01) * (1.0 - c);
+                    } 
+                    else if (u_mode == 10) { // [FILM: AOI] V3 - 你的特調 (維持不變)
+                        c = adjustColor(c, 1.0, 1.25, 1.15);
+                        float blueDom = smoothstep(0.2, 0.7, c.b - c.r);
+                        c.g = mix(c.g, min(1.0, c.b * 1.05), blueDom * 0.5);
+                        float redDom = smoothstep(0.1, 0.5, c.r - c.b);
+                        c.g += redDom * 0.04;
+                        vec3 liftColor = vec3(0.01, 0.04, 0.09); 
+                        c = mix(liftColor, vec3(1.0), c);
+                        c = pow(c, vec3(1.1));
+                        float lum = dot(c, vec3(0.299, 0.587, 0.114));
+                        float shadowMask = 1.0 - smoothstep(0.0, 0.4, lum);
+                        c.b += shadowMask * 0.03; 
+                        c.g += shadowMask * 0.01; 
+                        c *= vec3(0.96, 1.0, 1.02);
                     }
 
                     if(u_mode != 1 && u_mode != 2) {
+                        // 銀鹽顆粒：這裡使用原本的噪點邏輯，強度 0.08 剛好是中等顆粒感
                         float noise = (rand(uv * u_seed) - 0.5) * 0.08;
                         c += noise;
                     }
@@ -1074,6 +1239,7 @@ float dist = distance(uv, vec2(0.5 + offX, 0.5 + offY));
             this.u_flipX = gl.getUniformLocation(this.program, 'u_flipX');
             this.u_mode = gl.getUniformLocation(this.program, 'u_mode');
             this.u_seed = gl.getUniformLocation(this.program, 'u_seed');
+            this.u_stat_seed = gl.getUniformLocation(this.program, 'u_stat_seed');
             this.u_texSize = gl.getUniformLocation(this.program, 'u_texSize');
             this.u_zoom = gl.getUniformLocation(this.program, 'u_zoom');
 
@@ -1111,7 +1277,7 @@ float dist = distance(uv, vec2(0.5 + offX, 0.5 + offY));
             return program;
         }
 
-        render(videoElement, modeIndex, isSelfie, zoomLevel = 1.0) {
+        render(videoElement, modeIndex, isSelfie, zoomLevel, statSeed) {
             const gl = this.gl;
             gl.viewport(0, 0, this.canvas.width, this.canvas.height);
             gl.useProgram(this.program);
@@ -1136,6 +1302,7 @@ float dist = distance(uv, vec2(0.5 + offX, 0.5 + offY));
             gl.uniform1f(this.u_seed, Math.random());
             gl.uniform2f(this.u_texSize, this.canvas.width, this.canvas.height);
             gl.uniform1f(this.u_zoom, zoomLevel);
+            gl.uniform1f(this.u_stat_seed, statSeed);
 
             gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
         }
@@ -1251,8 +1418,19 @@ float dist = distance(uv, vec2(0.5 + offX, 0.5 + offY));
     let exposureCtx = exposureCanvas.getContext('2d');
     
     const REAL_MODES = [ { id: 'BW', name: 'B&W', sub: 'STREET 400', color: '#000', idx:0 }, { id: 'COLOR', name: 'COLOR', sub: 'GAME-CAM', color: '#c00', idx:1 }, { id: 'CCD', name: 'DIGI', sub: 'CCD SENSOR', color: '#0055cc', idx:2 }, { id: 'HCBW', name: 'HC-BW', sub: 'FINE 100', color: '#555', idx:3 }, { id: 'FILM_TEAL', name: 'FILM: TEAL', sub: 'KYOTO 400', color: '#008080', idx:4 }, { id: 'FILM_SUN', name: 'FILM: SUN', sub: 'CALI 200', color: '#ffcc00', idx:5 }, { id: 'FILM_VIVID', name: 'FILM: VIVID', sub: 'SLIDE 100', color: '#ff0055', idx:6 }, { id: 'FILM_AGED', name: 'FILM: AGED', sub: 'EURO 800', color: '#8b4513', idx:7 }, { id: 'FILM_SOFT', name: 'FILM: SOFT', sub: 'AIRY 400H', color: '#90e0ef', idx:8 }, // --- 新增以下這行 ---
-    { id: 'FILM_MOOD', name: 'FILM: MOOD', sub: 'HK 1990', color: '#006633', idx:9 } ];
-    const SKETCH_MODES = [ { id: 'SKETCH_BW', name: 'PENCIL', sub: '2B GRAPHITE', color: '#333', idx:10 }, { id: 'SKETCH_COL', name: 'CRAYON', sub: 'SOFT PASTEL', color: '#d2691e', idx:11 }, { id: 'SKETCH_INK', name: 'INK', sub: 'COMIC PEN', color: '#000', idx:12 }, { id: 'SKETCH_OIL', name: 'OIL', sub: 'IMPASTO', color: '#8b4513', idx:13 }, { id: 'SKETCH_CYBER', name: 'CYBER', sub: 'NEON GRID', color: '#0f0', idx:14 }, { id: 'SKETCH_BLUE', name: 'BLUE', sub: 'BLUEPRINT', color: '#4169e1', idx:15 }, { id: 'SKETCH_HK_NEON', name: 'HK NEON', sub: 'NIGHT LIGHTS', color: '#ff00cc', idx:16 }, { id: 'SKETCH_SHUIMO', name: 'SHUIMO', sub: 'INK WASH', color: '#111', idx:17 } ];
+    { id: 'FILM_MOOD', name: 'FILM: MOOD', sub: 'HK 1990', color: '#006633', idx:9 },
+        // [新增] 日系青空濾鏡
+        { id: 'FILM_AOI', name: 'FILM: AOI', sub: 'TOKYO BLUE', color: '#0080ff', idx:10 }   ];
+    const SKETCH_MODES = [ 
+        { id: 'SKETCH_BW', name: 'PENCIL', sub: '2B GRAPHITE', color: '#333', idx:20 }, 
+        { id: 'SKETCH_COL', name: 'CRAYON', sub: 'SOFT PASTEL', color: '#d2691e', idx:21 }, 
+        { id: 'SKETCH_INK', name: 'INK', sub: 'COMIC PEN', color: '#000', idx:22 }, 
+        { id: 'SKETCH_OIL', name: 'OIL', sub: 'IMPASTO', color: '#8b4513', idx:23 }, 
+        { id: 'SKETCH_CYBER', name: 'CYBER', sub: 'NEON GRID', color: '#0f0', idx:24 }, 
+        { id: 'SKETCH_BLUE', name: 'BLUE', sub: 'BLUEPRINT', color: '#4169e1', idx:25 }, 
+        { id: 'SKETCH_HK_NEON', name: 'HK NEON', sub: 'NIGHT LIGHTS', color: '#ff00cc', idx:26 }, 
+        { id: 'SKETCH_SHUIMO', name: 'SHUIMO', sub: 'INK WASH', color: '#111', idx:27 } 
+    ];
     let savedMode = localStorage.getItem('camModeIdx'); let currentModeIdx = savedMode ? parseInt(savedMode) : 0;
     function getModes() { return isSketchMode ? SKETCH_MODES : REAL_MODES; }
     function validateModeIndex() { const modes = getModes(); if (currentModeIdx < 0 || currentModeIdx >= modes.length) currentModeIdx = 0; }
@@ -1385,43 +1563,52 @@ float dist = distance(uv, vec2(0.5 + offX, 0.5 + offY));
         openFilmSelector();
     });
 
-    /* --- RENDER LOOP (WEBGL) --- */
    function renderLoop() {
-        requestAnimationFrame(renderLoop);
-        if (!video.srcObject || !video.srcObject.active || video.paused || !webGLRenderer) return;
+    requestAnimationFrame(renderLoop);
+    if (!video.srcObject || !video.srcObject.active || video.paused || !webGLRenderer) return;
 
-        const modes = getModes(); 
-        validateModeIndex(); 
-        const mode = modes[currentModeIdx];
-        
-        // Resize Canvas if needed
-        let w = 640; let h = 360; 
-        if (!isSketchMode && (mode.id === 'COLOR' || mode.id === 'BW')) { w = 320; h = 180; } 
-        if (processCanvas.width !== w) { processCanvas.width = w; processCanvas.height = h; }
+    const modes = getModes(); 
+    validateModeIndex(); 
+    const mode = modes[currentModeIdx];
+    
+    // Resize Canvas if needed - 這部分沿用您提供的正確版本
+    let w = 640; let h = 360; 
+    if (!isSketchMode && (mode.id === 'COLOR' || mode.id === 'BW')) { w = 320; h = 180; } 
+    if (processCanvas.width !== w) { processCanvas.width = w; processCanvas.height = h; }
 
-        // Use WebGL Renderer
-        // [修改] 傳入全域變數 currentZoom
-        webGLRenderer.render(video, mode.idx, isSelfieMode, currentZoom);
-        
-        // Copy to Viewfinders (2D)
-        const isPixelated = (!isSketchMode && (mode.id === 'COLOR' || mode.id === 'BW'));
-        
-        if (!isSelfieMode) { 
-            if (smallCanvas.width !== w) { smallCanvas.width = w; smallCanvas.height = h; } 
-            smallCanvas.style.imageRendering = isPixelated ? 'pixelated' : 'auto'; 
-            smallCtx.drawImage(processCanvas, 0, 0, w, h); 
-        } else { 
-            if (frontCanvas.width !== w) { frontCanvas.width = w; frontCanvas.height = h; } 
-            frontCanvas.style.imageRendering = isPixelated ? 'pixelated' : 'auto'; 
-            frontCtx.drawImage(processCanvas, 0, 0, w, h); 
-        }
+    // --- [核心修改：整合中性預覽邏輯] ---
+    // 預設情況下，預覽索引就是當前模式的索引
+    let previewModeIdx = mode.idx;
 
-        if (fsViewfinder.style.display === 'block') { 
-            if (fsCanvas.width !== w) { fsCanvas.width = w; fsCanvas.height = h; } 
-            fsCanvas.style.imageRendering = isPixelated ? 'pixelated' : 'auto'; 
-            fsCtx.drawImage(processCanvas, 0, 0, w, h);
-        }
+    // 但如果當前模式是 AGED (索引 7)，我們就在預覽時強制使用中性的「直通模式」(索引 11)
+    if (mode.idx === 7) {
+        previewModeIdx = 11; 
     }
+    // --- [修改結束] ---
+
+    // 在呼叫 WebGL 渲染時，傳入的是我們剛剛決定的 previewModeIdx，而不是固定的 mode.idx
+    webGLRenderer.render(video, previewModeIdx, isSelfieMode, currentZoom, currentRollState);
+    
+    // Copy to Viewfinders (2D) - 這部分沿用您提供的正確版本
+    const isPixelated = (!isSketchMode && (mode.id === 'COLOR' || mode.id === 'BW'));
+    
+    if (!isSelfieMode) { 
+        if (smallCanvas.width !== w) { smallCanvas.width = w; smallCanvas.height = h; } 
+        smallCanvas.style.imageRendering = isPixelated ? 'pixelated' : 'auto'; 
+        smallCtx.drawImage(processCanvas, 0, 0, w, h); 
+    } else { 
+        if (frontCanvas.width !== w) { frontCanvas.width = w; frontCanvas.height = h; } 
+        frontCanvas.style.imageRendering = isPixelated ? 'pixelated' : 'auto'; 
+        frontCtx.drawImage(processCanvas, 0, 0, w, h); 
+    }
+
+    if (fsViewfinder.style.display === 'block') { 
+        if (fsCanvas.width !== w) { fsCanvas.width = w; fsCanvas.height = h; } 
+        fsCanvas.style.imageRendering = isPixelated ? 'pixelated' : 'auto'; 
+        fsCtx.drawImage(processCanvas, 0, 0, w, h);
+    }
+}
+
 
     // [新代碼] 綁定兩個觀景窗按鈕，統一使用相同的開啟邏輯
 vfTrigger.addEventListener('click', openFullScreenViewfinder);
@@ -1558,9 +1745,14 @@ function randomizeOSD() {
             // (從快門聲後再等 0.5秒，確保你有足夠時間感受到綠圈與拍照的過程)
             setTimeout(() => { 
                 performCapture(); 
-                
+
+
+             
                 // 復原狀態
                 btn.classList.remove('pressed'); 
+
+currentRollState = Math.random();
+                
                 if(circle) circle.classList.remove('focused');
             }, 400);
 
@@ -1569,38 +1761,46 @@ function randomizeOSD() {
 
     function generateLightLeak(ctx, w, h, severity = 1) { ctx.save(); ctx.globalCompositeOperation = 'screen'; const baseCount = severity > 1 ? 3 : (Math.random() > 0.7 ? 2 : 1); for(let i=0; i<baseCount; i++) { const type = Math.random(); const opacity = (0.4 + Math.random() * 0.4) * severity; const hue = Math.random() > 0.8 ? 40 + Math.random()*10 : 10 + Math.random()*30; let colorInner = `hsla(${hue}, 90%, 60%, ${opacity})`; let colorOuter = `hsla(${hue-10}, 90%, 40%, 0)`; if (type < 0.4) { const isLeft = Math.random() > 0.5; const width = w * (0.15 + Math.random() * 0.3); const grad = ctx.createLinearGradient(isLeft ? 0 : w, 0, isLeft ? width : w - width, 0); grad.addColorStop(0, colorInner); grad.addColorStop(1, colorOuter); ctx.fillStyle = grad; ctx.fillRect(0, 0, w, h); } else { const cx = Math.random() > 0.5 ? 0 : w; const cy = Math.random() > 0.5 ? 0 : h; const r = Math.max(w, h) * (0.4 + Math.random() * 0.4); const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r); grad.addColorStop(0, `hsla(${hue}, 20%, 90%, ${opacity})`); grad.addColorStop(1, `hsla(${hue}, 90%, 20%, 0)`); ctx.fillStyle = grad; ctx.fillRect(0, 0, w, h); } } ctx.restore(); }
         
-    async function performCapture() { 
-        fsViewfinder.style.display = 'none';
-        const modes = getModes(); const mode = modes[currentModeIdx]; 
-        const targetW = 1920, targetH = 1080; 
-        
-        const tempC = document.createElement('canvas');
-        tempC.width = targetW; tempC.height = targetH;
-        const tempCtx = tempC.getContext('2d');
-        tempCtx.filter = 'none'; 
-        // WebGL handles flips in shader, BUT when we draw processCanvas to tempC, it comes out "as displayed".
-        // However, processCanvas (WebGL) content buffer is usually upside down or right side up depending on implementation.
-        // We draw it directly. Since we handle "Selfie Flip" in renderLoop for the display canvas, 
-        // we assume processCanvas visually looks correct.
-        // WAIT: processCanvas is WebGL. drawing it via drawImage(processCanvas) works.
-        
-        tempCtx.drawImage(processCanvas, 0, 0, targetW, targetH); 
-        
-        if (mode.id.startsWith('FILM_')) { const severity = (mode.id === 'FILM_AGED') ? 2.0 : 1.0; generateLightLeak(tempCtx, targetW, targetH, severity); } 
-        currentReviewCanvas = tempC;
-
-        if (!isRollMode) {
-            const previewData = tempC.toDataURL('image/jpeg', 0.9);
-            document.getElementById('review-img').src = previewData;
-            document.getElementById('review-overlay').style.display = 'flex';
-        } else {
-            if (exposureCanvas.width !== targetW) { exposureCanvas.width = targetW; exposureCanvas.height = targetH; }
-            exposureCtx.globalCompositeOperation = isFilmAdvanced ? 'source-over' : 'screen';
-            exposureCtx.drawImage(tempC, 0, 0);
-            isFilmAdvanced = false; 
-            updateLeverUI();
+   async function performCapture() { 
+    fsViewfinder.style.display = 'none';
+    const modes = getModes(); const mode = modes[currentModeIdx]; 
+    const targetW = 1920, targetH = 1080; 
+    
+    // [關鍵邏輯]
+    // 拍攝瞬間，如果模式是 AGED，就強制用它的真實索引 (7) 重新渲染一次高解析度畫面。
+    if (mode.idx === 7 && webGLRenderer) {
+        // 確保 processCanvas 尺寸足夠大以輸出高畫質照片
+        if (processCanvas.width !== targetW || processCanvas.height !== targetH) {
+            processCanvas.width = targetW;
+            processCanvas.height = targetH;
         }
+        // 使用索引 7 (AGED) 進行最後的渲染
+        webGLRenderer.render(video, 7, isSelfieMode, currentZoom, currentRollState);
     }
+
+    const tempC = document.createElement('canvas');
+    tempC.width = targetW; tempC.height = targetH;
+    const tempCtx = tempC.getContext('2d');
+    tempCtx.filter = 'none'; 
+    
+    // 從 processCanvas 獲取最終渲染的畫面
+    tempCtx.drawImage(processCanvas, 0, 0, targetW, targetH); 
+    
+    if (mode.id.startsWith('FILM_')) { const severity = (mode.id === 'FILM_AGED') ? 2.0 : 1.0; generateLightLeak(tempCtx, targetW, targetH, severity); } 
+    currentReviewCanvas = tempC;
+
+    if (!isRollMode) {
+        const previewData = tempC.toDataURL('image/jpeg', 0.9);
+        document.getElementById('review-img').src = previewData;
+        document.getElementById('review-overlay').style.display = 'flex';
+    } else {
+        if (exposureCanvas.width !== targetW) { exposureCanvas.width = targetW; exposureCanvas.height = targetH; }
+        exposureCtx.globalCompositeOperation = isFilmAdvanced ? 'source-over' : 'screen';
+        exposureCtx.drawImage(tempC, 0, 0);
+        isFilmAdvanced = false; 
+        updateLeverUI();
+    }
+}
         
     document.getElementById('btn-discard').addEventListener('click', () => { currentReviewCanvas = null; pendingPhoto = null; document.getElementById('review-overlay').style.display = 'none'; }); 
     document.getElementById('btn-keep').addEventListener('click', () => { 
