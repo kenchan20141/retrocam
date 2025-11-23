@@ -1606,8 +1606,71 @@ function randomizeOSD() {
     
     const exportModal = document.getElementById('export-modal'); let exportActionType = ''; 
     function checkSelection() { if (selectedAlbumIds.size === 0) return false; return true; }
-    document.getElementById('alb-download').addEventListener('click', () => { if(!checkSelection()) { retroAlert("SELECT PHOTOS FIRST"); return; } exportActionType = 'download'; document.getElementById('exp-text-input').value = ""; exportModal.style.display = 'flex'; });
-    document.getElementById('alb-share').addEventListener('click', () => { if(!checkSelection()) { retroAlert("SELECT PHOTOS FIRST"); return; } if(!navigator.share) { retroAlert("SHARING NOT SUPPORTED"); return; } exportActionType = 'share'; document.getElementById('exp-text-input').value = ""; exportModal.style.display = 'flex'; });
+     document.getElementById('alb-download').addEventListener('click', () => { 
+        if(!checkSelection()) { 
+            retroAlert("SELECT PHOTOS FIRST"); 
+            return; 
+        } 
+        
+        exportActionType = 'download'; 
+        
+        // 1. 取得選中的照片資料
+        const selectedPhotos = currentAlbumData.filter(p => selectedAlbumIds.has(p.id));
+        
+        // 2. 檢查是否有任何一張是「拍立得 (white)」風格
+        const hasInstantStyle = selectedPhotos.some(p => p.style === 'white');
+        
+        // 3. 獲取輸入框元素
+        const inputEl = document.getElementById('exp-text-input');
+        
+        // 4. 清空舊文字
+        inputEl.value = ""; 
+        
+        // 5. 決定是否顯示輸入框
+        if (hasInstantStyle) {
+            inputEl.style.display = 'block'; // 顯示
+        } else {
+            inputEl.style.display = 'none';  // 隱藏 (菲林/標準模式不需要)
+        }
+        
+        exportModal.style.display = 'flex'; 
+    });
+
+    // [修改] 分享按鈕監聽器：加入同樣的檢查邏輯
+    document.getElementById('alb-share').addEventListener('click', () => { 
+        if(!checkSelection()) { 
+            retroAlert("SELECT PHOTOS FIRST"); 
+            return; 
+        } 
+        
+        if(!navigator.share) { 
+            retroAlert("SHARING NOT SUPPORTED"); 
+            return; 
+        } 
+        
+        exportActionType = 'share'; 
+        
+        // 1. 取得選中的照片資料
+        const selectedPhotos = currentAlbumData.filter(p => selectedAlbumIds.has(p.id));
+        
+        // 2. 檢查是否有任何一張是「拍立得 (white)」風格
+        const hasInstantStyle = selectedPhotos.some(p => p.style === 'white');
+        
+        // 3. 獲取輸入框元素
+        const inputEl = document.getElementById('exp-text-input');
+        
+        // 4. 清空舊文字
+        inputEl.value = ""; 
+        
+        // 5. 決定是否顯示輸入框
+        if (hasInstantStyle) {
+            inputEl.style.display = 'block'; // 顯示
+        } else {
+            inputEl.style.display = 'none';  // 隱藏
+        }
+        
+        exportModal.style.display = 'flex'; 
+    });
     document.getElementById('exp-cancel').addEventListener('click', () => exportModal.style.display = 'none');
     document.getElementById('exp-no-serial').addEventListener('click', () => processExport(false));
     document.getElementById('exp-with-serial').addEventListener('click', () => processExport(true));
