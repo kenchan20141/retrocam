@@ -36,8 +36,54 @@
    #camera-container { width: 760px; height: 420px; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); transform-origin: center center; filter: drop-shadow(0 0 2px rgba(255,255,255,0.25)) drop-shadow(0 30px 60px rgba(0,0,0,0.9)); display: none; transform-style: preserve-3d; z-index: 100; contain: layout size; }
 
     .top-plate { width: 100%; height: 110px; background: var(--metal-grad); border-radius: 12px 12px 2px 2px; position: relative; z-index: 10; border: 1px solid rgba(255,255,255,0.3); border-bottom: 1px solid #555; box-shadow: inset 0 1px 0 rgba(255,255,255,0.8); }
-    .viewfinder-wrap { position: absolute; top: 15px; left: 30px; width: 120px; height: 80px; background: #111; border: 3px solid #666; border-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.4); overflow: hidden; cursor: zoom-in; z-index: 12; transition: opacity 0.3s; }
-    .vf-glass { width: 100%; height: 100%; opacity: 0.9; display: block; }
+   .viewfinder-wrap { 
+    position: absolute; 
+    top: 15px; 
+    left: 30px; 
+    width: 120px; 
+    height: 80px; 
+    background: #000; /* 內部改為全黑，模擬暗箱 */
+    border: 4px solid #444; /* 加粗邊框，模擬金屬框 */
+    border-radius: 4px; 
+    box-shadow: 
+        0 2px 5px rgba(0,0,0,0.5), /* 外部陰影 */
+        inset 0 0 0 1px rgba(0,0,0,1); /* 邊框與機身的接縫 */
+    overflow: hidden; 
+    cursor: zoom-in; 
+    z-index: 12; 
+    transition: opacity 0.3s; 
+}
+
+/* [新增] 這是「玻璃質感」的關鍵：反光層與內陰影 */
+.viewfinder-wrap::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 20; /* 確保覆蓋在 Canvas 之上 */
+    pointer-events: none; /* 讓點擊事件可以穿透玻璃傳給 Canvas */
+    
+    /* 1. 內陰影：讓玻璃看起來凹陷 */
+    box-shadow: inset 0 0 15px rgba(0,0,0,0.8); 
+    
+    /* 2. 複雜的漸層：模擬弧形玻璃反光 + 鍍膜色澤 */
+    background: 
+        /* 左上角的強烈反光 (高光) */
+        linear-gradient(135deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.05) 20%, transparent 21%, transparent 100%),
+        /* 整體的微妙青色鍍膜反光 */
+        radial-gradient(circle at 50% 120%, rgba(100, 200, 255, 0.1), transparent 60%);
+}
+
+/* [修改] 內部的 Canvas 畫面 */
+.vf-glass { 
+    width: 100%; 
+    height: 100%; 
+    opacity: 0.85; /* 稍微降低不透明度，讓它融入黑色背景 */
+    display: block; 
+    filter: contrast(1.1) brightness(0.9); /* 模擬從光學取景器看出去稍微暗一點的感覺 */
+}
     .function-group { position: absolute; top: 18px; left: 170px; width: 100px; height: 80px; display: flex; flex-direction: column; gap: 12px; z-index: 25; }
     .top-row-btns { display: flex; gap: 12px; align-items: center; }
     .flat-lock-btn { width: 50px; height: 26px; background: linear-gradient(to bottom, #e0e0e0, #bbb); border: 1px solid #888; border-radius: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.8); display: flex; justify-content: center; align-items: center; cursor: pointer; position: relative; }
@@ -93,7 +139,47 @@
     .cable-plunger-wrapper.pressed .cable-button-head { transform: translateY(12px); }
     .cable-plunger-wrapper.pressed .cable-stem { height: 8px; transform: translateY(12px); }
 
-    .front-viewfinder-frame { position: absolute; top: 15px; right: 40px; width: 90px; height: 65px; background: #111; border: 2px solid #666; border-radius: 3px; box-shadow: inset 0 0 5px #000, 0 1px 2px rgba(0,0,0,0.3); overflow: hidden; cursor: zoom-in; z-index: 16; }
+   .front-viewfinder-frame { 
+    position: absolute; 
+    top: 15px; 
+    right: 40px; 
+    width: 90px; 
+    height: 65px; 
+    background: #000; 
+    border: 3px solid #555; 
+    border-radius: 4px; 
+    
+    /* 外部立體感 */
+    box-shadow: 
+        0 2px 4px rgba(0,0,0,0.4), 
+        inset 0 0 0 1px rgba(0,0,0,1); 
+        
+    overflow: hidden; 
+    cursor: zoom-in; 
+    z-index: 16; 
+}
+
+/* [新增] 正面玻璃質感 */
+.front-viewfinder-frame::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 20;
+    pointer-events: none;
+    
+    /* 較深的內陰影 */
+    box-shadow: inset 0 0 12px rgba(0,0,0,0.9);
+    
+    /* 正面看鏡頭通常會有紫色或琥珀色的鍍膜反光 */
+    background: 
+        /* 反光條紋 */
+        linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.15) 45%, rgba(255,255,255,0.05) 50%, transparent 55%),
+        /* 鍍膜感 */
+        radial-gradient(circle at 30% 30%, rgba(100, 0, 200, 0.1), transparent 70%);
+}
     .front-vf-glass { width: 100%; height: 100%; transform: scaleX(-1); }
     .camera-body { width: 100%; height: 310px; position: relative; border-radius: 0 0 8px 8px; perspective: 1000px; transform-style: preserve-3d; }
 
