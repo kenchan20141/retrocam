@@ -10,12 +10,12 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Lumigraph</title>
 
-<!-- [新增] 引入 Google Fonts 書法字體 (Ma Shan Zheng) -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600&display=swap" rel="stylesheet">
     
 <style>
+    /* [樣式保持不變，為了節省篇幅，直接沿用原本的 CSS] */
     :root {
         --leather-color: #151515;
         --metal-grad: linear-gradient(to bottom, #f0f0f0 0%, #d0d0d0 15%, #b0b0b0 40%, #8a8a8a 100%);
@@ -24,27 +24,7 @@
 
     * { box-sizing: border-box; touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none; }
    
-    /* [修改] 強制鎖定視窗，解決相機位置亂跑的問題 */
-html, body { 
-    width: 100%; 
-    height: 100%; 
-    margin: 0; 
-    padding: 0; 
-    background-color: #000; 
-    
-    /* [修改] 移除 Flex，改用 block 避免佈局推擠 */
-    display: block; 
-    
-    /* 強制鎖死捲動，防止 iOS Safari 的橡皮筋效果 */
-    position: fixed; 
-    top: 0; 
-    left: 0;
-    overflow: hidden; 
-    
-    font-family: 'Arial', sans-serif; 
-    color: #333; 
-    perspective: 1200px; 
-}
+    html, body { width: 100%; height: 100%; margin: 0; padding: 0; background-color: #000; display: block; position: fixed; top: 0; left: 0; overflow: hidden; font-family: 'Arial', sans-serif; color: #333; perspective: 1200px; }
     
     #fullscreen-prompt, #orientation-lock { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 10000; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #fff; text-align: center; }
     #orientation-lock { display: none; background: #111; z-index: 9999; }
@@ -53,35 +33,9 @@ html, body {
     #orientation-lock svg { width: 60px; height: 60px; fill: #fff; animation: rotatePhone 2s infinite; }
     @keyframes rotatePhone { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-90deg); } }
 
-   #camera-container {
-    width: 760px; 
-    height: 420px; 
-    
-    /* [修改] 使用 fixed 強制定位，這是最穩定的置中方式 */
-    position: fixed; 
-    top: 50%; 
-    left: 50%;
-    
-    /* 使用 transform 進行精確置中 */
-    transform: translate(-50%, -50%); 
-    transform-origin: center center;
-    
-    filter: drop-shadow(0 0 2px rgba(255,255,255,0.25)) drop-shadow(0 30px 60px rgba(0,0,0,0.9)); 
-    display: none; /* JS 會控制顯示 */
-    transform-style: preserve-3d; 
-    z-index: 100;
-    
-    /* 防止相簿捲動時觸發父層位移 */
-    contain: layout size;
-}
+   #camera-container { width: 760px; height: 420px; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); transform-origin: center center; filter: drop-shadow(0 0 2px rgba(255,255,255,0.25)) drop-shadow(0 30px 60px rgba(0,0,0,0.9)); display: none; transform-style: preserve-3d; z-index: 100; contain: layout size; }
 
-    .top-plate {
-        width: 100%; height: 110px; background: var(--metal-grad);
-        border-radius: 12px 12px 2px 2px; position: relative; z-index: 10;
-        border: 1px solid rgba(255,255,255,0.3); border-bottom: 1px solid #555; 
-        box-shadow: inset 0 1px 0 rgba(255,255,255,0.8);
-    }
-
+    .top-plate { width: 100%; height: 110px; background: var(--metal-grad); border-radius: 12px 12px 2px 2px; position: relative; z-index: 10; border: 1px solid rgba(255,255,255,0.3); border-bottom: 1px solid #555; box-shadow: inset 0 1px 0 rgba(255,255,255,0.8); }
     .viewfinder-wrap { position: absolute; top: 15px; left: 30px; width: 120px; height: 80px; background: #111; border: 3px solid #666; border-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.4); overflow: hidden; cursor: zoom-in; z-index: 12; transition: opacity 0.3s; }
     .vf-glass { width: 100%; height: 100%; opacity: 0.9; display: block; }
     .function-group { position: absolute; top: 18px; left: 170px; width: 100px; height: 80px; display: flex; flex-direction: column; gap: 12px; z-index: 25; }
@@ -163,43 +117,10 @@ html, body {
     @keyframes lensFlash { 0% { opacity: 0.8; } 100% { opacity: 0; } }
     .camera-interior { width: 100%; height: 100%; background: #0a0a0a; border-radius: 0 0 8px 8px; box-shadow: inset 0 0 40px #000; position: absolute; top: 0; left: 0; z-index: 1; display: flex; flex-direction: column; overflow: hidden; border-left: 1px solid #333; border-right: 1px solid #333; border-bottom: 1px solid #333; }
 
-/* [新增] 相簿讀取中的提示樣式 */
-#album-loader {
-    position: absolute; 
-    top: 50%; left: 50%; 
-    transform: translate(-50%, -50%);
-    color: #c00; /* 使用紅色LED風格 */
-    font-family: 'Courier New', monospace; 
-    font-weight: bold;
-    font-size: 16px; 
-    letter-spacing: 3px; 
-    z-index: 100;
-    display: none; /* 預設隱藏 */
-    animation: blinkText 0.8s infinite;
-    text-shadow: 0 0 5px rgba(204, 0, 0, 0.6);
-    pointer-events: none;
-}
+    #album-loader { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #c00; font-family: 'Courier New', monospace; font-weight: bold; font-size: 16px; letter-spacing: 3px; z-index: 100; display: none; animation: blinkText 0.8s infinite; text-shadow: 0 0 5px rgba(204, 0, 0, 0.6); pointer-events: none; }
+    @keyframes blinkText { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
-@keyframes blinkText { 
-    0%, 100% { opacity: 1; } 
-    50% { opacity: 0.3; } 
-}
-
-
-    
-   .album-container { 
-    flex: 1; 
-    padding: 20px; 
-    overflow-y: auto; 
-    display: none; 
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); 
-    gap: 15px; 
-    align-content: flex-start;
-    
-    /* [新增] 關鍵修正：防止相簿捲動時，連帶影響到整個相機的位置 */
-    overscroll-behavior: contain; 
-    -webkit-overflow-scrolling: touch;
-}
+   .album-container { flex: 1; padding: 20px; overflow-y: auto; display: none; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 15px; align-content: flex-start; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
     .album-container.active { display: grid; }
     .album-container::-webkit-scrollbar { width: 8px; }
     .album-container::-webkit-scrollbar-track { background: #111; }
@@ -211,63 +132,24 @@ html, body {
     .album-photo.selected::after { content: '✔'; position: absolute; top: 2px; right: 2px; background: #c00; color: white; font-size: 12px; padding: 2px 4px; }
     .album-seq { position: absolute; top: 2px; left: 2px; font-family: 'Courier New'; font-size: 10px; color: #ff9900; background: rgba(0,0,0,0.7); padding: 1px 3px; }
 
-    .film-strip-view {
-        flex: 1; display: none; flex-direction: row; overflow-x: auto; overflow-y: hidden;
-        white-space: nowrap; background: #050505; align-items: center;
-        scroll-behavior: auto; perspective: none; padding-left: 85px; position: relative; z-index: 5;
-        mask-image: linear-gradient(to right, transparent 0%, transparent 84px, black 86px);
-        -webkit-mask-image: linear-gradient(to right, transparent 0%, transparent 84px, black 86px);
-    }
+    .film-strip-view { flex: 1; display: none; flex-direction: row; overflow-x: auto; overflow-y: hidden; white-space: nowrap; background: #050505; align-items: center; scroll-behavior: auto; perspective: none; padding-left: 85px; position: relative; z-index: 5; mask-image: linear-gradient(to right, transparent 0%, transparent 84px, black 86px); -webkit-mask-image: linear-gradient(to right, transparent 0%, transparent 84px, black 86px); }
     .film-strip-view.active { display: flex; }
     .film-strip-view::-webkit-scrollbar { height: 8px; display: none; }
     
-    .static-canister-overlay {
-        position: absolute; left: 15px; top: 42%; transform: translateY(-50%);
-        width: 65px; height: 210px; z-index: 50 !important; pointer-events: none;
-        filter: drop-shadow(5px 0 10px rgba(0,0,0,0.8));
-    }
-    .canister-cylinder {
-        width: 100%; height: 100%;
-        background: linear-gradient(90deg, #222 0%, #555 30%, #222 60%, #111 100%);
-        border-radius: 4px; box-shadow: 8px 0 20px rgba(0,0,0,1);
-        border: 1px solid #333; position: relative;
-        display: flex; flex-direction: column; justify-content: center; align-items: center;
-    }
+    .static-canister-overlay { position: absolute; left: 15px; top: 42%; transform: translateY(-50%); width: 65px; height: 210px; z-index: 50 !important; pointer-events: none; filter: drop-shadow(5px 0 10px rgba(0,0,0,0.8)); }
+    .canister-cylinder { width: 100%; height: 100%; background: linear-gradient(90deg, #222 0%, #555 30%, #222 60%, #111 100%); border-radius: 4px; box-shadow: 8px 0 20px rgba(0,0,0,1); border: 1px solid #333; position: relative; display: flex; flex-direction: column; justify-content: center; align-items: center; }
     .canister-cylinder::before { content: ''; position: absolute; top: -12px; width: 100%; height: 12px; background: #333; border-radius: 50% 50% 0 0; border: 1px solid #444; background: radial-gradient(circle at 30% 30%, #666, #222); }
     .canister-cylinder::after { content: ''; position: absolute; bottom: -12px; width: 100%; height: 12px; background: #333; border-radius: 0 0 50% 50%; border: 1px solid #444; background: radial-gradient(circle at 30% 30%, #666, #222); }
     .canister-slot { position: absolute; right: -2px; top: 15%; height: 70%; width: 6px; background: #000; border-left: 1px solid #444; box-shadow: inset 2px 0 4px #000; }
     
     .film-frame-container { display: inline-flex; align-items: center; height: 180px; flex-shrink: 0; margin: 0; position: relative; background: transparent; border: none; padding: 0; transform-style: flat; width: auto; }
     .film-block { position: relative; height: 100%; width: 100%; display: block; background: #000; margin-right: -1px; }
-    .film-block::before, .film-block::after {
-        content: ''; position: absolute; left: 0; width: 100%; height: 14px;
-        background-color: #000; background-image: linear-gradient(90deg, #111 60%, transparent 60%);
-        background-size: 18px 100%; background-repeat: repeat-x; z-index: 5;
-    }
+    .film-block::before, .film-block::after { content: ''; position: absolute; left: 0; width: 100%; height: 14px; background-color: #000; background-image: linear-gradient(90deg, #111 60%, transparent 60%); background-size: 18px 100%; background-repeat: repeat-x; z-index: 5; }
     .film-block::before { top: 0; border-bottom: 1px solid #333; }
     .film-block::after { bottom: 0; border-top: 1px solid #333; }
-    
-    .film-frame-container.selected .film-block::before,
-    .film-frame-container.selected .film-block::after {
-        background-color: #8a5a00; background-image: linear-gradient(90deg, #cc8800 60%, transparent 60%);
-        box-shadow: 0 0 8px rgba(255, 170, 0, 0.6);
-    }
-
-   .film-block-img {
-        position: absolute; 
-        top: 14px; bottom: 14px; 
-        left: 0; right: 0;
-        width: 100%; height: auto;
-        background-repeat: no-repeat;
-        background-size: cover; 
-        background-position: center;
-        background-color: #000;
-        z-index: 1; 
-        image-rendering: high-quality; 
-    }
-
-    
-     .film-meta-label { position: absolute; bottom: 18px; left: 8px; color: rgba(255, 255, 255, 0.85); font-family: 'Courier New', monospace; font-size: 12px; font-weight: bold; z-index: 20; text-shadow: 0 1px 2px rgba(0,0,0,0.9); pointer-events: none; }
+    .film-frame-container.selected .film-block::before, .film-frame-container.selected .film-block::after { background-color: #8a5a00; background-image: linear-gradient(90deg, #cc8800 60%, transparent 60%); box-shadow: 0 0 8px rgba(255, 170, 0, 0.6); }
+    .film-block-img { position: absolute; top: 14px; bottom: 14px; left: 0; right: 0; width: 100%; height: auto; background-repeat: no-repeat; background-size: cover; background-position: center; background-color: #000; z-index: 1; image-rendering: high-quality; }
+    .film-meta-label { position: absolute; bottom: 18px; left: 8px; color: rgba(255, 255, 255, 0.85); font-family: 'Courier New', monospace; font-size: 12px; font-weight: bold; z-index: 20; text-shadow: 0 1px 2px rgba(0,0,0,0.9); pointer-events: none; }
 
     .album-controls { height: 50px; background: #181818; border-top: 1px solid #333; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; gap: 10px; }
     .ac-left-group { display: flex; gap: 10px; }
@@ -336,354 +218,71 @@ html, body {
     .sp-film::before, .sp-film::after { content: '...'; position: absolute; color: white; font-size: 8px; letter-spacing: 4px; left: 2px; }
     .sp-film::before { top: -8px; } .sp-film::after { bottom: -4px; }
 
-    /* [MODIFIED] Developing Overlay with Water Texture Support */
     #developing-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 3000; display: none; flex-direction: column; justify-content: center; align-items: center; }
     
-    .photo-paper-container { 
-        transform: scale(0.9); display: flex; justify-content: center; align-items: center; margin-bottom: 30px; position: relative; overflow: hidden; 
-        transition: box-shadow 0.3s;
-    }
-    
-    /* Water Simulation Classes */
-    .photo-paper-container.wet-process {
-        box-shadow: 0 0 50px rgba(0, 100, 255, 0.15), inset 0 0 20px rgba(0,0,0,0.5);
-    }
-    /* Pseudo-element for surface gloss/reflection */
-    .photo-paper-container.wet-process::after {
-        content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-        background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.05), rgba(0,0,20,0.3));
-        pointer-events: none; z-index: 10; mix-blend-mode: overlay;
-    }
+    .photo-paper-container { transform: scale(0.9); display: flex; justify-content: center; align-items: center; margin-bottom: 30px; position: relative; overflow: hidden; transition: box-shadow 0.3s; }
+    .photo-paper-container.wet-process { box-shadow: 0 0 50px rgba(0, 100, 255, 0.15), inset 0 0 20px rgba(0,0,0,0.5); }
+    .photo-paper-container.wet-process::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.05), rgba(0,0,20,0.3)); pointer-events: none; z-index: 10; mix-blend-mode: overlay; }
 
-    /* Apply the SVG displacement filter here when active */
-    #dev-image-wrap { 
-        box-shadow: 0 0 50px #000; 
-        opacity: 0; max-height: 80vh; max-width: 80vw; 
-        transition: all 0.3s; 
-    }
-    
-    #dev-image-wrap.in-liquid {
-        filter: url(#liquidFilter); 
-    }
-
+    #dev-image-wrap { box-shadow: 0 0 50px #000; opacity: 0; max-height: 80vh; max-width: 80vw; transition: all 0.3s; }
+    #dev-image-wrap.in-liquid { filter: url(#liquidFilter); }
     .dev-status-text { color: #888; font-family: monospace; font-size: 16px; letter-spacing: 2px; animation: pulse 1s infinite; margin-top: 20px;}
     
     #export-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 4000; display: none; flex-direction: column; justify-content: center; align-items: center; }
     .export-opt-group { margin-top: 20px; display: flex; gap: 20px; }
 
-  #zoom-overlay { 
-    /* [修改] 使用 fixed 滿版覆蓋，無視任何父層影響 */
-    position: fixed !important; 
-    top: 0; 
-    left: 0; 
-    width: 100vw; 
-    height: 100vh; /* 使用 vh 而非 %，確保填滿螢幕 */
-    
-    background: rgba(0,0,0,0.95); 
-    z-index: 2147483647; /* 最大整數，確保在最頂層 */
-    
-    /* 這裡直接設定 flex 置中，不需要 JS 動態介入 display 屬性 */
-    display: none; 
-    flex-direction: column; 
-    justify-content: center; 
-    align-items: center; 
-    
-    /* 確保沒有邊距干擾 */
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    
-    /* 鎖定觸控事件，避免穿透到底層相機 */
-    touch-action: none;
-}
+  #zoom-overlay { position: fixed !important; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.95); z-index: 2147483647; display: none; flex-direction: column; justify-content: center; align-items: center; margin: 0; padding: 0; box-sizing: border-box; touch-action: none; }
+  #zoom-overlay.active { display: flex !important; }
+  #zoom-img { max-width: 95vw; max-height: 90vh; width: auto; height: auto; box-shadow: 0 0 30px #000; object-fit: contain; margin: auto; display: block; }
 
-/* 當 JS 將其設為 display: flex 時生效的輔助類別 */
-#zoom-overlay.active {
-    display: flex !important;
-}
-
-#zoom-img { 
-    /* 確保圖片不超過視窗，自動計算比例 */
-    max-width: 95vw; 
-    max-height: 90vh; 
-    
-    width: auto;
-    height: auto;
-    
-    box-shadow: 0 0 30px #000; 
-    object-fit: contain; 
-    
-    /* 雙重保險置中 */
-    margin: auto;
-    display: block;
-}
-
-    
     @keyframes pulse { 0%,100% {opacity:0.5} 50% {opacity:1}}
-    
-    /* [MODIFIED] Animation logic split: this handles Opacity/Scale/Look, SVG handles distortion */
-   @keyframes developProcess { 
-    0% { opacity: 0; transform: scale(0.95); filter: brightness(0.1) sepia(1) blur(5px) url(#liquidFilter); } 
-    40% { opacity: 0.6; filter: brightness(0.6) sepia(0.5) blur(2px) url(#liquidFilter); } 
-    /* 修改點：100% 時不移除 url(#liquidFilter)，讓 JS 負責慢慢把水變平 */
-    100% { opacity: 1; transform: scale(1); filter: brightness(1) sepia(0) blur(0) url(#liquidFilter); } 
-}
+   @keyframes developProcess { 0% { opacity: 0; transform: scale(0.95); filter: brightness(0.1) sepia(1) blur(5px) url(#liquidFilter); } 40% { opacity: 0.6; filter: brightness(0.6) sepia(0.5) blur(2px) url(#liquidFilter); } 100% { opacity: 1; transform: scale(1); filter: brightness(1) sepia(0) blur(0) url(#liquidFilter); } }
 
+.engraved-brand { position: absolute; top: 28px; left: 35px; width: 80px; text-align: center; font-family: 'Times New Roman', Times, serif; font-weight: 900; font-style: italic; font-size: 15px; letter-spacing: 0.5px; color: #151515; text-shadow: 0 1px 0 rgba(255, 255, 255, 0.7); pointer-events: none; display: none; z-index: 25; }
+body.is-selfie .engraved-brand { display: block; animation: brandAppear 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+@keyframes brandAppear { from { opacity: 0; transform: translateY(-5px) scale(0.9); } to { opacity: 1; transform: translateY(0) scale(1); } }
 
-/* [新增] 品牌銘刻樣式 */
-.engraved-brand {
-    position: absolute;
-    
-    /* 位置：精確定位於自拍鍵正下方，稍微往左修飾以達到視覺平衡 */
-    top: 28px;             
-    left: 35px;            
-    width: 80px;           /* 給予足夠寬度 */
-    text-align: center;    /* 文字置中 */
-    
-    /* [關鍵區隔] 字體設定：完全區別於序號的單間距字體 */
-    /* 使用 Times New Roman / Georgia 襯線體，營造經典光學大廠的氛圍 */
-    font-family: 'Times New Roman', Times, serif;
-    font-weight: 900;      /* 極粗體 */
-    font-style: italic;    /* 斜體，增加速度感與品牌識別度 */
-    font-size: 15px;       /* 夠大，這是品牌 LOGO 的尺寸 */
-    letter-spacing: 0.5px; /* 品牌字距通常較緊湊 */
-    
-    /* [關鍵擬真] 填漆刻印質感 */
-    /* 使用極深的灰黑色 (#151515)，模擬凹槽內填滿黑色油漆的效果 */
-    color: #151515;        
-    
-    /* 銳利的底部亮邊，模擬金屬邊緣切割的反光 */
-    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.7);
-    
-    pointer-events: none;  /* 確保點擊穿透，不會擋到下方的開關 */
-    display: none;         /* 預設隱藏 */
-    z-index: 25;
-}
+.film-select-btn { position: absolute; top: 25px; left: 40px; width: 50px; height: 26px; background: linear-gradient(to bottom, #f0f0f0, #ccc); border: 1px solid #888; border-radius: 2px; font-family: sans-serif; font-size: 10px; font-weight: bold; color: #333; letter-spacing: 1px; display: none; justify-content: center; align-items: center; cursor: pointer; z-index: 40; box-shadow: 0 1px 3px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.8); }
+.film-select-btn:active { background: #bbb; box-shadow: inset 0 1px 3px rgba(0,0,0,0.4); transform: translateY(1px); color: #000; }
+body.is-selfie .film-select-btn { display: flex; }
 
-/* [保持不變] 僅在自拍模式下顯示 */
-body.is-selfie .engraved-brand {
-    display: block;
-    animation: brandAppear 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
+.selfie-shutter-btn { position: absolute; top: -12px; left: 55px; width: 46px; height: 18px; background: linear-gradient(to bottom, #e0e0e0, #999); border-radius: 4px 4px 0 0; border: 1px solid #888; border-bottom: none; cursor: pointer; z-index: 5; box-shadow: inset 0 1px 2px rgba(255,255,255,0.8), 0 -2px 5px rgba(0,0,0,0.2); transition: transform 0.1s cubic-bezier(0.1, 0.7, 1.0, 0.1); display: none; }
+.selfie-shutter-btn.pressed { transform: translateY(8px); transition: transform 0.05s ease-out; }
+body.is-selfie .selfie-shutter-btn { display: block; }
+body.is-selfie .shutter-release-btn { display: none; }
 
-/* 加入一點彈性動畫，讓 LOGO 出現時更有質感 */
-@keyframes brandAppear {
-    from { opacity: 0; transform: translateY(-5px) scale(0.9); }
-    to { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-/* [新增] 自拍模式專用的 FILM 按鍵樣式 */
-.film-select-btn {
-    position: absolute;
-    /* 位置：機頂最左側 (原本觀景窗的位置) */
-    top: 25px; 
-    left: 40px; 
-    
-    /* 大小與質感：模仿 LOCK 鍵的風格 */
-    width: 50px; 
-    height: 26px; 
-    background: linear-gradient(to bottom, #f0f0f0, #ccc); 
-    border: 1px solid #888; 
-    border-radius: 2px; 
-    
-    /* 文字樣式 */
-    font-family: sans-serif; 
-    font-size: 10px; 
-    font-weight: bold; 
-    color: #333; 
-    letter-spacing: 1px; 
-    
-    /* 排版 */
-    display: none; /* 預設隱藏 */
-    justify-content: center; 
-    align-items: center; 
-    cursor: pointer; 
-    z-index: 40; 
-    
-    /* 立體陰影 */
-    box-shadow: 0 1px 3px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.8);
-}
-
-/* 按下時的效果 */
-.film-select-btn:active {
-    background: #bbb;
-    box-shadow: inset 0 1px 3px rgba(0,0,0,0.4);
-    transform: translateY(1px);
-    color: #000;
-}
-
-/* [新增] 只有在自拍模式下，這顆按鈕才會出現 */
-body.is-selfie .film-select-btn {
-    display: flex;
-}
-
-
-    /* [新增] 自拍模式專用的左側快門鍵樣式 */
-.selfie-shutter-btn {
-    position: absolute;
-    top: -12px;
-    left: 55px; /* 對稱於右側的 55px */
-    
-    /* 複製右側快門鍵的完全相同樣式 */
-    width: 46px;
-    height: 18px;
-    background: linear-gradient(to bottom, #e0e0e0, #999); /* var(--shutter-grey) */
-    border-radius: 4px 4px 0 0;
-    border: 1px solid #888;
-    border-bottom: none;
-    cursor: pointer;
-    z-index: 5;
-    box-shadow: inset 0 1px 2px rgba(255,255,255,0.8), 0 -2px 5px rgba(0,0,0,0.2);
-    transition: transform 0.1s cubic-bezier(0.1, 0.7, 1.0, 0.1);
-    
-    display: none; /* 預設隱藏 */
-}
-
-/* 按下時的動畫效果 */
-.selfie-shutter-btn.pressed {
-    transform: translateY(8px);
-    transition: transform 0.05s ease-out;
-}
-
-/* [新增] 自拍模式下的快門鍵顯示邏輯 */
-/* 1. 顯示左側新快門鍵 */
-body.is-selfie .selfie-shutter-btn {
-    display: block;
-}
-/* 2. 隱藏原本右側的快門鍵 (因為轉過來了，右邊不該有按鍵) */
-body.is-selfie .shutter-release-btn {
-    display: none;
-}
-
-    /* [新增] 通用復古對話框樣式 */
-#retro-dialog-overlay {
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.85); /* 深色遮罩 */
-    z-index: 99999; /* 確保在最上層 */
-    display: none; /* 預設隱藏 */
-    justify-content: center;
-    align-items: center;
-    backdrop-filter: blur(2px);
-}
-
-.retro-dialog-box {
-    width: 320px;
-    max-width: 85%;
-    background: #111;
-    border: 2px solid #666; /* 銀灰色邊框 */
-    box-shadow: 0 0 20px #000, inset 0 0 10px rgba(0,0,0,0.8);
-    border-radius: 4px;
-    display: flex;
-    flex-direction: column;
-    animation: dialogScaleIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-@keyframes dialogScaleIn {
-    from { transform: scale(0.9); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
-}
-
-.rd-header {
-    background: #222;
-    color: #888;
-    font-family: 'Arial', sans-serif;
-    font-size: 10px;
-    font-weight: bold;
-    letter-spacing: 1px;
-    padding: 8px 12px;
-    border-bottom: 1px solid #333;
-    text-transform: uppercase;
-}
-
-.rd-body {
-    padding: 25px 20px;
-    color: #fff;
-    font-family: 'Courier New', monospace; /* 打字機字體 */
-    font-size: 14px;
-    line-height: 1.5;
-    text-align: center;
-    white-space: pre-wrap; /* 保留換行符號 */
-    font-weight: bold;
-    text-shadow: 0 0 2px rgba(255,255,255,0.3);
-}
-
-.rd-footer {
-    display: flex;
-    border-top: 1px solid #333;
-    height: 50px;
-}
-
-.rd-btn {
-    flex: 1;
-    background: transparent;
-    border: none;
-    color: #fff;
-    font-family: 'Courier New', monospace;
-    font-size: 14px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background 0.2s;
-    text-transform: uppercase;
-}
-
-.rd-btn:active {
-    background: #333;
-}
-
-/* 取消按鈕 (左側) */
-.rd-btn.cancel {
-    border-right: 1px solid #333;
-    color: #888;
-}
-
-/* 確認按鈕 (右側) - 紅色警告色 */
-.rd-btn.confirm {
-    color: #ff3333;
-    text-shadow: 0 0 5px rgba(255, 50, 50, 0.4);
-}
-.rd-btn.confirm:active {
-    background: #300;
-}
-
-/* 純提示視窗的 OK 按鈕 */
-.rd-btn.alert-ok {
-    color: #fff;
-    display: none; /* 預設隱藏，只有 Alert 模式顯示 */
-}
-    
+#retro-dialog-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); z-index: 99999; display: none; justify-content: center; align-items: center; backdrop-filter: blur(2px); }
+.retro-dialog-box { width: 320px; max-width: 85%; background: #111; border: 2px solid #666; box-shadow: 0 0 20px #000, inset 0 0 10px rgba(0,0,0,0.8); border-radius: 4px; display: flex; flex-direction: column; animation: dialogScaleIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+@keyframes dialogScaleIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.rd-header { background: #222; color: #888; font-family: 'Arial', sans-serif; font-size: 10px; font-weight: bold; letter-spacing: 1px; padding: 8px 12px; border-bottom: 1px solid #333; text-transform: uppercase; }
+.rd-body { padding: 25px 20px; color: #fff; font-family: 'Courier New', monospace; font-size: 14px; line-height: 1.5; text-align: center; white-space: pre-wrap; font-weight: bold; text-shadow: 0 0 2px rgba(255,255,255,0.3); }
+.rd-footer { display: flex; border-top: 1px solid #333; height: 50px; }
+.rd-btn { flex: 1; background: transparent; border: none; color: #fff; font-family: 'Courier New', monospace; font-size: 14px; font-weight: bold; cursor: pointer; transition: background 0.2s; text-transform: uppercase; }
+.rd-btn:active { background: #333; }
+.rd-btn.cancel { border-right: 1px solid #333; color: #888; }
+.rd-btn.confirm { color: #ff3333; text-shadow: 0 0 5px rgba(255, 50, 50, 0.4); }
+.rd-btn.confirm:active { background: #300; }
+.rd-btn.alert-ok { color: #fff; display: none; }
 </style>
 </head>
 <body>
 
-    <!-- [NEW] SVG Filter for Realistic Water Distortion -->
     <svg style="position: absolute; width:0; height:0; pointer-events:none;">
       <defs>
         <filter id="liquidFilter">
-          <!-- Turbulence creates the liquid noise pattern -->
           <feTurbulence type="turbulence" baseFrequency="0.01 0.05" numOctaves="2" result="turbulence" seed="0" />
-          <!-- DisplacementMap uses that noise to distort the image underneath -->
           <feDisplacementMap in2="turbulence" in="SourceGraphic" scale="15" xChannelSelector="R" yChannelSelector="G" result="distorted" />
-          <!-- Specular Lighting adds the wet surface highlights -->
           <feSpecularLighting in="turbulence" specularConstant="0.75" specularExponent="20" lighting-color="#ffffff" surfaceScale="2" result="specular">
              <fePointLight x="500" y="-100" z="200" />
           </feSpecularLighting>
-          <!-- Composite the lights onto the distorted image -->
           <feComposite in="specular" in2="distorted" operator="in" result="specular-composite" />
           <feComposite in="distorted" in2="specular-composite" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" />
         </filter>
       </defs>
     </svg>
 
-    <div id="fullscreen-prompt">
-        <p>FULLSCREEN REQUIRED</p>
-        <button id="enter-fs-btn">POWER ON</button>
-    </div>
-
-    <div id="orientation-lock">
-        <svg viewBox="0 0 24 24"><path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/></svg>
-        <p>ROTATE DEVICE</p>
-    </div>
+    <div id="fullscreen-prompt"><p>FULLSCREEN REQUIRED</p><button id="enter-fs-btn">POWER ON</button></div>
+    <div id="orientation-lock"><svg viewBox="0 0 24 24"><path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/></svg><p>ROTATE DEVICE</p></div>
 
     <div id="fs-viewfinder">
         <canvas id="fs-canvas"></canvas>
@@ -691,9 +290,7 @@ body.is-selfie .shutter-release-btn {
             <div id="vf-close-btn" title="Exit Viewfinder">×</div>
             <div class="fs-guide-frame" id="fsGuideFrame"></div>
             <div class="split-image-circle" id="splitCircle"></div>
-            <div class="fs-data">
-                <span id="fs-mode-text">B&W</span><span>1/250</span><span>f/2.8</span><span id="fs-counter">36</span>
-            </div>
+            <div class="fs-data"><span id="fs-mode-text">B&W</span><span>1/250</span><span>f/2.8</span><span id="fs-counter">36</span></div>
         </div>
     </div>
 
@@ -705,66 +302,30 @@ body.is-selfie .shutter-release-btn {
 
     <div id="camera-container">
         <div class="top-plate">
-            <div class="viewfinder-wrap" id="vfTrigger" title="Live View">
-                <canvas class="vf-glass" id="smallCanvas"></canvas>
+            <div class="viewfinder-wrap" id="vfTrigger" title="Live View"><canvas class="vf-glass" id="smallCanvas"></canvas></div>
+            <div class="film-select-btn" id="filmSelectBtn">FILM</div>
+            <div class="function-group">
+                <div class="engraved-brand">LUMIGRAPH</div>
+                <div class="top-row-btns"><div class="flat-lock-btn" id="orientationBtn" title="Lock Orientation"><span>LOCK</span></div><div class="selfie-btn" id="selfie-toggle" title="Selfie Mode"></div></div>
+                <div class="compact-switch-container" id="sketchModeSwitch" title="Real/Art Mode"><span id="lbl-real" class="cs-label active">REAL</span><div class="cs-track"><div class="cs-knob"></div></div><span id="lbl-sketch" class="cs-label">ART</span></div>
             </div>
-
-             <!-- [新增] 自拍模式專用的底片選擇鍵 -->
-    <!-- 放在 top-plate 直接子層，利用 CSS 定位到最左側 -->
-    <div class="film-select-btn" id="filmSelectBtn">FILM</div>
-
-     <div class="function-group">
-    <!-- 品牌名稱 -->
-    <div class="engraved-brand">LUMIGRAPH</div>
-
-    <div class="top-row-btns">
-        <div class="flat-lock-btn" id="orientationBtn" title="Lock Orientation"><span>LOCK</span></div>
-        <div class="selfie-btn" id="selfie-toggle" title="Selfie Mode"></div>
-    </div>
-    
-    <div class="compact-switch-container" id="sketchModeSwitch" title="Real/Art Mode">
-        <span id="lbl-real" class="cs-label active">REAL</span>
-        <div class="cs-track"><div class="cs-knob"></div></div>
-        <span id="lbl-sketch" class="cs-label">ART</span>
-    </div>
-</div>
-
-            <!-- [新增] 自拍模式專用的左側快門鍵 -->
-    <div class="selfie-shutter-btn" id="selfieShutterBtn"></div>
-
+            <div class="selfie-shutter-btn" id="selfieShutterBtn"></div>
             <div id="back-controls-group">
                 <div class="lever-base" id="leverBase"></div>
                 <div class="advance-lever" id="advanceLever"><div class="lever-grip"></div></div>
-
-
-
-                
                 <div class="shutter-release-btn" id="shutterBtn"></div>
                 <div class="right-controls">
                     <div class="counter-window"><span class="counter-digits" id="frameCounter">S</span></div>
-                    <div class="mode-switch-container" id="rollModeSwitch">
-                        <div class="mode-labels"><span>1</span><span>36</span></div>
-                        <div class="switch-track"><div class="switch-knob"></div></div>
-                    </div>
+                    <div class="mode-switch-container" id="rollModeSwitch"><div class="mode-labels"><span>1</span><span>36</span></div><div class="switch-track"><div class="switch-knob"></div></div></div>
                 </div>
             </div>
-
             <div id="front-controls-group" class="front-controls-group" style="display:none;">
                 <div class="cable-release-container">
-                    <div class="cable-plunger-wrapper" id="cablePlunger">
-                        <div class="cable-button-head"></div>
-                        <div class="cable-stem"></div>
-                        <div class="cable-disc"></div>
-                        <div class="cable-grip-body"></div>
-                    </div>
+                    <div class="cable-plunger-wrapper" id="cablePlunger"><div class="cable-button-head"></div><div class="cable-stem"></div><div class="cable-disc"></div><div class="cable-grip-body"></div></div>
                 </div>
-
-                <div class="front-viewfinder-frame" id="frontVfTrigger">
-                    <canvas class="front-vf-glass" id="frontCanvas"></canvas>
-                </div>
+                <div class="front-viewfinder-frame" id="frontVfTrigger"><canvas class="front-vf-glass" id="frontCanvas"></canvas></div>
                 <div class="front-shutter-btn" id="frontShutterBtn"></div>
             </div>
-
             <div class="serial-number">NO. 854021</div>
             <div class="prism-hump"></div>
             <div class="ready-light" id="readyLight"></div>
@@ -772,30 +333,15 @@ body.is-selfie .shutter-release-btn {
 
         <div class="camera-body">
             <div class="camera-interior">
-
-<!-- [新增] Loading 提示文字 -->
-    <div id="album-loader">READING DATA...</div>
-                
+                <div id="album-loader">READING DATA...</div>
                 <div class="album-container" id="albumGrid"></div>
-                
-                <div class="static-canister-overlay" id="staticCanister">
-                    <div class="canister-cylinder">
-                         <div class="canister-slot"></div>
-                    </div>
-                </div>
-
+                <div class="static-canister-overlay" id="staticCanister"><div class="canister-cylinder"><div class="canister-slot"></div></div></div>
                 <div class="film-strip-view active" id="filmStripView"></div>
-                
                 <div class="album-controls">
                     <div class="ac-left-group">
-                         <button class="view-toggle-btn active" id="view-film" title="Film View">
-                             <svg viewBox="0 0 24 24"><path d="M20 4h-2V2h-2v2H8V2H6v2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zM8 18H6v-2h2v2zm0-4H6v-2h2v2zm0-4H6V8h2v2zm10 8h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V8h2v2z"/></svg>
-                         </button>
-                         <button class="view-toggle-btn" id="view-grid" title="Grid View">
-                             <svg viewBox="0 0 24 24"><path d="M4 4h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 10h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 16h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4z"/></svg>
-                         </button>
+                         <button class="view-toggle-btn active" id="view-film" title="Film View"><svg viewBox="0 0 24 24"><path d="M20 4h-2V2h-2v2H8V2H6v2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zM8 18H6v-2h2v2zm0-4H6v-2h2v2zm0-4H6V8h2v2zm10 8h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V8h2v2z"/></svg></button>
+                         <button class="view-toggle-btn" id="view-grid" title="Grid View"><svg viewBox="0 0 24 24"><path d="M4 4h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 10h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 16h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4z"/></svg></button>
                     </div>
-                    
                     <div class="ac-right-group">
                         <button class="album-btn" id="alb-sel-all">ALL</button>
                         <button class="album-btn action" id="alb-delete" style="border-color:#c00; color:#c00;">DEL</button>
@@ -804,33 +350,15 @@ body.is-selfie .shutter-release-btn {
                     </div>
                 </div>
             </div>
-            
             <div class="camera-front-face" id="frontFace">
-                <div class="realistic-lens">
-                    <div class="lens-barrel">
-                        <div class="lens-glass-element">
-                            <div class="lens-reflection"></div>
-                            <div class="shutter-flash-overlay" id="shutterFlash"></div>
-                        </div>
-                    </div>
-                </div>
+                <div class="realistic-lens"><div class="lens-barrel"><div class="lens-glass-element"><div class="lens-reflection"></div><div class="shutter-flash-overlay" id="shutterFlash"></div></div></div></div>
             </div>
-
             <div class="back-door-wrapper" id="backDoorWrapper">
                 <div class="back-door-face">
                     <div class="copyright-mark">Designed by Chan Kwun Kin</div>
-                    <div class="film-door" id="filmDoor" title="Change Film Type">
-                        <div class="memo-holder-frame">
-                            <div class="film-card">
-                                <h3 id="modeTitle">B&W</h3>
-                                <p id="modeSub">TRI-X 400</p>
-                            </div>
-                        </div>
-                    </div>
+                    <div class="film-door" id="filmDoor" title="Change Film Type"><div class="memo-holder-frame"><div class="film-card"><h3 id="modeTitle">B&W</h3><p id="modeSub">TRI-X 400</p></div></div></div>
                 </div>
-                <div class="back-door-interior">
-                    <div class="pressure-plate"></div>
-                </div>
+                <div class="back-door-interior"><div class="pressure-plate"></div></div>
             </div>
             <div class="back-lock" id="backLock" title="Open Back"></div>
         </div>
@@ -841,1165 +369,675 @@ body.is-selfie .shutter-release-btn {
     <div id="developing-overlay"><div class="photo-paper-container"><img id="dev-image-wrap" src="" alt="Developing"></div><div class="dev-status-text" id="devStatus">DEVELOPING...</div></div>
     <div id="zoom-overlay"><img id="zoom-img" src="" alt="Zoomed Photo"></div>
     <div id="export-modal">
-    <h2 style="color:#c00; font-family:'Courier New'">EXPORT OPTIONS</h2>
-    
-<input type="text" id="exp-text-input" placeholder="Enter caption..." maxlength="20" style="margin-top:15px; padding:10px; width:220px; font-family:'Noto Serif TC', serif; font-weight:600; font-size: 18px; background:#222; border:1px solid #666; color:#fff; text-align:center; outline:none;">
-
-
-        
-    <p style="color:#fff; font-family:sans-serif; margin-top:15px;">Include Serial Number?</p>
-    <div class="export-opt-group">
-        <button class="btn-retro" id="exp-no-serial">NO SERIAL</button>
-        <button class="btn-retro" id="exp-with-serial" style="border-color:#c00; color:#c00">WITH SERIAL</button>
+        <h2 style="color:#c00; font-family:'Courier New'">EXPORT OPTIONS</h2>
+        <input type="text" id="exp-text-input" placeholder="Enter caption..." maxlength="20" style="margin-top:15px; padding:10px; width:220px; font-family:'Noto Serif TC', serif; font-weight:600; font-size: 18px; background:#222; border:1px solid #666; color:#fff; text-align:center; outline:none;">
+        <p style="color:#fff; font-family:sans-serif; margin-top:15px;">Include Serial Number?</p>
+        <div class="export-opt-group"><button class="btn-retro" id="exp-no-serial">NO SERIAL</button><button class="btn-retro" id="exp-with-serial" style="border-color:#c00; color:#c00">WITH SERIAL</button></div>
+        <button class="btn-retro" id="exp-cancel" style="margin-top:30px; border:none; opacity:0.5">CANCEL</button>
     </div>
-    <button class="btn-retro" id="exp-cancel" style="margin-top:30px; border:none; opacity:0.5">CANCEL</button>
-</div>
 
     <video id="video-source" autoplay playsinline style="display:none"></video>
-    <canvas id="process-canvas" style="display:none"></canvas>
+    <!-- [MODIFIED] This canvas is now WebGL enabled -->
+    <canvas id="process-canvas" style="display:none"></canvas> 
     <canvas id="final-canvas" style="display:none"></canvas>
-    <canvas id="grain-canvas" style="display:none"></canvas>
-    <canvas id="sketch-canvas" style="display:none"></canvas>
 
-<!-- [新增] 通用復古對話框 (取代原生 Alert/Confirm) -->
-<div id="retro-dialog-overlay">
-    <div class="retro-dialog-box">
-        <div class="rd-header">SYSTEM MESSAGE</div>
-        <div class="rd-body" id="rd-message"></div>
-        <div class="rd-footer">
-            <button class="rd-btn cancel" id="rd-btn-cancel">CANCEL</button>
-            <button class="rd-btn confirm" id="rd-btn-confirm">CONFIRM</button>
-            <button class="rd-btn alert-ok" id="rd-btn-ok">OK</button>
+    <div id="retro-dialog-overlay">
+        <div class="retro-dialog-box">
+            <div class="rd-header">SYSTEM MESSAGE</div>
+            <div class="rd-body" id="rd-message"></div>
+            <div class="rd-footer">
+                <button class="rd-btn cancel" id="rd-btn-cancel">CANCEL</button>
+                <button class="rd-btn confirm" id="rd-btn-confirm">CONFIRM</button>
+                <button class="rd-btn alert-ok" id="rd-btn-ok">OK</button>
+            </div>
         </div>
     </div>
-</div>
 
+<script>
+    /* --- 1. WEBGL RENDERER CLASS (NEW) --- */
+    class WebGLRenderer {
+        constructor(canvas) {
+            this.canvas = canvas;
+            this.gl = canvas.getContext('webgl', { preserveDrawingBuffer: true });
+            if (!this.gl) { console.error("WebGL not supported"); return; }
+            this.program = null;
+            this.texture = null;
+            this.init();
+        }
 
-              
-    <script>
-        /* --- DATABASE & INIT --- */
-        const DB_NAME = "RetroCamDB_ProMax"; const TEMP_STORE = "temp_roll"; const ALBUM_STORE = "user_album"; let db;
-        function initDB() { return new Promise((resolve, reject) => { const request = indexedDB.open(DB_NAME, 3); request.onupgradeneeded = (e) => { db = e.target.result; if (!db.objectStoreNames.contains(TEMP_STORE)) db.createObjectStore(TEMP_STORE, { autoIncrement: true }); if (!db.objectStoreNames.contains(ALBUM_STORE)) db.createObjectStore(ALBUM_STORE, { keyPath: "id", autoIncrement: true }); }; request.onsuccess = (e) => { db = e.target.result; resolve(db); }; request.onerror = () => reject("DB Error"); }); }
-        function saveToTemp(dataUrl) { return new Promise((resolve) => { const tx = db.transaction([TEMP_STORE], "readwrite"); tx.objectStore(TEMP_STORE).add({ image: dataUrl, date: new Date() }).onsuccess = () => resolve(true); }); }
-        function getTempCount() { return new Promise((resolve) => { const tx = db.transaction([TEMP_STORE], "readonly"); tx.objectStore(TEMP_STORE).count().onsuccess = (e) => resolve(e.target.result); }); }
-        function getTempPhotos() { return new Promise((resolve) => { const tx = db.transaction([TEMP_STORE], "readonly"); tx.objectStore(TEMP_STORE).getAll().onsuccess = (e) => resolve(e.target.result); }); }
-        function clearTemp() { return new Promise(resolve => { db.transaction([TEMP_STORE], "readwrite").objectStore(TEMP_STORE).clear().onsuccess = resolve; }); }
-       // [修改] 存檔時一併記錄圖片尺寸，以實現相簿秒開
-function saveToAlbum(processedImage, serialNumber, styleInfo, w, h) { 
-    return new Promise(resolve => { 
-        const tx = db.transaction([ALBUM_STORE], "readwrite"); 
-        tx.objectStore(ALBUM_STORE).add({ 
-            image: processedImage, 
-            timestamp: Date.now(), 
-            serial: serialNumber, 
-            style: styleInfo,
-            width: w || 0,  // 存入寬度
-            height: h || 0  // 存入高度
-        }).onsuccess = resolve; 
-    }); 
-}
-        function getAlbumPhotos() { return new Promise(resolve => { const tx = db.transaction([ALBUM_STORE], "readonly"); tx.objectStore(ALBUM_STORE).getAll().onsuccess = (e) => resolve(e.target.result); }); }
-        function deleteFromAlbum(ids) { return new Promise(resolve => { const tx = db.transaction([ALBUM_STORE], "readwrite"); const store = tx.objectStore(ALBUM_STORE); ids.forEach(id => store.delete(id)); tx.oncomplete = resolve; }); }
-
-        /* --- VARS --- */
-        let isRollMode = localStorage.getItem('rollMode') === 'true'; let currentFrame = 0; let pendingPhoto = null; let globalSerialCounter = parseInt(localStorage.getItem('global_serial_counter') || '1'); let isSelfieMode = false; let isSketchMode = false; let isOrientationLocked = localStorage.getItem('orientationLocked') === 'true'; let isFilmViewMode = true;
-
-
-/* --- CUSTOM DIALOG SYSTEM (修正版) --- */
-// 1. 這裡只獲取一次 DOM 元素引用
-const rdOverlay = document.getElementById('retro-dialog-overlay');
-const rdMessage = document.getElementById('rd-message');
-const rdBtnCancel = document.getElementById('rd-btn-cancel');
-const rdBtnConfirm = document.getElementById('rd-btn-confirm');
-const rdBtnOk = document.getElementById('rd-btn-ok');
-
-// [修正] 通用顯示函數 - 移除 cloneNode，改用直接覆蓋 onclick
-function showRetroDialogUI(msg, type = 'confirm') {
-    return new Promise((resolve) => {
-        // 設定文字與顯示遮罩
-        rdMessage.textContent = msg;
-        rdOverlay.style.display = 'flex';
-        
-        // 先隱藏所有按鈕
-        rdBtnCancel.style.display = 'none';
-        rdBtnConfirm.style.display = 'none';
-        rdBtnOk.style.display = 'none';
-
-        if (type === 'confirm') {
-            // 顯示 Confirm 模式的按鈕
-            rdBtnCancel.style.display = 'block';
-            rdBtnConfirm.style.display = 'block';
+        init() {
+            const gl = this.gl;
             
-            // [關鍵修正] 直接覆蓋 onclick，這樣保證每次都能觸發
-            rdBtnConfirm.onclick = () => { 
-                rdOverlay.style.display = 'none'; 
-                resolve(true); // 回傳 true
-            };
-            
-            rdBtnCancel.onclick = () => { 
-                rdOverlay.style.display = 'none'; 
-                resolve(false); // 回傳 false
-            };
-        } else {
-            // 顯示 Alert 模式的按鈕
-            rdBtnOk.style.display = 'block';
-            
-            rdBtnOk.onclick = () => { 
-                rdOverlay.style.display = 'none'; 
-                resolve(true); 
-            };
-        }
-    });
-}
-
-// 供外部呼叫的簡化函數 (保持不變)
-async function retroConfirm(text) {
-    return await showRetroDialogUI(text, 'confirm');
-}
-
-async function retroAlert(text) {
-    return await showRetroDialogUI(text, 'alert');
-}
-
-        
-// [新增] 用於控制選單是否強制鎖定的變數
-let isMenuLocked = false;
-        
-        // Multi-exposure State
-        let isFilmAdvanced = true; // True = Ready to shoot fresh frame. False = Frame exposed, needs winding.
-        let exposureCanvas = document.createElement('canvas'); // Buffer for multi-exposure
-        let currentReviewCanvas = null;
-        let exposureCtx = exposureCanvas.getContext('2d');
-        
-        const REAL_MODES = [ { id: 'BW', name: 'B&W', sub: 'STREET 400', color: '#000' }, { id: 'COLOR', name: 'COLOR', sub: 'GAME-CAM', color: '#c00' }, { id: 'CCD', name: 'DIGI', sub: 'CCD SENSOR', color: '#0055cc' }, { id: 'HCBW', name: 'HC-BW', sub: 'FINE 100', color: '#555' }, { id: 'FILM_TEAL', name: 'FILM: TEAL', sub: 'KYOTO 400', color: '#008080' }, { id: 'FILM_SUN', name: 'FILM: SUN', sub: 'CALI 200', color: '#ffcc00' }, { id: 'FILM_VIVID', name: 'FILM: VIVID', sub: 'SLIDE 100', color: '#ff0055' }, { id: 'FILM_AGED', name: 'FILM: AGED', sub: 'EURO 800', color: '#8b4513' }, { id: 'FILM_SOFT', name: 'FILM: SOFT', sub: 'AIRY 400H', color: '#90e0ef' } ];
-        const SKETCH_MODES = [ { id: 'SKETCH_BW', name: 'PENCIL', sub: '2B GRAPHITE', color: '#333' }, { id: 'SKETCH_COL', name: 'CRAYON', sub: 'SOFT PASTEL', color: '#d2691e' }, { id: 'SKETCH_INK', name: 'INK', sub: 'COMIC PEN', color: '#000' }, { id: 'SKETCH_OIL', name: 'OIL', sub: 'IMPASTO', color: '#8b4513' }, { id: 'SKETCH_CYBER', name: 'CYBER', sub: 'NEON GRID', color: '#0f0' }, { id: 'SKETCH_BLUE', name: 'BLUE', sub: 'BLUEPRINT', color: '#4169e1' }, { id: 'SKETCH_HK_NEON', name: 'HK NEON', sub: 'NIGHT LIGHTS', color: '#ff00cc' }, { id: 'SKETCH_SHUIMO', name: 'SHUIMO', sub: 'INK WASH', color: '#111' } ];
-        let savedMode = localStorage.getItem('camModeIdx'); let currentModeIdx = savedMode ? parseInt(savedMode) : 0;
-        function getModes() { return isSketchMode ? SKETCH_MODES : REAL_MODES; }
-        function validateModeIndex() { const modes = getModes(); if (currentModeIdx < 0 || currentModeIdx >= modes.length) currentModeIdx = 0; }
-        validateModeIndex();
-
-        /* --- AUDIO --- */
-        const shutterAudio = new Audio('https://taira-komori.net/sound_os2/electric01/camera1.mp3'); shutterAudio.preload = 'auto';
-        const latchAudio = new Audio('https://taira-komori.net/sound_os2/electric01/fluorescent_switch1.mp3'); latchAudio.volume = 1.0; latchAudio.preload = 'auto';
-        const AudioContext = window.AudioContext || window.webkitAudioContext; const actx = new AudioContext();
-        function playShutterSound() { shutterAudio.currentTime = 0; const playPromise = shutterAudio.play(); if (playPromise !== undefined) { playPromise.catch(error => { if (actx.state === 'suspended') actx.resume(); const t = actx.currentTime; const oscClick = actx.createOscillator(); const gainClick = actx.createGain(); oscClick.type = 'square'; oscClick.frequency.setValueAtTime(800, t); oscClick.frequency.exponentialRampToValueAtTime(100, t + 0.05); gainClick.gain.setValueAtTime(0.5, t); gainClick.gain.exponentialRampToValueAtTime(0.01, t + 0.05); oscClick.connect(gainClick).connect(actx.destination); oscClick.start(t); oscClick.stop(t + 0.05); }); } }
-        function playLeverSound() { if (actx.state === 'suspended') actx.resume(); const t = actx.currentTime; for(let i=0; i<5; i++) { const osc = actx.createOscillator(); const gain = actx.createGain(); osc.type = 'sawtooth'; osc.frequency.setValueAtTime(800, t + i*0.06); osc.frequency.exponentialRampToValueAtTime(100, t + i*0.06 + 0.03); gain.gain.setValueAtTime(1.2, t + i*0.06); gain.gain.exponentialRampToValueAtTime(0.01, t + i*0.06 + 0.03); osc.connect(gain); gain.connect(actx.destination); osc.start(t + i*0.06); osc.stop(t + i*0.06 + 0.04); } }
-
-        /* --- DOM & CANVAS --- */
-        const video = document.getElementById('video-source');
-        const smallCanvas = document.getElementById('smallCanvas'); const smallCtx = smallCanvas.getContext('2d', { alpha: false });
-        const frontCanvas = document.getElementById('frontCanvas'); const frontCtx = frontCanvas.getContext('2d', { alpha: false });
-        const fsCanvas = document.getElementById('fs-canvas'); const fsCtx = fsCanvas.getContext('2d', { alpha: false });
-        const processCanvas = document.getElementById('process-canvas'); const processCtx = processCanvas.getContext('2d', { willReadFrequently: true });
-        const finalCanvas = document.getElementById('final-canvas'); const finalCtx = finalCanvas.getContext('2d');
-        const grainCanvas = document.getElementById('grain-canvas'); const grainCtx = grainCanvas.getContext('2d');
-        const sketchCanvas = document.getElementById('sketch-canvas'); const sketchCtx = sketchCanvas.getContext('2d', { willReadFrequently: true });
-        
-        const rollModeSwitch = document.getElementById('rollModeSwitch'); const sketchModeSwitch = document.getElementById('sketchModeSwitch'); const orientationBtn = document.getElementById('orientationBtn');
-        const frameCounterUI = document.getElementById('frameCounter'); const fsCounter = document.getElementById('fs-counter'); const readyLight = document.getElementById('readyLight'); const leverBase = document.getElementById('leverBase'); const advanceLever = document.getElementById('advanceLever'); const shutterBtn = document.getElementById('shutterBtn'); const frontShutterBtn = document.getElementById('frontShutterBtn'); const cablePlunger = document.getElementById('cablePlunger');
-        const vfTrigger = document.getElementById('vfTrigger'); const frontVfTrigger = document.getElementById('frontVfTrigger'); const fsViewfinder = document.getElementById('fs-viewfinder'); const vfCloseBtn = document.getElementById('vf-close-btn'); const fsGuideFrame = document.getElementById('fsGuideFrame'); const splitCircle = document.getElementById('splitCircle');
-        const backLock = document.getElementById('backLock'); const backDoorWrapper = document.getElementById('backDoorWrapper'); const frontFace = document.getElementById('frontFace'); const shutterFlash = document.getElementById('shutterFlash'); const selfieToggle = document.getElementById('selfie-toggle'); const backControls = document.getElementById('back-controls-group'); const frontControls = document.getElementById('front-controls-group');
-        const albumGrid = document.getElementById('albumGrid'); const filmStripView = document.getElementById('filmStripView'); const btnViewFilm = document.getElementById('view-film'); const btnViewGrid = document.getElementById('view-grid');
-        const styleOverlay = document.getElementById('style-selector-overlay'); const devOverlay = document.getElementById('developing-overlay'); const devImageWrap = document.getElementById('dev-image-wrap'); const devStatus = document.getElementById('devStatus'); const filmCard = document.querySelector('.film-card'); const modeTitle = document.getElementById('modeTitle'); const modeSub = document.getElementById('modeSub'); const fsPrompt = document.getElementById('fullscreen-prompt'); const zoomOverlay = document.getElementById('zoom-overlay'); const zoomImg = document.getElementById('zoom-img');
-        const filmRollOverlay = document.getElementById('film-roll-overlay'); const filmRollContainer = document.getElementById('filmRollContainer'); const filmDoor = document.getElementById('filmDoor');
-        const staticCanister = document.getElementById('staticCanister');
-
-        function initGrainSystem() { grainCanvas.width = 512; grainCanvas.height = 512; const imgData = grainCtx.createImageData(512, 512); const data = imgData.data; for(let i=0; i<data.length; i+=4) { let u = 0, v = 0; while(u === 0) u = Math.random(); while(v === 0) v = Math.random(); let num = Math.sqrt( -2.0 * Math.log( u ) ) * Math.cos( 2.0 * Math.PI * v ); let gray = 128 + num * 40; data[i] = gray; data[i+1] = gray; data[i+2] = gray; data[i+3] = 255; } grainCtx.putImageData(imgData, 0, 0); }
-
-        function updateModeUI() { const modes = getModes(); if(currentModeIdx >= modes.length) currentModeIdx = 0; const m = modes[currentModeIdx]; modeTitle.textContent = m.name; modeSub.textContent = m.sub; document.getElementById('fs-mode-text').textContent = m.name; const h3 = filmCard.querySelector('h3'); h3.style.color = m.color; const styleEl = document.createElement('style'); styleEl.innerHTML = `.film-card::before, .film-card::after { background: ${m.color} !important; }`; const oldStyle = document.getElementById('film-card-style'); if(oldStyle) oldStyle.remove(); styleEl.id = 'film-card-style'; document.head.appendChild(styleEl); }
-        updateModeUI();
-
-        async function initSystem() { await initDB(); initGrainSystem(); if (isRollMode) { rollModeSwitch.classList.add('mode-36'); currentFrame = await getTempCount(); } else { rollModeSwitch.classList.remove('mode-36'); currentFrame = 0; } updateCounterDisplay(); updateLeverUI(); if(isOrientationLocked) { orientationBtn.classList.add('locked'); try { if (screen.orientation && screen.orientation.lock) {} } catch(e){} } }
-        function updateCounterDisplay() { if (!isRollMode) { frameCounterUI.textContent = "S"; fsCounter.textContent = "1"; } else { if (currentFrame === 0) frameCounterUI.textContent = "S"; else if (currentFrame >= 36) frameCounterUI.textContent = "E"; else frameCounterUI.textContent = currentFrame; fsCounter.textContent = (36 - currentFrame) + " LEFT"; } }
-        
-        function updateLeverUI() {
-    // 判斷是否已經拍完整捲 (36張模式 且 計數器>=36)
-    const isEndOfRoll = isRollMode && currentFrame >= 36;
-
-    // 亮燈與發光的條件修改為：
-    // 1. !isFilmAdvanced : 剛剛按了快門，還沒過片
-    //    或者
-    // 2. isEndOfRoll : 已經拍完36張，等待最後一次拉動來沖洗
-    if (!isFilmAdvanced || isEndOfRoll) {
-        readyLight.classList.add('active'); // 紅燈亮
-        leverBase.classList.add('glow');    // 撥桿發光
-    } else {
-        readyLight.classList.remove('active');
-        leverBase.classList.remove('glow');
-    }
-}
-
-        document.getElementById('enter-fs-btn').addEventListener('click', () => { startFullscreenAndCamera(); });
-        function startFullscreenAndCamera() { const el = document.documentElement; const rfs = el.requestFullscreen || el.webkitRequestFullScreen; if (rfs) { rfs.call(el).then(() => { initSystem().then(initCamera); if(isOrientationLocked && screen.orientation && screen.orientation.lock) { screen.orientation.lock('landscape').catch(()=>{}); } }).catch(() => { initSystem().then(initCamera); }); } }
-        async function initCamera() { try { if(video.srcObject) { video.srcObject.getTracks().forEach(track => track.stop()); } const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: isSelfieMode ? 'user' : 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false }); video.srcObject = stream; video.onloadedmetadata = () => { video.play(); renderLoop(); }; } catch (err) { console.error("Camera Error", err); } }
-        function enforceFullscreen() { if (!document.fullscreenElement) { fsPrompt.style.display = 'flex'; document.getElementById('camera-container').style.display = 'none'; fsViewfinder.style.display = 'none'; } }
-        document.addEventListener('fullscreenchange', enforceFullscreen);document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'hidden') {
-        if (video.srcObject) {
-            const tracks = video.srcObject.getTracks();
-            tracks.forEach(track => { track.stop(); });
-            video.srcObject = null;
-        }
-        if(shutterAudio) { shutterAudio.pause(); shutterAudio.currentTime = 0; }
-        if(latchAudio) { latchAudio.pause(); latchAudio.currentTime = 0; }
-
-    } else if (document.visibilityState === 'visible') {
-        enforceFullscreen();
-        setTimeout(() => {
-             if (!video.srcObject || !video.srcObject.active) {
-                initCamera();
-            }
-        }, 300);
-    }
-});
-        orientationBtn.addEventListener('click', async () => { isOrientationLocked = !isOrientationLocked; orientationBtn.classList.toggle('locked', isOrientationLocked); localStorage.setItem('orientationLocked', isOrientationLocked); if (isOrientationLocked) { try { if (screen.orientation && screen.orientation.lock) { await screen.orientation.lock('landscape'); } } catch (e) { console.log("Orientation Lock not supported or failed", e); } } else { try { if (screen.orientation && screen.orientation.unlock) { screen.orientation.unlock(); } } catch (e) {} } });
-
-// [新增] 自拍模式左側 FILM 按鍵監聽器
-document.getElementById('filmSelectBtn').addEventListener('click', () => {
-    // 這是用戶主動點擊更換，非強制模式切換，因此不鎖定
-    isMenuLocked = false; 
-    
-    // 開啟底片選擇介面
-    openFilmSelector();
-});
-
-// [新增] 左側快門鍵監聽器
-const selfieShutterBtn = document.getElementById('selfieShutterBtn');
-selfieShutterBtn.addEventListener('click', handleShutter);
-        
-
-
-        
-        function renderFilmSelector() { const modes = getModes(); filmRollContainer.innerHTML = ''; modes.forEach((m, index) => { const canister = document.createElement('div'); canister.className = 'film-canister'; if (index === currentModeIdx) canister.classList.add('active'); const labelStyle = `border: 4px solid ${m.color}; background: #f4e9c5;`; const nameStyle = `color: ${m.color};`; canister.innerHTML = `<div class="canister-cap cap-top"></div><div class="canister-body"><div class="canister-label" style="${labelStyle}"><div class="cl-name" style="${nameStyle}">${m.name}</div><div class="cl-sub">${m.sub}</div><div class="cl-iso">ISO</div></div></div><div class="sprocket-lip"></div><div class="canister-cap cap-bottom"></div>`; canister.addEventListener('click', (e) => { e.stopPropagation(); selectModeFromRoll(index); }); filmRollContainer.appendChild(canister); }); }
-        function openFilmSelector() { if (backDoorWrapper.classList.contains('open')) return; renderFilmSelector(); filmRollOverlay.style.display = 'flex'; void filmRollOverlay.offsetWidth; filmRollOverlay.classList.add('visible'); }
-       // [修改] 選擇底片後的處理函數
-function selectModeFromRoll(index) { 
-    currentModeIdx = index; 
-    localStorage.setItem('camModeIdx', currentModeIdx); 
-    
-    // [關鍵] 用戶已做出選擇，解除鎖定狀態
-    isMenuLocked = false;
-
-    filmRollOverlay.classList.remove('visible'); 
-    setTimeout(() => { 
-        filmRollOverlay.style.display = 'none'; 
-        filmCard.style.filter = 'blur(10px)'; 
-        processCanvas.style.filter = 'blur(10px)'; 
-        updateModeUI(); 
-        setTimeout(() => { 
-            filmCard.style.filter = 'none'; 
-            processCanvas.style.filter = 'none'; 
-        }, 400); 
-    }, 300); 
-}
-       // [修改] 1. 點擊機背單純換底片，不鎖定選單
-filmDoor.addEventListener('click', () => {
-    isMenuLocked = false; // 允許點擊背景退出
-    openFilmSelector();
-});
-
-// [新增/補回] 2. 點擊遮罩背景的行為 (包含強制鎖定邏輯)
-filmRollOverlay.addEventListener('click', (e) => { 
-    if(e.target === filmRollOverlay) { 
-        // [關鍵] 檢查是否被鎖定
-        if (isMenuLocked) {
-            // 如果鎖定中，給予一點視覺反饋（輕微放大一下），提示不能退出
-            const container = document.getElementById('filmRollContainer');
-            container.style.transition = 'transform 0.1s';
-            container.style.transform = 'scale(1.05)';
-            setTimeout(() => {
-                container.style.transform = 'scale(1)';
-                // 恢復原有的 transition 設定以免影響後續操作
-                setTimeout(() => container.style.transition = '', 100);
-            }, 100);
-            return; // 阻止關閉
-        }
-
-        // 如果沒鎖定，正常關閉
-        filmRollOverlay.classList.remove('visible'); 
-        setTimeout(() => filmRollOverlay.style.display = 'none', 300); 
-    } 
-});
-        
-        function applySketchEffect(sourceVideo, destCtx, width, height, modeId) {
-            const scanW = 800; const scanH = Math.floor(scanW * (height/width));
-            if(sketchCanvas.width !== scanW) { sketchCanvas.width = scanW; sketchCanvas.height = scanH; }
-            sketchCtx.drawImage(sourceVideo, 0, 0, scanW, scanH);
-            const frame = sketchCtx.getImageData(0, 0, scanW, scanH); const data = frame.data; const output = sketchCtx.createImageData(scanW, scanH); const outData = output.data;
-            const isColor = (modeId === 'SKETCH_COL'); const isInk = (modeId === 'SKETCH_INK'); const isOil = (modeId === 'SKETCH_OIL'); const isCyber = (modeId === 'SKETCH_CYBER'); const isBlueprint = (modeId === 'SKETCH_BLUE'); const isHKNeon = (modeId === 'SKETCH_HK_NEON'); const isShuimo = (modeId === 'SKETCH_SHUIMO');
-            let threshold = 15; if(isInk || isHKNeon) threshold = 20; if(isOil) threshold = 40; if(isCyber || isBlueprint) threshold = 25; if(isShuimo) threshold = 12;
-            for(let y = 0; y < scanH; y++) { for(let x = 0; x < scanW; x++) { const i = (y * scanW + x) * 4; const r = data[i]; const g = data[i+1]; const b = data[i+2]; const val = (r + g + b) / 3; let rightVal = val; let bottomVal = val; if(x < scanW - 1) { rightVal = (data[i+4] + data[i+5] + data[i+6]) / 3; } if(y < scanH - 1) { bottomVal = (data[i+scanW*4] + data[i+scanW*4+1] + data[i+scanW*4+2]) / 3; } const diff = Math.abs(val - rightVal) + Math.abs(val - bottomVal); let isEdge = diff > threshold; if (isHKNeon) { if(isEdge) { let nr = r, ng = g, nb = b; if(r > g && r > b) { if(g > b) { nr = 255; ng = 220; nb = 0; } else { nr = 255; ng = 0; nb = 80; } } else if(g > r && g > b) { if(b > g * 0.5) { nr = 0; ng = 150; nb = 255; } else { nr = 0; ng = 255; nb = 50; } } else { if(r > b * 0.5) { nr = 180; ng = 0; nb = 255; } else { nr = 0; ng = 80; nb = 255; } } if(diff > 60) { nr = 255; ng = 255; nb = 255; } outData[i] = nr; outData[i+1] = ng; outData[i+2] = nb; } else { outData[i] = 10; outData[i+1] = 5; outData[i+2] = 15; } } else if (isCyber) { if(isEdge) { outData[i] = 0; outData[i+1] = 255; outData[i+2] = 50; } else { let dim = (y % 4 === 0) ? 30 : 10; outData[i] = 0; outData[i+1] = dim; outData[i+2] = 0; } } else if (isBlueprint) { if(isEdge) { outData[i] = 240; outData[i+1] = 245; outData[i+2] = 255; } else { if(x % 50 === 0 || y % 50 === 0) { outData[i] = 30; outData[i+1] = 80; outData[i+2] = 180; } else { outData[i] = 0; outData[i+1] = 50; outData[i+2] = 120; } } } else if (isShuimo) { let ink = 255; if (isEdge) { ink = 10; } else { const wetness = Math.random() * 15; if (val < 50) ink = 40 + wetness; else if (val < 100) ink = 100 + wetness; else if (val < 160) ink = 180 + wetness; else ink = 250 + (Math.random() * 5); if (diff > 5 && diff <= threshold) { ink -= 50; } } ink = Math.max(0, Math.min(255, ink)); outData[i] = ink; outData[i+1] = ink; outData[i+2] = ink; } else if (isInk) { if (isEdge || val < 80) { outData[i] = 10; outData[i+1] = 10; outData[i+2] = 10; } else { outData[i] = 255; outData[i+1] = 255; outData[i+2] = 255; } } else if (isOil) { const level = 40; const qr = Math.floor(r/level)*level; const qg = Math.floor(g/level)*level; const qb = Math.floor(b/level)*level; outData[i] = Math.min(255, qr * 1.1); outData[i+1] = Math.min(255, qg * 1.1); outData[i+2] = Math.min(255, qb * 1.1); } else if (isColor) { if(isEdge) { outData[i] = r * 0.5; outData[i+1] = g * 0.5; outData[i+2] = b * 0.5; } else { const noise = (Math.random() * 10) - 5; outData[i] = Math.min(255, (r + 80) + noise); outData[i+1] = Math.min(255, (g + 80) + noise); outData[i+2] = Math.min(255, (b + 80) + noise); } } else { if (isEdge) { const intensity = Math.min(diff * 2, 150); const edgeColor = 60 - (intensity / 5); outData[i] = edgeColor; outData[i+1] = edgeColor; outData[i+2] = edgeColor; } else { const paper = 250 + (Math.random() * 5); outData[i] = paper; outData[i+1] = paper; outData[i+2] = paper; } } outData[i+3] = 255; } }
-            sketchCtx.putImageData(output, 0, 0); destCtx.imageSmoothingEnabled = true; destCtx.drawImage(sketchCanvas, 0, 0, width, height);
-        }
-
-        selfieToggle.addEventListener('click', () => {
-            isSelfieMode = !isSelfieMode;
-            if (isSelfieMode) { document.body.classList.add('is-selfie'); backDoorWrapper.style.display = 'none'; frontFace.style.display = 'flex'; backControls.style.display = 'none'; frontControls.style.display = 'block'; } else { document.body.classList.remove('is-selfie'); backDoorWrapper.style.display = 'block'; frontFace.style.display = 'none'; backControls.style.display = 'block'; frontControls.style.display = 'none'; }
-            initCamera(); 
-        });
-
-      sketchModeSwitch.addEventListener('click', () => {
-    isSketchMode = !isSketchMode;
-    sketchModeSwitch.classList.toggle('mode-sketch', isSketchMode);
-    document.getElementById('lbl-real').classList.toggle('active', !isSketchMode);
-    document.getElementById('lbl-sketch').classList.toggle('active', isSketchMode);
-    currentModeIdx = 0;
-
-    // [關鍵] 因為切換了大模式，強制鎖定選單，迫使用戶選擇一款濾鏡
-    isMenuLocked = true;
-    
-    openFilmSelector();
-});
-
-        function renderLoop() {
-            requestAnimationFrame(renderLoop);
-            const modes = getModes(); validateModeIndex(); const mode = modes[currentModeIdx];
-            let w = 640; let h = 360; if (!isSketchMode && (mode.id === 'COLOR' || mode.id === 'BW')) { w = 320; h = 180; } 
-            if (processCanvas.width !== w) { processCanvas.width = w; processCanvas.height = h; }
-            processCtx.filter = "none";
-            if (!video.srcObject || !video.srcObject.active || video.paused) return;
-            if (isSketchMode) { applySketchEffect(video, processCtx, w, h, mode.id); } else { processCtx.drawImage(video, 0, 0, w, h); let imgData = processCtx.getImageData(0, 0, w, h); let data = imgData.data; if (mode.id === 'FILM_TEAL') { for (let i = 0; i < data.length; i += 4) { let r = data[i], g = data[i+1], b = data[i+2]; r = r < 40 ? 40 + (r*0.5) : r; b = b < 50 ? 50 + (b*0.5) : b; r = r * 0.96; g = g * 1.01; b = b * 1.04; data[i] = r; data[i+1] = g; data[i+2] = b; } } else if (mode.id === 'FILM_SUN') { for (let i = 0; i < data.length; i += 4) { let r = data[i], g = data[i+1], b = data[i+2]; r = 255 * Math.pow(r / 255, 0.9); g = 255 * Math.pow(g / 255, 0.9); b = 255 * Math.pow(b / 255, 0.95); r = r * 1.05 + 10; g = g * 1.02 + 5; b = b * 0.92; data[i] = r; data[i+1] = g; data[i+2] = b; } } else if (mode.id === 'FILM_VIVID') { for (let i = 0; i < data.length; i += 4) { let r = data[i], g = data[i+1], b = data[i+2]; const gray = 0.2989*r + 0.5870*g + 0.1140*b; r = gray + (r - gray) * 1.4; g = gray + (g - gray) * 1.4; b = gray + (b - gray) * 1.4; r = (r - 20) * 1.1; g = (g - 20) * 1.1; b = (b - 20) * 1.1; b = b * 1.05; r = r * 1.02; data[i] = Math.min(255, Math.max(0, r)); data[i+1] = Math.min(255, Math.max(0, g)); data[i+2] = Math.min(255, Math.max(0, b)); } } else if (mode.id === 'FILM_AGED') { for (let i = 0; i < data.length; i += 4) { let r = data[i], g = data[i+1], b = data[i+2]; r = (r * 0.7) + 50; g = (g * 0.7) + 60; b = (b * 0.6) + 25; data[i] = r; data[i+1] = g; data[i+2] = b; } } else if (mode.id === 'FILM_SOFT') { for (let i = 0; i < data.length; i += 4) { let r = data[i], g = data[i+1], b = data[i+2]; r = (r * 0.95) + 10; g = (g * 0.95) + 10; b = (b * 0.95) + 15; r = r * 0.96; g = g * 1.02; b = b * 1.06; data[i] = r; data[i+1] = g; data[i+2] = b; } } else if (mode.id === 'BW') { for (let i = 0; i < data.length; i += 4) { let lum = data[i] * 0.3 + data[i+1] * 0.59 + data[i+2] * 0.11; if (lum < 128) lum = Math.pow(lum/128, 1.15) * 128; else lum = 128 + Math.pow((lum-128)/128, 0.9) * 128; data[i] = data[i+1] = data[i+2] = lum; } } else if (mode.id === 'COLOR') { for (let i = 0; i < data.length; i += 4) { data[i] = Math.round(data[i] / 50) * 50; data[i+1] = Math.round(data[i+1] / 50) * 50; data[i+2] = Math.round(data[i+2] / 50) * 50; } } else if (mode.id === 'HCBW') { for (let i = 0; i < data.length; i += 4) { let lum = data[i] * 0.299 + data[i+1] * 0.587 + data[i+2] * 0.114; lum = (lum - 40) * 1.25; if(lum < 0) lum = 0; if(lum > 255) lum = 255; data[i] = data[i+1] = data[i+2] = lum; } } processCtx.putImageData(imgData, 0, 0); if (mode.id === 'FILM_SOFT') { processCtx.save(); processCtx.globalCompositeOperation = "screen"; processCtx.filter = "brightness(0.6) contrast(2.5) blur(6px) opacity(0.6)"; processCtx.drawImage(processCanvas, 0, 0); processCtx.restore(); } if (mode.id !== 'CCD' && mode.id !== 'COLOR') { processCtx.save(); processCtx.globalCompositeOperation = "overlay"; let grainOpacity = 0.25; let grainScale = 1.6; if(mode.id === 'BW') grainOpacity = 0.35; if(mode.id === 'FILM_TEAL') { grainOpacity = 0.22; grainScale = 1.6; } if(mode.id === 'FILM_SUN') { grainOpacity = 0.18; grainScale = 1.3; } if(mode.id === 'FILM_VIVID') { grainOpacity = 0.28; grainScale = 1.5; } if(mode.id === 'FILM_AGED') { grainOpacity = 0.20; grainScale = 1.4; } if(mode.id === 'FILM_SOFT') { grainOpacity = 0.15; grainScale = 1.2; } processCtx.globalAlpha = grainOpacity; processCtx.imageSmoothingEnabled = true; const offsetX = Math.random() * 128; const offsetY = Math.random() * 128; processCtx.scale(grainScale, grainScale); processCtx.translate(offsetX, offsetY); processCtx.fillStyle = processCtx.createPattern(grainCanvas, 'repeat'); processCtx.fillRect(-offsetX, -offsetY, (w/grainScale) + offsetX, (h/grainScale) + offsetY); processCtx.restore(); } }
-            const isPixelated = (!isSketchMode && (mode.id === 'COLOR' || mode.id === 'BW'));
-            if (!isSelfieMode) { if (smallCanvas.width !== w) { smallCanvas.width = w; smallCanvas.height = h; } smallCanvas.style.imageRendering = isPixelated ? 'pixelated' : 'auto'; smallCtx.drawImage(processCanvas, 0, 0); } else { if (frontCanvas.width !== w) { frontCanvas.width = w; frontCanvas.height = h; } frontCanvas.style.imageRendering = isPixelated ? 'pixelated' : 'auto'; frontCtx.save(); frontCtx.translate(w, 0); frontCtx.scale(-1, 1); frontCtx.drawImage(processCanvas, 0, 0); frontCtx.restore(); }
-            if (fsViewfinder.style.display === 'block') { if (fsCanvas.width !== w) { fsCanvas.width = w; fsCanvas.height = h; } fsCanvas.style.imageRendering = isPixelated ? 'pixelated' : 'auto'; if (isSelfieMode) { fsCtx.save(); fsCtx.translate(w, 0); fsCtx.scale(-1, 1); fsCtx.drawImage(processCanvas, 0, 0); fsCtx.restore(); } else { fsCtx.drawImage(processCanvas, 0, 0); } }
-        }
-
-        vfTrigger.addEventListener('click', (e) => { e.stopPropagation(); fsViewfinder.style.display = 'block'; if(isSketchMode) { splitCircle.style.display = 'none'; fsGuideFrame.style.display = 'none'; } else { splitCircle.style.display = 'block'; fsGuideFrame.style.display = 'block'; } });
-        frontVfTrigger.addEventListener('click', (e) => { e.stopPropagation(); if (video.readyState >= 2) fsViewfinder.style.display = 'block'; });
-        vfCloseBtn.addEventListener('click', (e) => { e.stopPropagation(); fsViewfinder.style.display = 'none'; });
-        fsViewfinder.addEventListener('click', (e) => { if(e.target.id !== 'vf-close-btn') handleShutter(e); });
-        shutterBtn.addEventListener('click', handleShutter);
-        frontShutterBtn.addEventListener('click', handleShutter);
-        cablePlunger.addEventListener('click', (e) => { e.stopPropagation(); cablePlunger.classList.add('pressed'); setTimeout(() => cablePlunger.classList.remove('pressed'), 200); handleShutter(e); });
-        
-       function handleShutter(e) { 
-    if(e) e.stopPropagation(); 
-    if (e && e.target.id === 'vf-close-btn') return; 
-    
-    // 如果不是自拍模式，且背蓋開著，禁止拍攝
-    if (!isSelfieMode && backDoorWrapper.classList.contains('open')) return; 
-    // 如果底片拍完，禁止拍攝
-    if (isRollMode && currentFrame >= 36) return; 
-    
-    // [關鍵修改] 根據模式選擇要產生動畫的實體按鈕
-    // 如果是自拍模式，選左側新按鈕(selfieShutterBtn)；否則選右側原按鈕(shutterBtn)
-    const btn = isSelfieMode ? document.getElementById('selfieShutterBtn') : shutterBtn; 
-    
-    btn.classList.add('pressed'); 
-    playShutterSound(); 
-    
-    if (isSelfieMode) { 
-        // 自拍模式：鏡頭閃光特效
-        shutterFlash.classList.remove('flash'); 
-        void shutterFlash.offsetWidth; 
-        shutterFlash.classList.add('flash'); 
-        setTimeout(() => shutterFlash.classList.remove('flash'), 150); 
-    } else { 
-        // 一般模式：觀景窗黑屏特效
-        const container = (fsViewfinder.style.display === 'block') ? fsViewfinder : vfTrigger; 
-        const blind = document.createElement('div'); 
-        blind.className = container === fsViewfinder ? 'shutter-blind' : 'vf-shutter-blind'; 
-        container.appendChild(blind); 
-        setTimeout(() => blind.remove(), 150); 
-    } 
-    
-    setTimeout(() => { 
-        performCapture(); 
-        btn.classList.remove('pressed'); 
-    }, 150); 
-}
-
-        function generateLightLeak(ctx, w, h, severity = 1) { ctx.save(); ctx.globalCompositeOperation = 'screen'; const baseCount = severity > 1 ? 3 : (Math.random() > 0.7 ? 2 : 1); for(let i=0; i<baseCount; i++) { const type = Math.random(); const opacity = (0.4 + Math.random() * 0.4) * severity; const hue = Math.random() > 0.8 ? 40 + Math.random()*10 : 10 + Math.random()*30; let colorInner = `hsla(${hue}, 90%, 60%, ${opacity})`; let colorOuter = `hsla(${hue-10}, 90%, 40%, 0)`; if (type < 0.4) { const isLeft = Math.random() > 0.5; const width = w * (0.15 + Math.random() * 0.3); const grad = ctx.createLinearGradient(isLeft ? 0 : w, 0, isLeft ? width : w - width, 0); grad.addColorStop(0, colorInner); grad.addColorStop(1, colorOuter); ctx.fillStyle = grad; ctx.fillRect(0, 0, w, h); } else { const cx = Math.random() > 0.5 ? 0 : w; const cy = Math.random() > 0.5 ? 0 : h; const r = Math.max(w, h) * (0.4 + Math.random() * 0.4); const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r); grad.addColorStop(0, `hsla(${hue}, 20%, 90%, ${opacity})`); grad.addColorStop(1, `hsla(${hue}, 90%, 20%, 0)`); ctx.fillStyle = grad; ctx.fillRect(0, 0, w, h); } } ctx.restore(); }
-        
-      async function performCapture() { 
-    // [修正 2] 拍攝後強制關閉放大觀景窗，避免擋住 Review 介面
-    fsViewfinder.style.display = 'none';
-    
-    const modes = getModes(); 
-    const mode = modes[currentModeIdx]; 
-    const targetW = 1920, targetH = 1080; 
-    
-    // 1. 準備當前這一張的影像 (Temp Canvas)
-    const tempC = document.createElement('canvas');
-    tempC.width = targetW; tempC.height = targetH;
-    const tempCtx = tempC.getContext('2d');
-    
-    tempCtx.filter = 'none'; 
-    // 自拍模式鏡像翻轉
-    if (isSelfieMode) { tempCtx.translate(targetW, 0); tempCtx.scale(-1, 1); } 
-    
-    // 繪製影像與濾鏡效果
-    tempCtx.imageSmoothingEnabled = (mode.id.startsWith('FILM_') || mode.id === 'HCBW' || mode.id === 'CCD' || mode.id.includes('SKETCH')); 
-    tempCtx.drawImage(processCanvas, 0, 0, targetW, targetH); 
-    
-    // 加入漏光效果
-    if (mode.id.startsWith('FILM_')) { const severity = (mode.id === 'FILM_AGED') ? 2.0 : 1.0; generateLightLeak(tempCtx, targetW, targetH, severity); } 
-    
-    // [關鍵修改] 將這張處理好的照片暫存到全域變數，等待用戶按 KEEP
-    currentReviewCanvas = tempC;
-
-    // 2. 顯示 Review 介面 (只顯示當前這一張，而不是多重曝光的結果)
-    if (!isRollMode) {
-        // 1張模式：顯示 Review
-        const previewData = tempC.toDataURL('image/jpeg', 0.9);
-        document.getElementById('review-img').src = previewData;
-        document.getElementById('review-overlay').style.display = 'flex';
-    } else {
-        // 36張模式：直接保存 (模擬自動過片邏輯，或您也可以選擇不自動過片，但這裡維持原邏輯較順暢)
-        // 如果您希望36張模式也是 "Keep才合成"，請告訴我，目前維持直接合成：
-        if (exposureCanvas.width !== targetW) { exposureCanvas.width = targetW; exposureCanvas.height = targetH; }
-        exposureCtx.globalCompositeOperation = isFilmAdvanced ? 'source-over' : 'screen';
-        exposureCtx.drawImage(tempC, 0, 0);
-        isFilmAdvanced = false; 
-        updateLeverUI();
-    }
-}
-        
-       // [修改] DISCARD 按鈕：放棄當前這一張，不進行疊加
-document.getElementById('btn-discard').addEventListener('click', () => { 
-    // 清空暫存
-    currentReviewCanvas = null;
-    pendingPhoto = null; 
-    document.getElementById('review-overlay').style.display = 'none'; 
-    
-    // 注意：這裡不重置 isFilmAdvanced。
-    // 如果這是多重曝光的第2張並被放棄，我們希望狀態保持在「已拍第1張(未過片)」，
-    // 讓用戶可以重新拍第2張來疊加。
-}); 
-
-// [修改] KEEP 按鈕：確認保留，執行疊加運算
-document.getElementById('btn-keep').addEventListener('click', () => { 
-    document.getElementById('review-overlay').style.display = 'none'; 
-    
-    if (currentReviewCanvas) {
-        const w = currentReviewCanvas.width;
-        const h = currentReviewCanvas.height;
-
-        // 確保曝光緩衝區尺寸正確
-        if (exposureCanvas.width !== w) {
-            exposureCanvas.width = w; exposureCanvas.height = h;
-        }
-
-        // [核心邏輯] 執行合成
-        if (isFilmAdvanced) {
-            // 這是新的一張底片 (Base Layer)
-            exposureCtx.globalCompositeOperation = 'source-over';
-            exposureCtx.drawImage(currentReviewCanvas, 0, 0);
-            
-            // 標記為「已曝光，未過片」
-            // 這樣下次再拍就會進入 else (多重曝光)
-            isFilmAdvanced = false; 
-        } else {
-            // 這是多重曝光的疊加層 (Overlay Layer)
-            exposureCtx.globalCompositeOperation = 'screen';
-            // 可以微調透明度讓疊加更自然
-            exposureCtx.globalAlpha = 0.8; 
-            exposureCtx.drawImage(currentReviewCanvas, 0, 0);
-            exposureCtx.globalAlpha = 1.0;
-        }
-
-        updateLeverUI();
-    }
-    
-    // 清空暫存
-    currentReviewCanvas = null;
-});
-
-       // [修改] 模式切換按鈕 - 使用復古對話框
-rollModeSwitch.addEventListener('click', async () => { 
-    // 判斷條件：1張模式有未存照片 OR 36張模式已拍攝張數>0
-    if(pendingPhoto || (isRollMode && currentFrame > 0)) { 
-        
-        const msg = isRollMode 
-            ? `WARNING:\nSwitching modes will DELETE all ${currentFrame} photos in this roll.\n\nContinue?`
-            : "Discard current photo and switch mode?";
-
-        // [修改] 使用自製的 retroConfirm
-        const userConfirmed = await retroConfirm(msg);
-        if(!userConfirmed) return; 
-        
-        // 使用者按「確定」，開始清除
-        await clearTemp(); 
-        exposureCtx.clearRect(0, 0, exposureCanvas.width, exposureCanvas.height);
-        pendingPhoto = null; 
-        isFilmAdvanced = true; 
-    } 
-    
-    // 執行模式切換
-    isRollMode = !isRollMode; 
-    localStorage.setItem('rollMode', isRollMode); 
-    rollModeSwitch.classList.toggle('mode-36', isRollMode); 
-    currentFrame = 0; 
-    
-    updateCounterDisplay(); 
-    if (typeof updateLeverUI === "function") { updateLeverUI(); } else { checkLeverState(); }
-});
-        
-        let leverPulled = false; 
-        advanceLever.addEventListener('click', async () => {
-    // 判斷是否為底片拍完的狀態
-    const isEndOfRoll = isRollMode && currentFrame >= 36;
-
-    //原本的條件是 if (isFilmAdvanced || leverPulled) return;
-    //現在修改為：如果是 EndOfRoll (拍完了)，即使 isFilmAdvanced 是 true 也可以拉動
-    if ((isFilmAdvanced && !isEndOfRoll) || leverPulled) return;
-    
-    leverPulled = true;
-    playLeverSound(); // 播放過片聲
-
-    // 動畫：撥桿拉下
-    requestAnimationFrame(() => { 
-        advanceLever.style.transform = 'rotate(130deg)'; 
-    }); 
-    
-    setTimeout(async () => { 
-        // 動畫：撥桿回彈
-        advanceLever.style.transform = 'rotate(10deg)'; 
-        
-        // --- 核心邏輯分流 ---
-
-        if (isEndOfRoll) {
-            // 【情況 A】36張拍完了 -> 拉動撥桿 = 觸發沖洗程序
-            // 打開風格選擇視窗，準備沖洗整捲底片
-            styleOverlay.style.display = 'flex';
-            leverPulled = false; 
-            return;
-        }
-
-        const finalImage = exposureCanvas.toDataURL('image/jpeg', 0.92);
-        
-        if (isRollMode) {
-            // 【情況 B】36張模式，正常過片 (例如第 5 張 -> 第 6 張)
-            await saveToTemp(finalImage);
-            currentFrame++;
-            updateCounterDisplay();
-            isFilmAdvanced = true;
-            exposureCtx.clearRect(0,0, exposureCanvas.width, exposureCanvas.height);
-            updateLeverUI();
-            leverPulled = false;
-        } else {
-            // 【情況 C】1張模式 (單拍單沖)
-            styleOverlay.style.display = 'flex';
-            pendingPhoto = finalImage;
-            leverPulled = false;
-        }
-    }, 400); 
-});
-
-       document.querySelectorAll('.style-btn').forEach(btn => { 
-    btn.addEventListener('click', async (e) => { 
-        const style = e.currentTarget.dataset.style; 
-        styleOverlay.style.display = 'none'; 
-        
-        // 清除機械狀態
-        isFilmAdvanced = true; 
-        updateLeverUI();
-        exposureCtx.clearRect(0,0, exposureCanvas.width, exposureCanvas.height);
-
-        let photosToProcess = []; 
-
-        if (isRollMode && currentFrame >= 36) {
-            // 【新增】如果是36張模式且拍滿了，從資料庫讀取整捲底片
-            photosToProcess = await getTempPhotos(); // 這是定義在最上面的 helper function
-        } else if (pendingPhoto) {
-            // 單張模式
-            photosToProcess = [{ image: pendingPhoto, date: new Date() }];
-            pendingPhoto = null;
-        }
-        
-        if (photosToProcess.length > 0) {
-            fsViewfinder.style.display = 'none'; // 關閉觀景窗以免擋住
-            await startDevelopingAnimation(photosToProcess, style);
-        }
-    }); 
-});
-
-// [新增] 萬能整合繪圖函數：處理邊框、日期、序號、自定義文字
-function processFinalPhoto(imgUrl, dateObj, serialNo, style, customText) { 
-    return new Promise(async (resolve) => { 
-        
-        // 1. 確保字體已加載
-        try {
-            await document.fonts.load('600 40px "Noto Serif TC"');
-        } catch (e) {}
-
-        const img = new Image(); 
-        img.onload = () => { 
-            let w = 1920, h = 1080; 
-            let padTop = 0, padSide = 0, padBottom = 0; 
-            
-            // --- A. 定義畫布尺寸與邊距 (找回邊框的關鍵) ---
-            if (style === 'white') { 
-                // 拍立得風格：底部留白多
-                padTop = 50; padSide = 50; padBottom = 180; // 底部加高一點給文字
-                w = 1200; 
-                h = Math.floor(w * (img.height / img.width)) + padTop + padBottom; 
-            } else if (style === 'film') { 
-                // 底片風格：上下黑邊
-                padTop = 80; padSide = 0; padBottom = 80; 
-                // 保持原始寬度比例
-                w = img.width;
-                h = img.height + padTop + padBottom;
-            } else {
-                // 標準風格：無邊框
-                w = img.width;
-                h = img.height;
-            }
-
-            finalCanvas.width = w; 
-            finalCanvas.height = h; 
-            const ctx = finalCanvas.getContext('2d'); 
-            ctx.filter = 'none'; 
-
-            // --- B. 繪製背景與邊框 ---
-            if (style === 'white') { 
-                // 畫白色底紙
-                ctx.fillStyle = '#fff'; 
-                ctx.fillRect(0, 0, w, h); 
-                // 畫照片
-                ctx.drawImage(img, padSide, padTop, w - padSide*2, h - padTop - padBottom); 
-            } else if (style === 'film') { 
-                // 畫黑色底片基底
-                ctx.fillStyle = '#111'; 
-                ctx.fillRect(0, 0, w, h);
-                // 畫照片
-                ctx.drawImage(img, 0, padTop, w, img.height); 
-                
-                // 畫底片齒孔
-                ctx.fillStyle = '#fff'; 
-                const holeW = 30, gap = 20; 
-                // 上排齒孔
-                for(let x = 30; x < w; x += (holeW + gap)) { 
-                    ctx.fillRect(x, 25, holeW, 30); 
+            // Vertex Shader (Standard Quad)
+            const vsSource = `
+                attribute vec2 a_position;
+                attribute vec2 a_texCoord;
+                varying vec2 v_texCoord;
+                uniform float u_flipY;
+                uniform float u_flipX;
+                void main() {
+                    gl_Position = vec4(a_position, 0, 1);
+                    vec2 tex = a_texCoord;
+                    if(u_flipX > 0.5) tex.x = 1.0 - tex.x;
+                    if(u_flipY > 0.5) tex.y = 1.0 - tex.y;
+                    v_texCoord = tex;
                 }
-                // 下排齒孔
-                for(let x = 30; x < w; x += (holeW + gap)) { 
-                    ctx.fillRect(x, h - 55, holeW, 30); 
+            `;
+
+            // Fragment Shader (The heavy lifting)
+            const fsSource = `
+                precision mediump float;
+                uniform sampler2D u_image;
+                varying vec2 v_texCoord;
+                uniform int u_mode; // 0=BW,1=COL,2=CCD,3=HCBW,4=TEAL,5=SUN,6=VIVID,7=AGED,8=SOFT, 10+=Sketch
+                uniform float u_seed;
+
+                float rand(vec2 co){
+                    return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
                 }
-            } else { 
-                // 標準風格
-                ctx.drawImage(img, 0, 0, w, h); 
-            } 
 
-            // --- C. 繪製日期 (橙色日期戳) ---
-            const d = new Date(dateObj); 
-            const dateStr = `'${d.getFullYear().toString().slice(-2)} ${(d.getMonth()+1).toString().padStart(2,'0')} ${d.getDate().toString().padStart(2,'0')}`; 
-            
-            let dateX = w - 60; 
-            let dateY = h - 50;
-            
-            // 根據邊框調整日期位置
-            if (style === 'white') {
-                dateX = w - padSide - 30;
-                dateY = h - padBottom - 30; // 放在照片區域的右下角，不是白邊的右下角
-            } else if (style === 'film') {
-                dateX = w - 50;
-                dateY = h - padBottom - 40;
-            }
+                vec3 adjustColor(vec3 color, float brightness, float contrast, float saturation) {
+                    vec3 avg = vec3(0.5);
+                    color = mix(avg, color, contrast);
+                    color = color + (brightness - 1.0);
+                    float gray = dot(color, vec3(0.299, 0.587, 0.114));
+                    color = mix(vec3(gray), color, saturation);
+                    return color;
+                }
 
-            // 繪製日期邏輯
-            if (isSketchMode) { 
-                ctx.save(); 
-                ctx.shadowBlur = 0; 
-                ctx.fillStyle = 'rgba(50, 50, 50, 0.85)'; 
-                ctx.font = `normal 45px "Segoe Print", cursive`; 
-                ctx.textAlign = 'right'; 
-                ctx.textBaseline = 'bottom'; 
-                ctx.translate(dateX, dateY); 
-                ctx.rotate(-0.05); 
-                ctx.fillText(dateStr, 0, 0); 
-                ctx.restore(); 
-            } else { 
-                ctx.shadowColor = '#ff5500'; 
-                ctx.shadowBlur = 15; 
-                ctx.fillStyle = 'rgba(255, 170, 50, 0.9)'; 
-                const fontSize = style === 'white' ? 40 : 50; 
-                ctx.font = `bold ${fontSize}px "Courier New", monospace`; 
-                ctx.textAlign = 'right'; 
-                ctx.textBaseline = 'bottom'; 
-                ctx.fillText(dateStr, dateX, dateY); 
-            }
+                void main() {
+                    vec2 uv = v_texCoord;
+                    vec4 color = texture2D(u_image, uv);
+                    vec3 c = color.rgb;
 
-            // --- D. 繪製序號 (Serial No.) ---
-            // 計算序號位置
-            let serX = 30, serY = 30, serColor = 'rgba(255,255,255,0.8)';
-            if (style === 'white') {
-                serX = 50; serY = h - 60; serColor = '#333'; // 在下方白邊左側
-            } else if (style === 'film') {
-                serX = 40; serY = h - 40; serColor = 'rgba(255,255,255,0.6)'; // 在下方黑邊左側
-            }
-
-            ctx.shadowColor = style === 'white' ? 'transparent' : '#000'; 
-            ctx.shadowBlur = 2; 
-            ctx.fillStyle = serColor; 
-            ctx.font = `bold 36px "Courier New", monospace`; 
-            ctx.textAlign = 'left'; 
-            ctx.textBaseline = 'bottom'; 
-            
-            if (serialNo !== "") {
-                ctx.fillText(`No.${serialNo}`, serX, serY);
-            }
-
-            // --- E. 繪製自定義文字 (Noto Serif TC) ---
-            if (style === 'white' && customText && customText.trim() !== "") {
-                ctx.fillStyle = '#111'; 
-                ctx.shadowBlur = 0;
-                
-                // 使用思源宋體
-                ctx.font = `600 38px "Noto Serif TC", serif`; 
-                ctx.textAlign = 'center'; 
-                ctx.textBaseline = 'bottom'; 
-                
-                // 繪製在底部白邊中央
-                ctx.fillText(customText, w / 2, h - 40);
-            }
-
-            resolve(finalCanvas.toDataURL('image/jpeg', 0.9)); 
-        }; 
-        img.src = imgUrl; 
-    }); 
-}
-
-        // [新增] 專用於匯出的函數：只在現有照片上疊加文字，不增加邊框
-function annotateExportPhoto(imgUrl, serialNo, style, customText) {
-    return new Promise(async (resolve) => {
-        try { await document.fonts.load('600 40px "Noto Serif TC"'); } catch (e) {}
-        try { await document.fonts.load('bold 36px "Courier New"'); } catch (e) {}
-
-        const img = new Image();
-        img.onload = () => {
-            const w = img.width;
-            const h = img.height;
-            
-            const canvas = document.createElement('canvas');
-            canvas.width = w;
-            canvas.height = h;
-            const ctx = canvas.getContext('2d');
-            
-            // 1. 繪製底圖
-            ctx.drawImage(img, 0, 0);
-
-            // 判斷是否有 Caption
-            const hasCaption = (customText && customText.trim() !== "");
-
-            // 2. 繪製序號 (智慧調整位置)
-            if (serialNo && serialNo !== "") {
-                let serX = 30, serY = 30;
-                let serColor = '#fff';
-                let useShadow = true;
-
-                if (style === 'white') {
-                    if (hasCaption) {
-                        // 【關鍵修改】如果有 Caption，序號移到「照片畫面內」的左下角
-                        // h - 180 大約是白邊上方的位置
-                        serX = 50; 
-                        serY = h - 190; 
-                        serColor = 'rgba(255, 255, 255, 0.9)'; // 改成白色
-                        useShadow = true; // 加陰影才看得到
-                    } else {
-                        // 沒有 Caption，序號維持在白邊左下角
-                        serX = 50; 
-                        serY = h - 60; 
-                        serColor = '#333'; // 深色字
-                        useShadow = false; // 白紙黑字不需要陰影
+                    // Sketch Modes (10+)
+                    if (u_mode >= 10) {
+                        float w = 1.0/800.0; float h = 1.0/600.0;
+                        vec3 cR = texture2D(u_image, uv + vec2(w, 0.0)).rgb;
+                        vec3 cB = texture2D(u_image, uv + vec2(0.0, h)).rgb;
+                        float gray = dot(c, vec3(0.333));
+                        float grayR = dot(cR, vec3(0.333));
+                        float grayB = dot(cB, vec3(0.333));
+                        float diff = abs(gray - grayR) + abs(gray - grayB);
+                        
+                        if (u_mode == 10) { // Pencil
+                            if(diff > 0.06) gl_FragColor = vec4(vec3(0.1), 1.0);
+                            else gl_FragColor = vec4(vec3(0.9 + rand(uv)*0.1), 1.0);
+                        } else if (u_mode == 12) { // Ink
+                            if(diff > 0.08 || gray < 0.3) gl_FragColor = vec4(vec3(0.05), 1.0);
+                            else gl_FragColor = vec4(1.0);
+                        } else if (u_mode == 14) { // Cyber
+                             if(diff > 0.1) gl_FragColor = vec4(0.0, 1.0, 0.2, 1.0);
+                             else {
+                                float grid = (mod(gl_FragCoord.y, 4.0) < 1.0) ? 0.1 : 0.0;
+                                gl_FragColor = vec4(0.0, grid, 0.0, 1.0);
+                             }
+                        } else if (u_mode == 16) { // HK Neon
+                             if(diff > 0.08) {
+                                 if(c.r > c.g && c.r > c.b) gl_FragColor = vec4(1.0, 0.0, 0.3, 1.0);
+                                 else if(c.b > 0.5) gl_FragColor = vec4(0.0, 0.6, 1.0, 1.0);
+                                 else gl_FragColor = vec4(1.0);
+                             } else gl_FragColor = vec4(0.05, 0.02, 0.06, 1.0);
+                        } else if (u_mode == 11) { // Crayon
+                            float noise = (rand(uv) - 0.5) * 0.2;
+                            c = c + noise;
+                            if(diff > 0.06) gl_FragColor = vec4(c * 0.5, 1.0);
+                            else gl_FragColor = vec4(c + 0.3, 1.0);
+                        } else {
+                            // Generic Edge
+                            float edge = step(0.06, diff);
+                            gl_FragColor = vec4(mix(vec3(1.0), vec3(0.0), edge), 1.0);
+                        }
+                        return;
                     }
-                } else if (style === 'film') {
-                    // 底片風格維持不變
-                    serX = 40; serY = h - 40; 
-                    serColor = 'rgba(255,255,255,0.6)';
-                    useShadow = true;
+
+                    // Real Modes
+                    if (u_mode == 0) { // BW
+                        float gray = dot(c, vec3(0.3, 0.59, 0.11));
+                        gray = pow(gray, 1.1); // High contrast
+                        c = vec3(gray);
+                        float noise = (rand(uv*u_seed) - 0.5) * 0.1;
+                        c += noise;
+                    } else if (u_mode == 1) { // COLOR (Game Cam)
+                         c = floor(c * 5.0) / 5.0;
+                    } else if (u_mode == 3) { // HCBW
+                         float gray = dot(c, vec3(0.3));
+                         gray = (gray - 0.2) * 1.3;
+                         c = vec3(clamp(gray, 0.0, 1.0));
+                    } else if (u_mode == 4) { // TEAL
+                        c.r = max(0.15, c.r * 0.96);
+                        c.b = c.b * 1.04 + 0.1;
+                        c = adjustColor(c, 1.0, 1.1, 0.8);
+                    } else if (u_mode == 5) { // SUN
+                        c.r = pow(c.r, 0.9) * 1.05 + 0.05;
+                        c.b = c.b * 0.92;
+                        c = adjustColor(c, 1.05, 1.0, 1.2);
+                    } else if (u_mode == 6) { // VIVID
+                        c = adjustColor(c, 1.0, 1.3, 1.4);
+                        c.b *= 1.05;
+                    } else if (u_mode == 7) { // AGED
+                        c.r = c.r * 0.7 + 0.2;
+                        c.g = c.g * 0.7 + 0.25;
+                        c.b = c.b * 0.6 + 0.1;
+                    } else if (u_mode == 8) { // SOFT
+                        c = adjustColor(c, 1.1, 0.9, 0.8);
+                        c += vec3(0.05, 0.05, 0.08);
+                    }
+
+                    // General Grain for film modes
+                    if(u_mode != 1 && u_mode != 2) {
+                        float noise = (rand(uv * u_seed) - 0.5) * 0.08;
+                        c += noise;
+                    }
+                    
+                    gl_FragColor = vec4(c, 1.0);
                 }
+            `;
 
-                // 設定陰影樣式
-                if (useShadow) {
-                    ctx.shadowColor = '#000';
-                    ctx.shadowBlur = 4;
-                    ctx.shadowOffsetX = 1;
-                    ctx.shadowOffsetY = 1;
-                } else {
-                    ctx.shadowColor = 'transparent';
-                    ctx.shadowBlur = 0;
-                }
+            const vertexShader = this.compileShader(gl, gl.VERTEX_SHADER, vsSource);
+            const fragmentShader = this.compileShader(gl, gl.FRAGMENT_SHADER, fsSource);
+            this.program = this.createProgram(gl, vertexShader, fragmentShader);
 
-                ctx.fillStyle = serColor; 
-                ctx.font = `bold 36px "Courier New", monospace`; 
-                ctx.textAlign = 'left'; 
-                ctx.textBaseline = 'bottom'; 
-                ctx.fillText(`No.${serialNo}`, serX, serY);
-            }
+            // Buffers
+            const positionBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
 
-            // 3. 繪製 Caption (置中於白邊)
-            if (style === 'white' && hasCaption) {
-                ctx.fillStyle = '#111'; 
-                ctx.shadowColor = 'transparent';
-                ctx.shadowBlur = 0;
-                
-                // 使用更優雅的思源宋體
-                ctx.font = `600 42px "Noto Serif TC", serif`; 
-                ctx.textAlign = 'center'; 
-                ctx.textBaseline = 'bottom'; 
-                
-                // 位置設在白邊的正中央 (h - 90 視覺效果最好)
-                ctx.fillText(customText, w / 2, h - 90);
-            }
+            const texCoordBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0,1, 1,1, 0,0, 1,0]), gl.STATIC_DRAW); // Flip Y for WebGL coords
 
-            resolve(canvas.toDataURL('image/jpeg', 0.92));
-        };
-        img.src = imgUrl;
-    });
-}
-        
-    
-       /* [MODIFIED] Smooth Transition Version */
-async function startDevelopingAnimation(photos, style) { 
-    // [修改] 這裡不再檢查張數上限，直接開始沖洗
-    
-    devOverlay.style.display = 'flex'; 
-    devStatus.textContent = "PREPARING..."; 
-    
-    let waterLoopId;
-    let rippleTime = 0;
-    let waveIntensity = 1.0; 
-    const turbulenceNode = document.querySelector('#liquidFilter feTurbulence');
-    const paperContainer = document.querySelector('.photo-paper-container');
-    
-    function renderWaterRipple() {
-        rippleTime += 0.05; 
-        const baseFreqY = (0.05 + Math.sin(rippleTime * 0.5) * 0.01) * waveIntensity;
-        const displayFreq = Math.max(0.001, baseFreqY); 
-        turbulenceNode.setAttribute('baseFrequency', `0.01 ${displayFreq}`);
-        waterLoopId = requestAnimationFrame(renderWaterRipple);
-    }
+            // Attributes & Uniforms
+            this.a_position = gl.getAttribLocation(this.program, 'a_position');
+            this.a_texCoord = gl.getAttribLocation(this.program, 'a_texCoord');
+            this.u_flipY = gl.getUniformLocation(this.program, 'u_flipY');
+            this.u_flipX = gl.getUniformLocation(this.program, 'u_flipX');
+            this.u_mode = gl.getUniformLocation(this.program, 'u_mode');
+            this.u_seed = gl.getUniformLocation(this.program, 'u_seed');
 
-   const processed = []; 
-    for (let p of photos) { 
-        const thisSerial = globalSerialCounter++; 
-        localStorage.setItem('global_serial_counter', globalSerialCounter); 
-        
-        const customText = document.getElementById('exp-text-input').value;
-        
-        // [修改] 第三個參數原本是 thisSerial，現在改成 "" (空字串)
-        // 這樣沖洗出來的照片就不會有 No.xxx 序號，看起來更乾淨
-        const finalImg = await processFinalPhoto(p.image, p.date, "", style, customText); 
-        
-        processed.push({ img: finalImg, serial: thisSerial, style: style }); 
-    }
-    
-    for (let i = 0; i < processed.length; i++) { 
-        devStatus.textContent = `DEVELOPING ${i+1}/${processed.length}`; 
-        devImageWrap.src = processed[i].img; 
-        devImageWrap.style.border = style === 'white' ? 'none' : '8px solid white'; 
-        
-        waveIntensity = 1.0; 
-        devImageWrap.style.opacity = '0'; 
-        devImageWrap.style.filter = 'none'; 
-        paperContainer.classList.add('wet-process');
-        devImageWrap.classList.add('in-liquid');
-        renderWaterRipple(); 
-
-        devImageWrap.style.animation = 'none'; 
-        devImageWrap.offsetHeight; 
-        devImageWrap.style.animation = 'developProcess 3s forwards linear'; 
-        
-        await new Promise(r => setTimeout(r, 2500));
-        
-        const calmDuration = 800; 
-        const startTime = Date.now();
-        
-        while (true) {
-            const elapsed = Date.now() - startTime;
-            if (elapsed >= calmDuration) { waveIntensity = 0; break; }
-            const progress = elapsed / calmDuration;
-            waveIntensity = 1.0 - Math.pow(progress, 0.5); 
-            await new Promise(r => requestAnimationFrame(r)); 
+            // Texture
+            this.texture = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, this.texture);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
         }
 
-        cancelAnimationFrame(waterLoopId);
-        devImageWrap.style.opacity = '1'; 
-        devImageWrap.style.transform = 'scale(1)';
-        devImageWrap.style.animation = 'none'; 
-        devImageWrap.style.filter = 'none'; 
-        devImageWrap.classList.remove('in-liquid');
-        paperContainer.classList.remove('wet-process');
-        
-        await new Promise(r => setTimeout(r, 1500));
-        
-        // [關鍵修改] 存檔時傳入 finalCanvas.width 和 finalCanvas.height
-        // 這樣 loadAlbum 才能實現秒開
-        await saveToAlbum(processed[i].img, processed[i].serial, processed[i].style, finalCanvas.width, finalCanvas.height); 
-        
-        devImageWrap.style.opacity = '0';
-    } 
-    
-    // 清空輸入框，避免下次誤用
-    document.getElementById('exp-text-input').value = "";
-
-    devStatus.textContent = "FINISHED"; 
-    await new Promise(r => setTimeout(r, 800)); 
-    devOverlay.style.display = 'none'; 
-    
-    if (isRollMode) { 
-        await clearTemp(); 
-        currentFrame = 0; 
-        updateCounterDisplay(); 
-    } else { 
-        pendingPhoto = null; 
-    } 
-    updateLeverUI(); 
-}
-
-        backLock.addEventListener('click', () => { const isOpen = backDoorWrapper.classList.contains('open'); if (!isOpen) { latchAudio.currentTime = 0; latchAudio.play(); backDoorWrapper.classList.add('open'); backLock.style.transform = 'translateX(5px)'; loadAlbum(); } else { closeBackDoor(); } });
-        function closeBackDoor() { backDoorWrapper.classList.remove('open'); backLock.style.transform = 'translateX(0)'; setTimeout(() => { latchAudio.currentTime = 0; latchAudio.play(); }, 250); }
-        
-        let selectedAlbumIds = new Set(); let currentAlbumData = [];
-        function updateViewVisibility() {
-            if (isFilmViewMode) { albumGrid.classList.remove('active'); filmStripView.classList.add('active'); btnViewFilm.classList.add('active'); btnViewGrid.classList.remove('active'); staticCanister.style.display = 'block'; } 
-            else { filmStripView.classList.remove('active'); albumGrid.classList.add('active'); btnViewGrid.classList.add('active'); btnViewFilm.classList.remove('active'); staticCanister.style.display = 'none'; }
+        compileShader(gl, type, source) {
+            const shader = gl.createShader(type);
+            gl.shaderSource(shader, source);
+            gl.compileShader(shader);
+            if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                console.error('Shader Error:', gl.getShaderInfoLog(shader));
+                gl.deleteShader(shader);
+                return null;
+            }
+            return shader;
         }
-        btnViewFilm.addEventListener('click', () => { isFilmViewMode = true; updateViewVisibility(); });
-        btnViewGrid.addEventListener('click', () => { isFilmViewMode = false; updateViewVisibility(); });
 
-     async function loadAlbum() {
-    const loader = document.getElementById('album-loader');
-    const grid = document.getElementById('albumGrid');
-    const strip = document.getElementById('filmStripView');
+        createProgram(gl, vs, fs) {
+            const program = gl.createProgram();
+            gl.attachShader(program, vs);
+            gl.attachShader(program, fs);
+            gl.linkProgram(program);
+            if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+                console.error('Program Link Error:', gl.getProgramInfoLog(program));
+                return null;
+            }
+            return program;
+        }
 
-    loader.style.display = 'block';
-    grid.innerHTML = ''; 
-    strip.innerHTML = ''; 
+        render(videoElement, modeIndex, isSelfie) {
+            const gl = this.gl;
+            gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+            gl.useProgram(this.program);
 
-    setTimeout(async () => {
-        try {
-            selectedAlbumIds.clear(); 
-            currentAlbumData = await getAlbumPhotos(); 
-            currentAlbumData.sort((a,b) => b.timestamp - a.timestamp); 
-            
-            if(currentAlbumData.length === 0) { 
-                const emptyMsg = '<p style="color:#555; width:100%; text-align:center; margin-top:50px; font-family:monospace;">ALBUM EMPTY</p>';
-                grid.innerHTML = emptyMsg; 
-                strip.innerHTML = emptyMsg;
+            // Bind Texture
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, this.texture);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, videoElement);
+
+            // Set Attributes
+            gl.enableVertexAttribArray(this.a_position);
+            gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); // Re-binding for safety
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+            gl.vertexAttribPointer(this.a_position, 2, gl.FLOAT, false, 0, 0);
+
+            gl.enableVertexAttribArray(this.a_texCoord);
+            gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0,1, 1,1, 0,0, 1,0]), gl.STATIC_DRAW);
+            gl.vertexAttribPointer(this.a_texCoord, 2, gl.FLOAT, false, 0, 0);
+
+            // Set Uniforms
+            gl.uniform1f(this.u_flipY, 0.0); // Always 0 here as we handled vertex coords
+            gl.uniform1f(this.u_flipX, isSelfie ? 1.0 : 0.0);
+            gl.uniform1i(this.u_mode, modeIndex);
+            gl.uniform1f(this.u_seed, Math.random());
+
+            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        }
+    }
+
+    /* --- DATABASE & INIT --- */
+    const DB_NAME = "RetroCamDB_ProMax"; const TEMP_STORE = "temp_roll"; const ALBUM_STORE = "user_album"; let db;
+    function initDB() { return new Promise((resolve, reject) => { const request = indexedDB.open(DB_NAME, 3); request.onupgradeneeded = (e) => { db = e.target.result; if (!db.objectStoreNames.contains(TEMP_STORE)) db.createObjectStore(TEMP_STORE, { autoIncrement: true }); if (!db.objectStoreNames.contains(ALBUM_STORE)) db.createObjectStore(ALBUM_STORE, { keyPath: "id", autoIncrement: true }); }; request.onsuccess = (e) => { db = e.target.result; resolve(db); }; request.onerror = () => reject("DB Error"); }); }
+    function saveToTemp(dataUrl) { return new Promise((resolve) => { const tx = db.transaction([TEMP_STORE], "readwrite"); tx.objectStore(TEMP_STORE).add({ image: dataUrl, date: new Date() }).onsuccess = () => resolve(true); }); }
+    function getTempCount() { return new Promise((resolve) => { const tx = db.transaction([TEMP_STORE], "readonly"); tx.objectStore(TEMP_STORE).count().onsuccess = (e) => resolve(e.target.result); }); }
+    function getTempPhotos() { return new Promise((resolve) => { const tx = db.transaction([TEMP_STORE], "readonly"); tx.objectStore(TEMP_STORE).getAll().onsuccess = (e) => resolve(e.target.result); }); }
+    function clearTemp() { return new Promise(resolve => { db.transaction([TEMP_STORE], "readwrite").objectStore(TEMP_STORE).clear().onsuccess = resolve; }); }
+    function saveToAlbum(processedImage, serialNumber, styleInfo, w, h) { 
+        return new Promise(resolve => { 
+            const tx = db.transaction([ALBUM_STORE], "readwrite"); 
+            tx.objectStore(ALBUM_STORE).add({ image: processedImage, timestamp: Date.now(), serial: serialNumber, style: styleInfo, width: w || 0, height: h || 0 }).onsuccess = resolve; 
+        }); 
+    }
+    function getAlbumPhotos() { return new Promise(resolve => { const tx = db.transaction([ALBUM_STORE], "readonly"); tx.objectStore(ALBUM_STORE).getAll().onsuccess = (e) => resolve(e.target.result); }); }
+    function deleteFromAlbum(ids) { return new Promise(resolve => { const tx = db.transaction([ALBUM_STORE], "readwrite"); const store = tx.objectStore(ALBUM_STORE); ids.forEach(id => store.delete(id)); tx.oncomplete = resolve; }); }
+
+    /* --- VARS --- */
+    let isRollMode = localStorage.getItem('rollMode') === 'true'; let currentFrame = 0; let pendingPhoto = null; let globalSerialCounter = parseInt(localStorage.getItem('global_serial_counter') || '1'); let isSelfieMode = false; let isSketchMode = false; let isOrientationLocked = localStorage.getItem('orientationLocked') === 'true'; let isFilmViewMode = true; let isMenuLocked = false;
+    
+    // Multi-exposure State
+    let isFilmAdvanced = true; 
+    let exposureCanvas = document.createElement('canvas'); 
+    let currentReviewCanvas = null;
+    let exposureCtx = exposureCanvas.getContext('2d');
+    
+    const REAL_MODES = [ { id: 'BW', name: 'B&W', sub: 'STREET 400', color: '#000', idx:0 }, { id: 'COLOR', name: 'COLOR', sub: 'GAME-CAM', color: '#c00', idx:1 }, { id: 'CCD', name: 'DIGI', sub: 'CCD SENSOR', color: '#0055cc', idx:2 }, { id: 'HCBW', name: 'HC-BW', sub: 'FINE 100', color: '#555', idx:3 }, { id: 'FILM_TEAL', name: 'FILM: TEAL', sub: 'KYOTO 400', color: '#008080', idx:4 }, { id: 'FILM_SUN', name: 'FILM: SUN', sub: 'CALI 200', color: '#ffcc00', idx:5 }, { id: 'FILM_VIVID', name: 'FILM: VIVID', sub: 'SLIDE 100', color: '#ff0055', idx:6 }, { id: 'FILM_AGED', name: 'FILM: AGED', sub: 'EURO 800', color: '#8b4513', idx:7 }, { id: 'FILM_SOFT', name: 'FILM: SOFT', sub: 'AIRY 400H', color: '#90e0ef', idx:8 } ];
+    const SKETCH_MODES = [ { id: 'SKETCH_BW', name: 'PENCIL', sub: '2B GRAPHITE', color: '#333', idx:10 }, { id: 'SKETCH_COL', name: 'CRAYON', sub: 'SOFT PASTEL', color: '#d2691e', idx:11 }, { id: 'SKETCH_INK', name: 'INK', sub: 'COMIC PEN', color: '#000', idx:12 }, { id: 'SKETCH_OIL', name: 'OIL', sub: 'IMPASTO', color: '#8b4513', idx:13 }, { id: 'SKETCH_CYBER', name: 'CYBER', sub: 'NEON GRID', color: '#0f0', idx:14 }, { id: 'SKETCH_BLUE', name: 'BLUE', sub: 'BLUEPRINT', color: '#4169e1', idx:15 }, { id: 'SKETCH_HK_NEON', name: 'HK NEON', sub: 'NIGHT LIGHTS', color: '#ff00cc', idx:16 }, { id: 'SKETCH_SHUIMO', name: 'SHUIMO', sub: 'INK WASH', color: '#111', idx:17 } ];
+    let savedMode = localStorage.getItem('camModeIdx'); let currentModeIdx = savedMode ? parseInt(savedMode) : 0;
+    function getModes() { return isSketchMode ? SKETCH_MODES : REAL_MODES; }
+    function validateModeIndex() { const modes = getModes(); if (currentModeIdx < 0 || currentModeIdx >= modes.length) currentModeIdx = 0; }
+    validateModeIndex();
+
+    /* --- AUDIO --- */
+    const shutterAudio = new Audio('https://taira-komori.net/sound_os2/electric01/camera1.mp3'); shutterAudio.preload = 'auto';
+    const latchAudio = new Audio('https://taira-komori.net/sound_os2/electric01/fluorescent_switch1.mp3'); latchAudio.volume = 1.0; latchAudio.preload = 'auto';
+    const AudioContext = window.AudioContext || window.webkitAudioContext; const actx = new AudioContext();
+    function playShutterSound() { shutterAudio.currentTime = 0; const playPromise = shutterAudio.play(); if (playPromise !== undefined) { playPromise.catch(error => { if (actx.state === 'suspended') actx.resume(); const t = actx.currentTime; const oscClick = actx.createOscillator(); const gainClick = actx.createGain(); oscClick.type = 'square'; oscClick.frequency.setValueAtTime(800, t); oscClick.frequency.exponentialRampToValueAtTime(100, t + 0.05); gainClick.gain.setValueAtTime(0.5, t); gainClick.gain.exponentialRampToValueAtTime(0.01, t + 0.05); oscClick.connect(gainClick).connect(actx.destination); oscClick.start(t); oscClick.stop(t + 0.05); }); } }
+    function playLeverSound() { if (actx.state === 'suspended') actx.resume(); const t = actx.currentTime; for(let i=0; i<5; i++) { const osc = actx.createOscillator(); const gain = actx.createGain(); osc.type = 'sawtooth'; osc.frequency.setValueAtTime(800, t + i*0.06); osc.frequency.exponentialRampToValueAtTime(100, t + i*0.06 + 0.03); gain.gain.setValueAtTime(1.2, t + i*0.06); gain.gain.exponentialRampToValueAtTime(0.01, t + i*0.06 + 0.03); osc.connect(gain); gain.connect(actx.destination); osc.start(t + i*0.06); osc.stop(t + i*0.06 + 0.04); } }
+
+    /* --- DOM ELEMENTS --- */
+    const video = document.getElementById('video-source');
+    const smallCanvas = document.getElementById('smallCanvas'); const smallCtx = smallCanvas.getContext('2d', { alpha: false });
+    const frontCanvas = document.getElementById('frontCanvas'); const frontCtx = frontCanvas.getContext('2d', { alpha: false });
+    const fsCanvas = document.getElementById('fs-canvas'); const fsCtx = fsCanvas.getContext('2d', { alpha: false });
+    
+    // WebGL Canvas
+    const processCanvas = document.getElementById('process-canvas');
+    let webGLRenderer = null;
+
+    const finalCanvas = document.getElementById('final-canvas'); const finalCtx = finalCanvas.getContext('2d');
+    
+    const rollModeSwitch = document.getElementById('rollModeSwitch'); const sketchModeSwitch = document.getElementById('sketchModeSwitch'); const orientationBtn = document.getElementById('orientationBtn');
+    const frameCounterUI = document.getElementById('frameCounter'); const fsCounter = document.getElementById('fs-counter'); const readyLight = document.getElementById('readyLight'); const leverBase = document.getElementById('leverBase'); const advanceLever = document.getElementById('advanceLever'); const shutterBtn = document.getElementById('shutterBtn'); const frontShutterBtn = document.getElementById('frontShutterBtn'); const cablePlunger = document.getElementById('cablePlunger');
+    const vfTrigger = document.getElementById('vfTrigger'); const frontVfTrigger = document.getElementById('frontVfTrigger'); const fsViewfinder = document.getElementById('fs-viewfinder'); const vfCloseBtn = document.getElementById('vf-close-btn'); const fsGuideFrame = document.getElementById('fsGuideFrame'); const splitCircle = document.getElementById('splitCircle');
+    const backLock = document.getElementById('backLock'); const backDoorWrapper = document.getElementById('backDoorWrapper'); const frontFace = document.getElementById('frontFace'); const shutterFlash = document.getElementById('shutterFlash'); const selfieToggle = document.getElementById('selfie-toggle'); const backControls = document.getElementById('back-controls-group'); const frontControls = document.getElementById('front-controls-group');
+    const albumGrid = document.getElementById('albumGrid'); const filmStripView = document.getElementById('filmStripView'); const btnViewFilm = document.getElementById('view-film'); const btnViewGrid = document.getElementById('view-grid');
+    const styleOverlay = document.getElementById('style-selector-overlay'); const devOverlay = document.getElementById('developing-overlay'); const devImageWrap = document.getElementById('dev-image-wrap'); const devStatus = document.getElementById('devStatus'); const filmCard = document.querySelector('.film-card'); const modeTitle = document.getElementById('modeTitle'); const modeSub = document.getElementById('modeSub'); const fsPrompt = document.getElementById('fullscreen-prompt'); const zoomOverlay = document.getElementById('zoom-overlay'); const zoomImg = document.getElementById('zoom-img');
+    const filmRollOverlay = document.getElementById('film-roll-overlay'); const filmRollContainer = document.getElementById('filmRollContainer'); const filmDoor = document.getElementById('filmDoor');
+    const staticCanister = document.getElementById('staticCanister');
+
+    /* --- DIALOG SYSTEM --- */
+    const rdOverlay = document.getElementById('retro-dialog-overlay');
+    const rdMessage = document.getElementById('rd-message');
+    const rdBtnCancel = document.getElementById('rd-btn-cancel');
+    const rdBtnConfirm = document.getElementById('rd-btn-confirm');
+    const rdBtnOk = document.getElementById('rd-btn-ok');
+
+    function showRetroDialogUI(msg, type = 'confirm') {
+        return new Promise((resolve) => {
+            rdMessage.textContent = msg;
+            rdOverlay.style.display = 'flex';
+            rdBtnCancel.style.display = 'none'; rdBtnConfirm.style.display = 'none'; rdBtnOk.style.display = 'none';
+            if (type === 'confirm') {
+                rdBtnCancel.style.display = 'block'; rdBtnConfirm.style.display = 'block';
+                rdBtnConfirm.onclick = () => { rdOverlay.style.display = 'none'; resolve(true); };
+                rdBtnCancel.onclick = () => { rdOverlay.style.display = 'none'; resolve(false); };
             } else {
-                const gridFragment = document.createDocumentFragment();
-                const stripFragment = document.createDocumentFragment();
-                const visibleHeight = 152; // CSS 高度
-
-                // 混合處理：有尺寸的直接算(快)，沒尺寸的讀圖算(慢)
-                const tasks = currentAlbumData.map(p => {
-                    if (p.width && p.height && p.width > 0) {
-                        const naturalRatio = p.width / p.height;
-                        return Promise.resolve({ p: p, width: visibleHeight * naturalRatio });
-                    } 
-                    return new Promise((resolve) => {
-                        const img = new Image();
-                        img.onload = () => {
-                            const naturalRatio = img.width / img.height;
-                            resolve({ p: p, width: visibleHeight * naturalRatio });
-                        };
-                        img.onerror = () => resolve({ p: p, width: 228 }); 
-                        img.src = p.image;
-                    });
-                });
-
-                const processedItems = await Promise.all(tasks);
-
-                for (const item of processedItems) {
-                    const p = item.p;
-
-                    // Grid View
-                    const div = document.createElement('div'); div.className = 'album-photo'; div.dataset.id = p.id;
-                    const imgEl = document.createElement('img'); imgEl.src = p.image; imgEl.loading = "lazy"; 
-                    const seq = document.createElement('div'); seq.className = 'album-seq'; seq.textContent = `No.${p.serial}`;
-                    div.appendChild(imgEl); div.appendChild(seq);
-                    div.onclick = (e) => { if (div.clickTimeout) { clearTimeout(div.clickTimeout); div.clickTimeout = null; showZoom(p.image); } else { div.clickTimeout = setTimeout(() => { div.clickTimeout = null; toggleSelectionAll(p.id); }, 250); } };
-                    gridFragment.appendChild(div);
-
-                    // Film Strip View
-                    const frameContainer = document.createElement('div'); 
-                    frameContainer.className = 'film-frame-container'; 
-                    frameContainer.dataset.id = p.id;
-                    frameContainer.style.width = `${item.width}px`; 
-                    
-                    const block = document.createElement('div'); block.className = 'film-block';
-                    const blockImg = document.createElement('div'); blockImg.className = 'film-block-img';
-                    blockImg.style.backgroundImage = `url(${p.image})`;
-                    
-                    const meta = document.createElement('div'); meta.className = 'film-meta-label'; meta.textContent = `No.${p.serial}`;
-                    
-                    block.appendChild(blockImg); block.appendChild(meta);
-                    frameContainer.appendChild(block);
-                    frameContainer.onclick = (e) => { 
-                        frameContainer.scrollIntoView({behavior: "smooth", block: "center", inline: "center"}); 
-                        if (frameContainer.clickTimeout) { clearTimeout(frameContainer.clickTimeout); frameContainer.clickTimeout = null; showZoom(p.image); } else { frameContainer.clickTimeout = setTimeout(() => { frameContainer.clickTimeout = null; toggleSelectionAll(p.id); }, 250); } 
-                    };
-                    stripFragment.appendChild(frameContainer);
-                }
-
-                grid.appendChild(gridFragment);
-                strip.appendChild(stripFragment);
+                rdBtnOk.style.display = 'block';
+                rdBtnOk.onclick = () => { rdOverlay.style.display = 'none'; resolve(true); };
             }
-            
-            updateViewVisibility();
+        });
+    }
+    async function retroConfirm(text) { return await showRetroDialogUI(text, 'confirm'); }
+    async function retroAlert(text) { return await showRetroDialogUI(text, 'alert'); }
 
-        } catch (err) {
-            console.error("Album Load Error", err);
-        } finally {
-            loader.style.display = 'none';
+    function updateModeUI() { const modes = getModes(); if(currentModeIdx >= modes.length) currentModeIdx = 0; const m = modes[currentModeIdx]; modeTitle.textContent = m.name; modeSub.textContent = m.sub; document.getElementById('fs-mode-text').textContent = m.name; const h3 = filmCard.querySelector('h3'); h3.style.color = m.color; const styleEl = document.createElement('style'); styleEl.innerHTML = `.film-card::before, .film-card::after { background: ${m.color} !important; }`; const oldStyle = document.getElementById('film-card-style'); if(oldStyle) oldStyle.remove(); styleEl.id = 'film-card-style'; document.head.appendChild(styleEl); }
+    updateModeUI();
+
+    async function initSystem() { 
+        await initDB(); 
+        // Init WebGL
+        webGLRenderer = new WebGLRenderer(processCanvas);
+        
+        if (isRollMode) { rollModeSwitch.classList.add('mode-36'); currentFrame = await getTempCount(); } else { rollModeSwitch.classList.remove('mode-36'); currentFrame = 0; } 
+        updateCounterDisplay(); updateLeverUI(); 
+        if(isOrientationLocked) { orientationBtn.classList.add('locked'); try { if (screen.orientation && screen.orientation.lock) {} } catch(e){} } 
+    }
+    function updateCounterDisplay() { if (!isRollMode) { frameCounterUI.textContent = "S"; fsCounter.textContent = "1"; } else { if (currentFrame === 0) frameCounterUI.textContent = "S"; else if (currentFrame >= 36) frameCounterUI.textContent = "E"; else frameCounterUI.textContent = currentFrame; fsCounter.textContent = (36 - currentFrame) + " LEFT"; } }
+    function updateLeverUI() { const isEndOfRoll = isRollMode && currentFrame >= 36; if (!isFilmAdvanced || isEndOfRoll) { readyLight.classList.add('active'); leverBase.classList.add('glow'); } else { readyLight.classList.remove('active'); leverBase.classList.remove('glow'); } }
+
+    document.getElementById('enter-fs-btn').addEventListener('click', () => { startFullscreenAndCamera(); });
+    function startFullscreenAndCamera() { const el = document.documentElement; const rfs = el.requestFullscreen || el.webkitRequestFullScreen; if (rfs) { rfs.call(el).then(() => { initSystem().then(initCamera); if(isOrientationLocked && screen.orientation && screen.orientation.lock) { screen.orientation.lock('landscape').catch(()=>{}); } }).catch(() => { initSystem().then(initCamera); }); } }
+    async function initCamera() { try { if(video.srcObject) { video.srcObject.getTracks().forEach(track => track.stop()); } const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: isSelfieMode ? 'user' : 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false }); video.srcObject = stream; video.onloadedmetadata = () => { video.play(); renderLoop(); }; } catch (err) { console.error("Camera Error", err); } }
+    function enforceFullscreen() { if (!document.fullscreenElement) { fsPrompt.style.display = 'flex'; document.getElementById('camera-container').style.display = 'none'; fsViewfinder.style.display = 'none'; } }
+    document.addEventListener('fullscreenchange', enforceFullscreen);
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') { if (video.srcObject) { video.srcObject.getTracks().forEach(track => track.stop()); video.srcObject = null; } if(shutterAudio) { shutterAudio.pause(); shutterAudio.currentTime = 0; } } else if (document.visibilityState === 'visible') { enforceFullscreen(); setTimeout(() => { if (!video.srcObject || !video.srcObject.active) { initCamera(); } }, 300); } });
+    orientationBtn.addEventListener('click', async () => { isOrientationLocked = !isOrientationLocked; orientationBtn.classList.toggle('locked', isOrientationLocked); localStorage.setItem('orientationLocked', isOrientationLocked); if (isOrientationLocked) { try { if (screen.orientation && screen.orientation.lock) { await screen.orientation.lock('landscape'); } } catch (e) { } } else { try { if (screen.orientation && screen.orientation.unlock) { screen.orientation.unlock(); } } catch (e) {} } });
+
+    document.getElementById('filmSelectBtn').addEventListener('click', () => { isMenuLocked = false; openFilmSelector(); });
+    document.getElementById('selfieShutterBtn').addEventListener('click', handleShutter);
+
+    function renderFilmSelector() { const modes = getModes(); filmRollContainer.innerHTML = ''; modes.forEach((m, index) => { const canister = document.createElement('div'); canister.className = 'film-canister'; if (index === currentModeIdx) canister.classList.add('active'); const labelStyle = `border: 4px solid ${m.color}; background: #f4e9c5;`; const nameStyle = `color: ${m.color};`; canister.innerHTML = `<div class="canister-cap cap-top"></div><div class="canister-body"><div class="canister-label" style="${labelStyle}"><div class="cl-name" style="${nameStyle}">${m.name}</div><div class="cl-sub">${m.sub}</div><div class="cl-iso">ISO</div></div></div><div class="sprocket-lip"></div><div class="canister-cap cap-bottom"></div>`; canister.addEventListener('click', (e) => { e.stopPropagation(); selectModeFromRoll(index); }); filmRollContainer.appendChild(canister); }); }
+    function openFilmSelector() { if (backDoorWrapper.classList.contains('open')) return; renderFilmSelector(); filmRollOverlay.style.display = 'flex'; void filmRollOverlay.offsetWidth; filmRollOverlay.classList.add('visible'); }
+    function selectModeFromRoll(index) { currentModeIdx = index; localStorage.setItem('camModeIdx', currentModeIdx); isMenuLocked = false; filmRollOverlay.classList.remove('visible'); setTimeout(() => { filmRollOverlay.style.display = 'none'; filmCard.style.filter = 'blur(10px)'; processCanvas.style.filter = 'blur(10px)'; updateModeUI(); setTimeout(() => { filmCard.style.filter = 'none'; processCanvas.style.filter = 'none'; }, 400); }, 300); }
+    filmDoor.addEventListener('click', () => { isMenuLocked = false; openFilmSelector(); });
+    filmRollOverlay.addEventListener('click', (e) => { if(e.target === filmRollOverlay) { if (isMenuLocked) { const container = document.getElementById('filmRollContainer'); container.style.transition = 'transform 0.1s'; container.style.transform = 'scale(1.05)'; setTimeout(() => { container.style.transform = 'scale(1)'; setTimeout(() => container.style.transition = '', 100); }, 100); return; } filmRollOverlay.classList.remove('visible'); setTimeout(() => filmRollOverlay.style.display = 'none', 300); } });
+        
+    selfieToggle.addEventListener('click', () => {
+        isSelfieMode = !isSelfieMode;
+        if (isSelfieMode) { document.body.classList.add('is-selfie'); backDoorWrapper.style.display = 'none'; frontFace.style.display = 'flex'; backControls.style.display = 'none'; frontControls.style.display = 'block'; } else { document.body.classList.remove('is-selfie'); backDoorWrapper.style.display = 'block'; frontFace.style.display = 'none'; backControls.style.display = 'block'; frontControls.style.display = 'none'; }
+        initCamera(); 
+    });
+
+    sketchModeSwitch.addEventListener('click', () => {
+        isSketchMode = !isSketchMode;
+        sketchModeSwitch.classList.toggle('mode-sketch', isSketchMode);
+        document.getElementById('lbl-real').classList.toggle('active', !isSketchMode);
+        document.getElementById('lbl-sketch').classList.toggle('active', isSketchMode);
+        currentModeIdx = 0;
+        isMenuLocked = true;
+        openFilmSelector();
+    });
+
+    /* --- RENDER LOOP (WEBGL) --- */
+    function renderLoop() {
+        requestAnimationFrame(renderLoop);
+        if (!video.srcObject || !video.srcObject.active || video.paused || !webGLRenderer) return;
+
+        const modes = getModes(); 
+        validateModeIndex(); 
+        const mode = modes[currentModeIdx];
+        
+        // Resize Canvas if needed
+        let w = 640; let h = 360; 
+        if (!isSketchMode && (mode.id === 'COLOR' || mode.id === 'BW')) { w = 320; h = 180; } 
+        if (processCanvas.width !== w) { processCanvas.width = w; processCanvas.height = h; }
+
+        // Use WebGL Renderer
+        webGLRenderer.render(video, mode.idx, isSelfieMode);
+        
+        // Copy to Viewfinders (2D)
+        // Note: Since processCanvas is WebGL, we can draw it to 2D canvas context directly
+        const isPixelated = (!isSketchMode && (mode.id === 'COLOR' || mode.id === 'BW'));
+        
+        if (!isSelfieMode) { 
+            if (smallCanvas.width !== w) { smallCanvas.width = w; smallCanvas.height = h; } 
+            smallCanvas.style.imageRendering = isPixelated ? 'pixelated' : 'auto'; 
+            smallCtx.drawImage(processCanvas, 0, 0, w, h); // Simply draw the WebGL canvas
+        } else { 
+            if (frontCanvas.width !== w) { frontCanvas.width = w; frontCanvas.height = h; } 
+            frontCanvas.style.imageRendering = isPixelated ? 'pixelated' : 'auto'; 
+            frontCtx.drawImage(processCanvas, 0, 0, w, h); // WebGL already flipped X in shader for selfie
         }
-    }, 50);
-}
+
+        if (fsViewfinder.style.display === 'block') { 
+            if (fsCanvas.width !== w) { fsCanvas.width = w; fsCanvas.height = h; } 
+            fsCanvas.style.imageRendering = isPixelated ? 'pixelated' : 'auto'; 
+            fsCtx.drawImage(processCanvas, 0, 0, w, h);
+        }
+    }
+
+    vfTrigger.addEventListener('click', (e) => { e.stopPropagation(); fsViewfinder.style.display = 'block'; if(isSketchMode) { splitCircle.style.display = 'none'; fsGuideFrame.style.display = 'none'; } else { splitCircle.style.display = 'block'; fsGuideFrame.style.display = 'block'; } });
+    frontVfTrigger.addEventListener('click', (e) => { e.stopPropagation(); if (video.readyState >= 2) fsViewfinder.style.display = 'block'; });
+    vfCloseBtn.addEventListener('click', (e) => { e.stopPropagation(); fsViewfinder.style.display = 'none'; });
+    fsViewfinder.addEventListener('click', (e) => { if(e.target.id !== 'vf-close-btn') handleShutter(e); });
+    shutterBtn.addEventListener('click', handleShutter);
+    frontShutterBtn.addEventListener('click', handleShutter);
+    cablePlunger.addEventListener('click', (e) => { e.stopPropagation(); cablePlunger.classList.add('pressed'); setTimeout(() => cablePlunger.classList.remove('pressed'), 200); handleShutter(e); });
         
-      function showZoom(imgSrc) { 
-    zoomImg.src = imgSrc; 
-    // 使用 class 切換，配合上面的 CSS .active
-    zoomOverlay.classList.add('active'); 
-}
-
-// 2. 修改 zoomOverlay 的關閉邏輯 (找到原本的 click event listener)
-zoomOverlay.addEventListener('click', () => { 
-    zoomOverlay.classList.remove('active'); 
-});
-        zoomOverlay.addEventListener('click', () => { zoomOverlay.style.display = 'none'; });
-        function toggleSelectionAll(id) { if (selectedAlbumIds.has(id)) { selectedAlbumIds.delete(id); } else { selectedAlbumIds.add(id); } syncSelectionUI(); }
-        function syncSelectionUI() { document.querySelectorAll('.album-photo').forEach(el => { const pid = parseInt(el.dataset.id); if(selectedAlbumIds.has(pid)) el.classList.add('selected'); else el.classList.remove('selected'); }); document.querySelectorAll('.film-frame-container').forEach(el => { const pid = parseInt(el.dataset.id); if(selectedAlbumIds.has(pid)) el.classList.add('selected'); else el.classList.remove('selected'); }); }
-        document.getElementById('alb-sel-all').addEventListener('click', () => { const allSelected = selectedAlbumIds.size === currentAlbumData.length; if (allSelected) selectedAlbumIds.clear(); else currentAlbumData.forEach(p => selectedAlbumIds.add(p.id)); syncSelectionUI(); });
-        // [修改] 刪除按鈕 - 使用復古對話框
-document.getElementById('alb-delete').addEventListener('click', async () => { 
-    // [修改] 使用自製 Alert
-    if (!checkSelection()) {
-        retroAlert("SELECT PHOTOS FIRST");
-        return;
+    function handleShutter(e) { 
+        if(e) e.stopPropagation(); 
+        if (e && e.target.id === 'vf-close-btn') return; 
+        if (!isSelfieMode && backDoorWrapper.classList.contains('open')) return; 
+        if (isRollMode && currentFrame >= 36) return; 
+        const btn = isSelfieMode ? document.getElementById('selfieShutterBtn') : shutterBtn; 
+        btn.classList.add('pressed'); 
+        playShutterSound(); 
+        if (isSelfieMode) { shutterFlash.classList.remove('flash'); void shutterFlash.offsetWidth; shutterFlash.classList.add('flash'); setTimeout(() => shutterFlash.classList.remove('flash'), 150); } else { const container = (fsViewfinder.style.display === 'block') ? fsViewfinder : vfTrigger; const blind = document.createElement('div'); blind.className = container === fsViewfinder ? 'shutter-blind' : 'vf-shutter-blind'; container.appendChild(blind); setTimeout(() => blind.remove(), 150); } 
+        setTimeout(() => { performCapture(); btn.classList.remove('pressed'); }, 150); 
     }
 
-    // [修改] 使用自製 Confirm
-    const userConfirmed = await retroConfirm("DELETE SELECTED PHOTOS?\n(Cannot be undone)");
-    if (userConfirmed) { 
-        const idsToRemove = Array.from(selectedAlbumIds); 
-        await deleteFromAlbum(idsToRemove); 
-        await loadAlbum(); 
-    } 
-});
-        const exportModal = document.getElementById('export-modal'); let exportActionType = ''; 
-       function checkSelection() { 
-    if (selectedAlbumIds.size === 0) { 
-        return false; 
-    } 
-    return true; 
-}
-       document.getElementById('alb-download').addEventListener('click', () => { 
-    if(!checkSelection()) {
-        retroAlert("SELECT PHOTOS FIRST"); // [修改]
-        return; 
-    }
-    exportActionType = 'download'; 
-    document.getElementById('exp-text-input').value = ""; 
-    exportModal.style.display = 'flex'; 
-});
+    function generateLightLeak(ctx, w, h, severity = 1) { ctx.save(); ctx.globalCompositeOperation = 'screen'; const baseCount = severity > 1 ? 3 : (Math.random() > 0.7 ? 2 : 1); for(let i=0; i<baseCount; i++) { const type = Math.random(); const opacity = (0.4 + Math.random() * 0.4) * severity; const hue = Math.random() > 0.8 ? 40 + Math.random()*10 : 10 + Math.random()*30; let colorInner = `hsla(${hue}, 90%, 60%, ${opacity})`; let colorOuter = `hsla(${hue-10}, 90%, 40%, 0)`; if (type < 0.4) { const isLeft = Math.random() > 0.5; const width = w * (0.15 + Math.random() * 0.3); const grad = ctx.createLinearGradient(isLeft ? 0 : w, 0, isLeft ? width : w - width, 0); grad.addColorStop(0, colorInner); grad.addColorStop(1, colorOuter); ctx.fillStyle = grad; ctx.fillRect(0, 0, w, h); } else { const cx = Math.random() > 0.5 ? 0 : w; const cy = Math.random() > 0.5 ? 0 : h; const r = Math.max(w, h) * (0.4 + Math.random() * 0.4); const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r); grad.addColorStop(0, `hsla(${hue}, 20%, 90%, ${opacity})`); grad.addColorStop(1, `hsla(${hue}, 90%, 20%, 0)`); ctx.fillStyle = grad; ctx.fillRect(0, 0, w, h); } } ctx.restore(); }
+        
+    async function performCapture() { 
+        fsViewfinder.style.display = 'none';
+        const modes = getModes(); const mode = modes[currentModeIdx]; 
+        const targetW = 1920, targetH = 1080; 
+        
+        const tempC = document.createElement('canvas');
+        tempC.width = targetW; tempC.height = targetH;
+        const tempCtx = tempC.getContext('2d');
+        tempCtx.filter = 'none'; 
+        // WebGL handles flips in shader, BUT when we draw processCanvas to tempC, it comes out "as displayed".
+        // However, processCanvas (WebGL) content buffer is usually upside down or right side up depending on implementation.
+        // We draw it directly. Since we handle "Selfie Flip" in renderLoop for the display canvas, 
+        // we assume processCanvas visually looks correct.
+        // WAIT: processCanvas is WebGL. drawing it via drawImage(processCanvas) works.
+        
+        tempCtx.drawImage(processCanvas, 0, 0, targetW, targetH); 
+        
+        if (mode.id.startsWith('FILM_')) { const severity = (mode.id === 'FILM_AGED') ? 2.0 : 1.0; generateLightLeak(tempCtx, targetW, targetH, severity); } 
+        currentReviewCanvas = tempC;
 
-document.getElementById('alb-share').addEventListener('click', () => { 
-    if(!checkSelection()) {
-        retroAlert("SELECT PHOTOS FIRST"); // [修改]
-        return; 
+        if (!isRollMode) {
+            const previewData = tempC.toDataURL('image/jpeg', 0.9);
+            document.getElementById('review-img').src = previewData;
+            document.getElementById('review-overlay').style.display = 'flex';
+        } else {
+            if (exposureCanvas.width !== targetW) { exposureCanvas.width = targetW; exposureCanvas.height = targetH; }
+            exposureCtx.globalCompositeOperation = isFilmAdvanced ? 'source-over' : 'screen';
+            exposureCtx.drawImage(tempC, 0, 0);
+            isFilmAdvanced = false; 
+            updateLeverUI();
+        }
     }
-    if(!navigator.share) { 
-        retroAlert("SHARING NOT SUPPORTED"); // [修改]
-        return; 
-    } 
-    exportActionType = 'share'; 
-    document.getElementById('exp-text-input').value = ""; 
-    exportModal.style.display = 'flex'; 
-});
-        document.getElementById('exp-cancel').addEventListener('click', () => exportModal.style.display = 'none');
-        document.getElementById('exp-no-serial').addEventListener('click', () => processExport(false));
-        document.getElementById('exp-with-serial').addEventListener('click', () => processExport(true));
-       async function processExport(addSerial) { 
-    const customText = document.getElementById('exp-text-input').value;
-    const selectedData = currentAlbumData.filter(p => selectedAlbumIds.has(p.id)); 
-    const filesToShare = []; 
+        
+    document.getElementById('btn-discard').addEventListener('click', () => { currentReviewCanvas = null; pendingPhoto = null; document.getElementById('review-overlay').style.display = 'none'; }); 
+    document.getElementById('btn-keep').addEventListener('click', () => { 
+        document.getElementById('review-overlay').style.display = 'none'; 
+        if (currentReviewCanvas) {
+            const w = currentReviewCanvas.width; const h = currentReviewCanvas.height;
+            if (exposureCanvas.width !== w) { exposureCanvas.width = w; exposureCanvas.height = h; }
+            if (isFilmAdvanced) { exposureCtx.globalCompositeOperation = 'source-over'; exposureCtx.drawImage(currentReviewCanvas, 0, 0); isFilmAdvanced = false; } 
+            else { exposureCtx.globalCompositeOperation = 'screen'; exposureCtx.globalAlpha = 0.8; exposureCtx.drawImage(currentReviewCanvas, 0, 0); exposureCtx.globalAlpha = 1.0; }
+            updateLeverUI();
+        }
+        currentReviewCanvas = null;
+    });
+
+    rollModeSwitch.addEventListener('click', async () => { 
+        if(pendingPhoto || (isRollMode && currentFrame > 0)) { 
+            const msg = isRollMode ? `WARNING:\nSwitching modes will DELETE all ${currentFrame} photos in this roll.\n\nContinue?` : "Discard current photo and switch mode?";
+            const userConfirmed = await retroConfirm(msg);
+            if(!userConfirmed) return; 
+            await clearTemp(); exposureCtx.clearRect(0, 0, exposureCanvas.width, exposureCanvas.height); pendingPhoto = null; isFilmAdvanced = true; 
+        } 
+        isRollMode = !isRollMode; localStorage.setItem('rollMode', isRollMode); rollModeSwitch.classList.toggle('mode-36', isRollMode); currentFrame = 0; 
+        updateCounterDisplay(); if (typeof updateLeverUI === "function") { updateLeverUI(); } else { checkLeverState(); }
+    });
+        
+    let leverPulled = false; 
+    advanceLever.addEventListener('click', async () => {
+        const isEndOfRoll = isRollMode && currentFrame >= 36;
+        if ((isFilmAdvanced && !isEndOfRoll) || leverPulled) return;
+        leverPulled = true; playLeverSound();
+        requestAnimationFrame(() => { advanceLever.style.transform = 'rotate(130deg)'; }); 
+        setTimeout(async () => { 
+            advanceLever.style.transform = 'rotate(10deg)'; 
+            if (isEndOfRoll) { styleOverlay.style.display = 'flex'; leverPulled = false; return; }
+            const finalImage = exposureCanvas.toDataURL('image/jpeg', 0.92);
+            if (isRollMode) { await saveToTemp(finalImage); currentFrame++; updateCounterDisplay(); isFilmAdvanced = true; exposureCtx.clearRect(0,0, exposureCanvas.width, exposureCanvas.height); updateLeverUI(); leverPulled = false; } 
+            else { styleOverlay.style.display = 'flex'; pendingPhoto = finalImage; leverPulled = false; }
+        }, 400); 
+    });
+
+    document.querySelectorAll('.style-btn').forEach(btn => { 
+        btn.addEventListener('click', async (e) => { 
+            const style = e.currentTarget.dataset.style; styleOverlay.style.display = 'none'; 
+            isFilmAdvanced = true; updateLeverUI(); exposureCtx.clearRect(0,0, exposureCanvas.width, exposureCanvas.height);
+            let photosToProcess = []; 
+            if (isRollMode && currentFrame >= 36) { photosToProcess = await getTempPhotos(); } 
+            else if (pendingPhoto) { photosToProcess = [{ image: pendingPhoto, date: new Date() }]; pendingPhoto = null; }
+            if (photosToProcess.length > 0) { fsViewfinder.style.display = 'none'; await startDevelopingAnimation(photosToProcess, style); }
+        }); 
+    });
+
+    function processFinalPhoto(imgUrl, dateObj, serialNo, style, customText) { 
+        return new Promise(async (resolve) => { 
+            try { await document.fonts.load('600 40px "Noto Serif TC"'); } catch (e) {}
+            const img = new Image(); 
+            img.onload = () => { 
+                let w = 1920, h = 1080; let padTop = 0, padSide = 0, padBottom = 0; 
+                if (style === 'white') { padTop = 50; padSide = 50; padBottom = 180; w = 1200; h = Math.floor(w * (img.height / img.width)) + padTop + padBottom; } 
+                else if (style === 'film') { padTop = 80; padSide = 0; padBottom = 80; w = img.width; h = img.height + padTop + padBottom; } 
+                else { w = img.width; h = img.height; }
+
+                finalCanvas.width = w; finalCanvas.height = h; const ctx = finalCanvas.getContext('2d'); ctx.filter = 'none'; 
+                if (style === 'white') { ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h); ctx.drawImage(img, padSide, padTop, w - padSide*2, h - padTop - padBottom); } 
+                else if (style === 'film') { ctx.fillStyle = '#111'; ctx.fillRect(0, 0, w, h); ctx.drawImage(img, 0, padTop, w, img.height); ctx.fillStyle = '#fff'; const holeW = 30, gap = 20; for(let x = 30; x < w; x += (holeW + gap)) { ctx.fillRect(x, 25, holeW, 30); } for(let x = 30; x < w; x += (holeW + gap)) { ctx.fillRect(x, h - 55, holeW, 30); } } 
+                else { ctx.drawImage(img, 0, 0, w, h); } 
+
+                const d = new Date(dateObj); const dateStr = `'${d.getFullYear().toString().slice(-2)} ${(d.getMonth()+1).toString().padStart(2,'0')} ${d.getDate().toString().padStart(2,'0')}`; 
+                let dateX = w - 60; let dateY = h - 50;
+                if (style === 'white') { dateX = w - padSide - 30; dateY = h - padBottom - 30; } else if (style === 'film') { dateX = w - 50; dateY = h - padBottom - 40; }
+
+                if (isSketchMode) { ctx.save(); ctx.shadowBlur = 0; ctx.fillStyle = 'rgba(50, 50, 50, 0.85)'; ctx.font = `normal 45px "Segoe Print", cursive`; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom'; ctx.translate(dateX, dateY); ctx.rotate(-0.05); ctx.fillText(dateStr, 0, 0); ctx.restore(); } 
+                else { ctx.shadowColor = '#ff5500'; ctx.shadowBlur = 15; ctx.fillStyle = 'rgba(255, 170, 50, 0.9)'; const fontSize = style === 'white' ? 40 : 50; ctx.font = `bold ${fontSize}px "Courier New", monospace`; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom'; ctx.fillText(dateStr, dateX, dateY); }
+
+                let serX = 30, serY = 30, serColor = 'rgba(255,255,255,0.8)';
+                if (style === 'white') { serX = 50; serY = h - 60; serColor = '#333'; } else if (style === 'film') { serX = 40; serY = h - 40; serColor = 'rgba(255,255,255,0.6)'; }
+                ctx.shadowColor = style === 'white' ? 'transparent' : '#000'; ctx.shadowBlur = 2; ctx.fillStyle = serColor; ctx.font = `bold 36px "Courier New", monospace`; ctx.textAlign = 'left'; ctx.textBaseline = 'bottom'; 
+                if (serialNo !== "") { ctx.fillText(`No.${serialNo}`, serX, serY); }
+                if (style === 'white' && customText && customText.trim() !== "") { ctx.fillStyle = '#111'; ctx.shadowBlur = 0; ctx.font = `600 38px "Noto Serif TC", serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.fillText(customText, w / 2, h - 40); }
+                resolve(finalCanvas.toDataURL('image/jpeg', 0.9)); 
+            }; img.src = imgUrl; 
+        }); 
+    }
+
+    function annotateExportPhoto(imgUrl, serialNo, style, customText) {
+        return new Promise(async (resolve) => {
+            try { await document.fonts.load('600 40px "Noto Serif TC"'); } catch (e) {}
+            try { await document.fonts.load('bold 36px "Courier New"'); } catch (e) {}
+            const img = new Image(); img.onload = () => {
+                const w = img.width; const h = img.height; const canvas = document.createElement('canvas'); canvas.width = w; canvas.height = h; const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0);
+                const hasCaption = (customText && customText.trim() !== "");
+                if (serialNo && serialNo !== "") {
+                    let serX = 30, serY = 30, serColor = '#fff', useShadow = true;
+                    if (style === 'white') { if (hasCaption) { serX = 50; serY = h - 190; serColor = 'rgba(255, 255, 255, 0.9)'; useShadow = true; } else { serX = 50; serY = h - 60; serColor = '#333'; useShadow = false; } } else if (style === 'film') { serX = 40; serY = h - 40; serColor = 'rgba(255,255,255,0.6)'; useShadow = true; }
+                    if (useShadow) { ctx.shadowColor = '#000'; ctx.shadowBlur = 4; ctx.shadowOffsetX = 1; ctx.shadowOffsetY = 1; } else { ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; }
+                    ctx.fillStyle = serColor; ctx.font = `bold 36px "Courier New", monospace`; ctx.textAlign = 'left'; ctx.textBaseline = 'bottom'; ctx.fillText(`No.${serialNo}`, serX, serY);
+                }
+                if (style === 'white' && hasCaption) { ctx.fillStyle = '#111'; ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; ctx.font = `600 42px "Noto Serif TC", serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.fillText(customText, w / 2, h - 90); }
+                resolve(canvas.toDataURL('image/jpeg', 0.92));
+            }; img.src = imgUrl;
+        });
+    }
+        
+    async function startDevelopingAnimation(photos, style) { 
+        devOverlay.style.display = 'flex'; devStatus.textContent = "PREPARING..."; 
+        let waterLoopId; let rippleTime = 0; let waveIntensity = 1.0; 
+        const turbulenceNode = document.querySelector('#liquidFilter feTurbulence'); const paperContainer = document.querySelector('.photo-paper-container');
+        
+        function renderWaterRipple() { rippleTime += 0.05; const baseFreqY = (0.05 + Math.sin(rippleTime * 0.5) * 0.01) * waveIntensity; const displayFreq = Math.max(0.001, baseFreqY); turbulenceNode.setAttribute('baseFrequency', `0.01 ${displayFreq}`); waterLoopId = requestAnimationFrame(renderWaterRipple); }
+
+        const processed = []; 
+        for (let p of photos) { 
+            const thisSerial = globalSerialCounter++; localStorage.setItem('global_serial_counter', globalSerialCounter); 
+            const customText = document.getElementById('exp-text-input').value;
+            const finalImg = await processFinalPhoto(p.image, p.date, "", style, customText); 
+            processed.push({ img: finalImg, serial: thisSerial, style: style }); 
+        }
+        
+        for (let i = 0; i < processed.length; i++) { 
+            devStatus.textContent = `DEVELOPING ${i+1}/${processed.length}`; devImageWrap.src = processed[i].img; devImageWrap.style.border = style === 'white' ? 'none' : '8px solid white'; 
+            waveIntensity = 1.0; devImageWrap.style.opacity = '0'; devImageWrap.style.filter = 'none'; paperContainer.classList.add('wet-process'); devImageWrap.classList.add('in-liquid');
+            renderWaterRipple(); devImageWrap.style.animation = 'none'; devImageWrap.offsetHeight; devImageWrap.style.animation = 'developProcess 3s forwards linear'; 
+            await new Promise(r => setTimeout(r, 2500));
+            const calmDuration = 800; const startTime = Date.now();
+            while (true) { const elapsed = Date.now() - startTime; if (elapsed >= calmDuration) { waveIntensity = 0; break; } const progress = elapsed / calmDuration; waveIntensity = 1.0 - Math.pow(progress, 0.5); await new Promise(r => requestAnimationFrame(r)); }
+            cancelAnimationFrame(waterLoopId); devImageWrap.style.opacity = '1'; devImageWrap.style.transform = 'scale(1)'; devImageWrap.style.animation = 'none'; devImageWrap.style.filter = 'none'; devImageWrap.classList.remove('in-liquid'); paperContainer.classList.remove('wet-process');
+            await new Promise(r => setTimeout(r, 1500));
+            await saveToAlbum(processed[i].img, processed[i].serial, processed[i].style, finalCanvas.width, finalCanvas.height); 
+            devImageWrap.style.opacity = '0';
+        } 
+        document.getElementById('exp-text-input').value = ""; devStatus.textContent = "FINISHED"; await new Promise(r => setTimeout(r, 800)); devOverlay.style.display = 'none'; 
+        if (isRollMode) { await clearTemp(); currentFrame = 0; updateCounterDisplay(); } else { pendingPhoto = null; } updateLeverUI(); 
+    }
+
+    backLock.addEventListener('click', () => { const isOpen = backDoorWrapper.classList.contains('open'); if (!isOpen) { latchAudio.currentTime = 0; latchAudio.play(); backDoorWrapper.classList.add('open'); backLock.style.transform = 'translateX(5px)'; loadAlbum(); } else { closeBackDoor(); } });
+    function closeBackDoor() { backDoorWrapper.classList.remove('open'); backLock.style.transform = 'translateX(0)'; setTimeout(() => { latchAudio.currentTime = 0; latchAudio.play(); }, 250); }
+    let selectedAlbumIds = new Set(); let currentAlbumData = [];
+    function updateViewVisibility() { if (isFilmViewMode) { albumGrid.classList.remove('active'); filmStripView.classList.add('active'); btnViewFilm.classList.add('active'); btnViewGrid.classList.remove('active'); staticCanister.style.display = 'block'; } else { filmStripView.classList.remove('active'); albumGrid.classList.add('active'); btnViewGrid.classList.add('active'); btnViewFilm.classList.remove('active'); staticCanister.style.display = 'none'; } }
+    btnViewFilm.addEventListener('click', () => { isFilmViewMode = true; updateViewVisibility(); });
+    btnViewGrid.addEventListener('click', () => { isFilmViewMode = false; updateViewVisibility(); });
+
+    async function loadAlbum() {
+        const loader = document.getElementById('album-loader'); const grid = document.getElementById('albumGrid'); const strip = document.getElementById('filmStripView');
+        loader.style.display = 'block'; grid.innerHTML = ''; strip.innerHTML = ''; 
+        setTimeout(async () => {
+            try {
+                selectedAlbumIds.clear(); currentAlbumData = await getAlbumPhotos(); currentAlbumData.sort((a,b) => b.timestamp - a.timestamp); 
+                if(currentAlbumData.length === 0) { const emptyMsg = '<p style="color:#555; width:100%; text-align:center; margin-top:50px; font-family:monospace;">ALBUM EMPTY</p>'; grid.innerHTML = emptyMsg; strip.innerHTML = emptyMsg; } 
+                else {
+                    const gridFragment = document.createDocumentFragment(); const stripFragment = document.createDocumentFragment(); const visibleHeight = 152; 
+                    const tasks = currentAlbumData.map(p => { if (p.width && p.height && p.width > 0) { const naturalRatio = p.width / p.height; return Promise.resolve({ p: p, width: visibleHeight * naturalRatio }); } return new Promise((resolve) => { const img = new Image(); img.onload = () => { const naturalRatio = img.width / img.height; resolve({ p: p, width: visibleHeight * naturalRatio }); }; img.onerror = () => resolve({ p: p, width: 228 }); img.src = p.image; }); });
+                    const processedItems = await Promise.all(tasks);
+                    for (const item of processedItems) {
+                        const p = item.p;
+                        const div = document.createElement('div'); div.className = 'album-photo'; div.dataset.id = p.id; const imgEl = document.createElement('img'); imgEl.src = p.image; imgEl.loading = "lazy"; const seq = document.createElement('div'); seq.className = 'album-seq'; seq.textContent = `No.${p.serial}`; div.appendChild(imgEl); div.appendChild(seq); div.onclick = (e) => { if (div.clickTimeout) { clearTimeout(div.clickTimeout); div.clickTimeout = null; showZoom(p.image); } else { div.clickTimeout = setTimeout(() => { div.clickTimeout = null; toggleSelectionAll(p.id); }, 250); } }; gridFragment.appendChild(div);
+                        const frameContainer = document.createElement('div'); frameContainer.className = 'film-frame-container'; frameContainer.dataset.id = p.id; frameContainer.style.width = `${item.width}px`; const block = document.createElement('div'); block.className = 'film-block'; const blockImg = document.createElement('div'); blockImg.className = 'film-block-img'; blockImg.style.backgroundImage = `url(${p.image})`; const meta = document.createElement('div'); meta.className = 'film-meta-label'; meta.textContent = `No.${p.serial}`; block.appendChild(blockImg); block.appendChild(meta); frameContainer.appendChild(block); frameContainer.onclick = (e) => { frameContainer.scrollIntoView({behavior: "smooth", block: "center", inline: "center"}); if (frameContainer.clickTimeout) { clearTimeout(frameContainer.clickTimeout); frameContainer.clickTimeout = null; showZoom(p.image); } else { frameContainer.clickTimeout = setTimeout(() => { frameContainer.clickTimeout = null; toggleSelectionAll(p.id); }, 250); } }; stripFragment.appendChild(frameContainer);
+                    }
+                    grid.appendChild(gridFragment); strip.appendChild(stripFragment);
+                }
+                updateViewVisibility();
+            } catch (err) { console.error("Album Load Error", err); } finally { loader.style.display = 'none'; }
+        }, 50);
+    }
+        
+    function showZoom(imgSrc) { zoomImg.src = imgSrc; zoomOverlay.classList.add('active'); }
+    zoomOverlay.addEventListener('click', () => { zoomOverlay.classList.remove('active'); });
+    function toggleSelectionAll(id) { if (selectedAlbumIds.has(id)) { selectedAlbumIds.delete(id); } else { selectedAlbumIds.add(id); } syncSelectionUI(); }
+    function syncSelectionUI() { document.querySelectorAll('.album-photo').forEach(el => { const pid = parseInt(el.dataset.id); if(selectedAlbumIds.has(pid)) el.classList.add('selected'); else el.classList.remove('selected'); }); document.querySelectorAll('.film-frame-container').forEach(el => { const pid = parseInt(el.dataset.id); if(selectedAlbumIds.has(pid)) el.classList.add('selected'); else el.classList.remove('selected'); }); }
+    document.getElementById('alb-sel-all').addEventListener('click', () => { const allSelected = selectedAlbumIds.size === currentAlbumData.length; if (allSelected) selectedAlbumIds.clear(); else currentAlbumData.forEach(p => selectedAlbumIds.add(p.id)); syncSelectionUI(); });
+    document.getElementById('alb-delete').addEventListener('click', async () => { if (!checkSelection()) { retroAlert("SELECT PHOTOS FIRST"); return; } const userConfirmed = await retroConfirm("DELETE SELECTED PHOTOS?\n(Cannot be undone)"); if (userConfirmed) { const idsToRemove = Array.from(selectedAlbumIds); await deleteFromAlbum(idsToRemove); await loadAlbum(); } });
     
-    document.body.style.cursor = 'wait';
-
-    try {
-        for (let p of selectedData) { 
-            // [修改] 改用 annotateExportPhoto，避免重複疊加邊框
-            const finalDataUrl = await annotateExportPhoto(
-                p.image, 
-                addSerial ? p.serial : "", // 如果要序號就傳，不要就傳空字串
-                p.style, 
-                customText
-            );
-
-            const fileName = `RETRO_${Date.now()}_${p.serial}.jpg`; 
-            
-            if (exportActionType === 'download') { 
-                const link = document.createElement('a'); 
-                link.download = fileName; 
-                link.href = finalDataUrl; 
-                link.click(); 
-                await new Promise(r => setTimeout(r, 200)); 
-            } else { 
-                const blob = await (await fetch(finalDataUrl)).blob(); 
-                filesToShare.push(new File([blob], fileName, { type: 'image/jpeg' })); 
+    const exportModal = document.getElementById('export-modal'); let exportActionType = ''; 
+    function checkSelection() { if (selectedAlbumIds.size === 0) return false; return true; }
+    document.getElementById('alb-download').addEventListener('click', () => { if(!checkSelection()) { retroAlert("SELECT PHOTOS FIRST"); return; } exportActionType = 'download'; document.getElementById('exp-text-input').value = ""; exportModal.style.display = 'flex'; });
+    document.getElementById('alb-share').addEventListener('click', () => { if(!checkSelection()) { retroAlert("SELECT PHOTOS FIRST"); return; } if(!navigator.share) { retroAlert("SHARING NOT SUPPORTED"); return; } exportActionType = 'share'; document.getElementById('exp-text-input').value = ""; exportModal.style.display = 'flex'; });
+    document.getElementById('exp-cancel').addEventListener('click', () => exportModal.style.display = 'none');
+    document.getElementById('exp-no-serial').addEventListener('click', () => processExport(false));
+    document.getElementById('exp-with-serial').addEventListener('click', () => processExport(true));
+    async function processExport(addSerial) { 
+        const customText = document.getElementById('exp-text-input').value;
+        const selectedData = currentAlbumData.filter(p => selectedAlbumIds.has(p.id)); const filesToShare = []; document.body.style.cursor = 'wait';
+        try {
+            for (let p of selectedData) { const finalDataUrl = await annotateExportPhoto(p.image, addSerial ? p.serial : "", p.style, customText); const fileName = `RETRO_${Date.now()}_${p.serial}.jpg`; 
+                if (exportActionType === 'download') { const link = document.createElement('a'); link.download = fileName; link.href = finalDataUrl; link.click(); await new Promise(r => setTimeout(r, 200)); } 
+                else { const blob = await (await fetch(finalDataUrl)).blob(); filesToShare.push(new File([blob], fileName, { type: 'image/jpeg' })); } 
             } 
-        } 
-        
-        if (exportActionType === 'share' && filesToShare.length > 0) { 
-            try { await navigator.share({ files: filesToShare }); } catch (e) {} 
-        } 
-        
-        const idsToRemove = selectedData.map(p => p.id); 
-        await deleteFromAlbum(idsToRemove); 
-        await loadAlbum();
-        resetToCameraUI(); 
-
-   } catch (err) {
-        console.error("Export failed:", err);
-        retroAlert("EXPORT ERROR\nCheck console for details"); // [修改]
-    } finally {
-        document.body.style.cursor = 'default';
+            if (exportActionType === 'share' && filesToShare.length > 0) { try { await navigator.share({ files: filesToShare }); } catch (e) {} } 
+            const idsToRemove = selectedData.map(p => p.id); await deleteFromAlbum(idsToRemove); await loadAlbum(); resetToCameraUI(); 
+        } catch (err) { console.error("Export failed:", err); retroAlert("EXPORT ERROR\nCheck console for details"); } finally { document.body.style.cursor = 'default'; }
     }
-}
-        function resetToCameraUI() { exportModal.style.display = 'none'; closeBackDoor(); document.getElementById('review-overlay').style.display = 'none'; pendingPhoto = null; updateLeverUI(); }
-        function checkOrientation() { if (window.innerHeight > window.innerWidth) { document.getElementById('orientation-lock').style.display = 'flex'; document.getElementById('camera-container').style.display = 'none'; fsPrompt.style.display = 'none'; } else { document.getElementById('orientation-lock').style.display = 'none'; if (document.fullscreenElement) { document.getElementById('camera-container').style.display = 'block'; document.getElementById('fullscreen-prompt').style.display = 'none'; resizeElements(); } else { enforceFullscreen(); } } }
-       
-       // [修改] 優化版縮放函數，確保相機永遠在畫面正中央
-function resizeElements() { 
-    const container = document.getElementById('camera-container');
-    const w = window.innerWidth; 
-    const h = window.innerHeight; 
-    
-    const baseW = 760; 
-    const baseH = 420; 
-    
-    const isTablet = (w / h) < 1.6; 
-    const multiplier = isTablet ? 0.8 : 0.85; 
-    
-    const scale = Math.min(w / baseW, h / baseH) * multiplier; 
-    
-    // [修改] 調整垂直位置
-    // 50% = 正中央
-    // 58% = 稍微偏下 (推薦)
-    // 65% = 非常貼近底部
-    // 您可以修改 '58%' 這個數字來決定要多低
-    container.style.top = '53%'; 
-    
-    container.style.left = '50%';
-    container.style.transform = `translate(-50%, -50%) scale(${scale})`; 
-    
-    if (document.fullscreenElement || window.innerHeight < window.innerWidth) {
-       container.style.display = 'block';
-    }
-}
-
-// 監聽視窗大小改變 (包含旋轉手機)
-window.addEventListener('resize', () => { 
-    checkOrientation(); 
-    resizeElements(); 
-    // 延遲執行一次，應對某些瀏覽器轉向時的動畫延遲
-    setTimeout(resizeElements, 300); 
-});
-
-// 初始執行一次
-resizeElements();
-    </script>
+    function resetToCameraUI() { exportModal.style.display = 'none'; closeBackDoor(); document.getElementById('review-overlay').style.display = 'none'; pendingPhoto = null; updateLeverUI(); }
+    function checkOrientation() { if (window.innerHeight > window.innerWidth) { document.getElementById('orientation-lock').style.display = 'flex'; document.getElementById('camera-container').style.display = 'none'; fsPrompt.style.display = 'none'; } else { document.getElementById('orientation-lock').style.display = 'none'; if (document.fullscreenElement) { document.getElementById('camera-container').style.display = 'block'; document.getElementById('fullscreen-prompt').style.display = 'none'; resizeElements(); } else { enforceFullscreen(); } } }
+    function resizeElements() { const container = document.getElementById('camera-container'); const w = window.innerWidth; const h = window.innerHeight; const baseW = 760; const baseH = 420; const isTablet = (w / h) < 1.6; const multiplier = isTablet ? 0.8 : 0.85; const scale = Math.min(w / baseW, h / baseH) * multiplier; container.style.top = '53%'; container.style.left = '50%'; container.style.transform = `translate(-50%, -50%) scale(${scale})`; if (document.fullscreenElement || window.innerHeight < window.innerWidth) { container.style.display = 'block'; } }
+    window.addEventListener('resize', () => { checkOrientation(); resizeElements(); setTimeout(resizeElements, 300); });
+    resizeElements();
+</script>
 </body>
 </html>
