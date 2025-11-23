@@ -231,6 +231,41 @@
     box-shadow: 0 0 20px #0f0, inset 0 0 10px #0f0 !important;
 }
 
+
+/* [新增] 焦距顯示器樣式 */
+    .vf-zoom-indicator {
+        position: absolute;
+        top: 20px; /* 與頂部數據欄高度對齊 */
+        left: 50%;
+        transform: translateX(-50%); /* 絕對置中 */
+        
+        font-family: 'Courier New', monospace;
+        font-weight: bold;
+        font-size: 20px;
+        letter-spacing: 1px;
+        
+        /* 改用琥珀金 (Amber/Gold) 以區分綠色數據 */
+        color: #ffcc00; 
+        text-shadow: 0 0 5px rgba(255, 204, 0, 0.8); /* 金色光暈 */
+        
+        /* 外框裝飾 */
+        border: 2px solid #ffcc00;
+        padding: 2px 10px;
+        border-radius: 4px;
+        background: rgba(60, 40, 0, 0.6); /* 深褐色半透明背景，增加對比度 */
+        
+        z-index: 20;
+        transition: opacity 0.3s;
+        pointer-events: none; /* 防止擋住手勢操作 */
+    }
+
+    /* 自拍模式下也維持琥珀色，與紅綠介面形成對比，非常好看 */
+    body.is-selfie .vf-zoom-indicator {
+        color: #ffcc00 !important;
+        border-color: #ffcc00 !important;
+    }
+
+    
 /* 4. 防止文字重疊 (保留上次的微調) */
 .vf-data-top {
     top: 10px; /* 貼近頂部 */
@@ -529,45 +564,46 @@ body.is-selfie .exp-dot.center {
     <div id="orientation-lock"><svg viewBox="0 0 24 24"><path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/></svg><p>ROTATE DEVICE</p></div>
 
     <div id="fs-viewfinder">
-    <!-- 1. 畫布 (不變) -->
-    <canvas id="fs-canvas"></canvas>
-    
-    <!-- 2. 復古光學質感層 (保留，增加質感) -->
-    <div class="vf-optic-layer"></div>
-    
-    <!-- 3. UI 層 -->
-    <div class="fs-ui-layer">
-        <div id="vf-close-btn" title="Exit">×</div>
+        <!-- 1. 畫布 (不變) -->
+        <canvas id="fs-canvas"></canvas>
         
-        <!-- [還原] 1. 導引框：變回最單純的空 div，沒有內部的角落標記 -->
-        <div class="fs-guide-frame" id="fsGuideFrame"></div>
-
-        <!-- [還原] 2. 對焦圈：變回最單純的空 div，沒有內部的裂像線 -->
-        <div class="split-image-circle" id="splitCircle"></div>
-
-        <!-- [保留] 3. 復古數據文字 (這些你說沒問題，我們保留) -->
-        <div class="vf-data-top">
-            <div class="vf-mode-badge" id="fs-mode-text">B&W</div>
-            <div class="vf-batt"><span>BAT</span><div class="batt-icon"><div class="batt-level"></div></div></div>
-        </div>
-        <div class="vf-data-bottom">
-          <div class="exp-meter">
-    <!-- ID 是 exp-btn-minus -->
-    <span id="exp-btn-minus" style="font-size:20px;">-</span>
+        <!-- 2. 復古光學質感層 (保留，增加質感) -->
+        <div class="vf-optic-layer"></div>
+        
+        <!-- 3. UI 層 -->
+        <div class="fs-ui-layer">
+            <div id="vf-close-btn" title="Exit">×</div>
+            
+            <!-- 導引框 -->
+            <div class="fs-guide-frame" id="fsGuideFrame"></div>
     
-    <div class="exp-scale">
-        <div class="exp-dot"></div><div class="exp-dot"></div><div class="exp-dot center"></div><div class="exp-dot"></div><div class="exp-dot"></div>
-        <div class="exp-needle" id="exp-needle"></div>
-    </div>
+            <!-- 對焦圈 -->
+            <div class="split-image-circle" id="splitCircle"></div>
     
-    <!-- ID 是 exp-btn-plus -->
-    <span id="exp-btn-plus" style="font-size:20px;">+</span>
-</div>
-            <div class="vf-params"><span class="vf-yellow">1/125</span><span class="vf-yellow">F2.8</span><span class="vf-iso">ISO 400</span></div>
-            <div class="vf-counter-box"><span class="vf-label">REM</span><span id="fs-counter" class="vf-big-num">36</span></div>
+            <!-- 頂部數據 -->
+            <div class="vf-data-top">
+                <div class="vf-mode-badge" id="fs-mode-text">B&W</div>
+                <div class="vf-batt"><span>BAT</span><div class="batt-icon"><div class="batt-level"></div></div></div>
+            </div>
+
+            <!-- [新增] 這裡加入焦距顯示器 -->
+            <div id="fs-zoom-text" class="vf-zoom-indicator">1.0x</div>
+    
+            <!-- 底部數據 -->
+            <div class="vf-data-bottom">
+              <div class="exp-meter">
+                <span id="exp-btn-minus" style="font-size:20px;">-</span>
+                <div class="exp-scale">
+                    <div class="exp-dot"></div><div class="exp-dot"></div><div class="exp-dot center"></div><div class="exp-dot"></div><div class="exp-dot"></div>
+                    <div class="exp-needle" id="exp-needle"></div>
+                </div>
+                <span id="exp-btn-plus" style="font-size:20px;">+</span>
+              </div>
+                <div class="vf-params"><span class="vf-yellow">1/125</span><span class="vf-yellow">F2.8</span><span class="vf-iso">ISO 400</span></div>
+                <div class="vf-counter-box"><span class="vf-label">REM</span><span id="fs-counter" class="vf-big-num">36</span></div>
+            </div>
         </div>
     </div>
-</div>
 
     <div id="film-roll-overlay">
         <h2 style="color:white; font-family:'Courier New'; margin-bottom:30px; text-shadow:0 0 5px #fff;">SELECT FILM STOCK</h2>
@@ -833,7 +869,7 @@ body.is-selfie .exp-dot.center {
                         vec3 gray = vec3(dot(c, vec3(0.299, 0.587, 0.114)));
                         c = mix(gray, c, 1.25);
                         float dist = distance(uv, vec2(0.5, 0.5));
-                        float vignette = smoothstep(0.8, 0.25, dist * 1.0); 
+                        float vignette = smoothstep(1.2, 0.25, dist * 1.0); 
                         c *= vignette;
                         c += vec3(0.0, 0.02, 0.01) * (1.0 - c);
                     }
@@ -953,22 +989,30 @@ body.is-selfie .exp-dot.center {
     /* --- VARS --- */
 
 
-/* --- [新增] 數碼變焦 (Digital Zoom) 變數與邏輯 --- */
-   let currentZoom = 1.0;
+/* --- [新增] 數碼變焦 (Digital Zoom) 變數與邏輯 (含 UI 顯示) --- */
+    let currentZoom = 1.0;
     const minZoom = 1.0;
     const maxZoom = 3.0; // 最大放大 3 倍
     let initialPinchDistance = 0;
     let startZoomLevel = 1.0;
     
-    // [關鍵修復] 防止兩指鬆開時誤觸雙擊重置
+    // 防止兩指鬆開時誤觸雙擊重置
     let isPinching = false; 
 
     const fsViewfinderEl = document.getElementById('fs-viewfinder');
+    const zoomTextEl = document.getElementById('fs-zoom-text'); // [新增] 獲取 UI 元素
+
+    // [新增] 輔助函數：更新 UI 文字
+    function updateZoomDisplay() {
+        if(zoomTextEl) {
+            zoomTextEl.textContent = currentZoom.toFixed(1) + "x";
+        }
+    }
 
     // 1. 雙指接觸開始
     fsViewfinderEl.addEventListener('touchstart', (e) => {
         if (e.touches.length === 2) {
-            isPinching = true; // 標記正在進行縮放
+            isPinching = true;
             initialPinchDistance = Math.hypot(
                 e.touches[0].pageX - e.touches[1].pageX,
                 e.touches[0].pageY - e.touches[1].pageY
@@ -980,9 +1024,8 @@ body.is-selfie .exp-dot.center {
     // 2. 雙指移動 (變焦中)
     fsViewfinderEl.addEventListener('touchmove', (e) => {
         if (e.touches.length === 2) {
-            // 阻止瀏覽器默認縮放
             e.preventDefault();
-            isPinching = true; // 再次確認正在縮放
+            isPinching = true;
 
             const currentDistance = Math.hypot(
                 e.touches[0].pageX - e.touches[1].pageX,
@@ -993,33 +1036,35 @@ body.is-selfie .exp-dot.center {
                 const pinchRatio = currentDistance / initialPinchDistance;
                 let newZoom = startZoomLevel * pinchRatio;
                 
-                // 限制範圍 (1.0x - 3.0x)
+                // 限制範圍
                 newZoom = Math.max(minZoom, Math.min(newZoom, maxZoom));
-                
                 currentZoom = newZoom;
+                
+                // [新增] 即時更新 UI
+                updateZoomDisplay();
             }
         }
     }, { passive: false });
 
-    // 3. 雙擊重置 (已修復衝突)
+    // 3. 雙擊重置
     let lastTapTime = 0;
     fsViewfinderEl.addEventListener('touchend', (e) => {
-        // [關鍵修復] 如果剛剛是縮放手勢，不要執行雙擊判定
+        // 如果剛剛是縮放手勢，不要執行雙擊判定
         if (isPinching) {
-            // 如果所有手指都離開了，重置縮放標記，讓下次可以正常點擊
             if (e.touches.length === 0) {
                 isPinching = false;
             }
-            return; // 直接結束，不執行下面的重置代碼
+            return;
         }
 
         const currentTime = new Date().getTime();
         const tapLength = currentTime - lastTapTime;
         
-        // 只有單指快速點擊兩次才會觸發重置
         if (tapLength < 300 && tapLength > 0) {
             currentZoom = 1.0;
             initialPinchDistance = 0;
+            // [新增] 重置時更新 UI
+            updateZoomDisplay();
         }
         lastTapTime = currentTime;
     });
@@ -1258,8 +1303,8 @@ function randomizeOSD() {
     }
 }
 
-    // [新增] 共用函數：打開全螢幕觀景窗 (統一邏輯)
-function openFullScreenViewfinder(e) {
+ // [新增] 共用函數：打開全螢幕觀景窗 (統一邏輯)
+    function openFullScreenViewfinder(e) {
         if (e) e.stopPropagation();
         
         // 確保相機已啟動
@@ -1270,8 +1315,12 @@ function openFullScreenViewfinder(e) {
         // 1. 每次進入，曝光歸零
         resetExposure();
 
-        // 2. [新增關鍵] 每次進入，變焦歸零，不紀錄上次設定
+        // 2. 每次進入，變焦歸零
         currentZoom = 1.0;
+        
+        // [新增] 重置焦距顯示為 1.0x
+        const zoomTextEl = document.getElementById('fs-zoom-text');
+        if(zoomTextEl) zoomTextEl.textContent = "1.0x";
 
         // 3. 計算白框大小
         updateFSGuideFrame();
