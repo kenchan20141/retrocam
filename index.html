@@ -1125,6 +1125,66 @@ function processFinalPhoto(imgUrl, dateObj, serialNo, style, customText) {
         img.src = imgUrl; 
     }); 
 }
+
+        // [新增] 專用於匯出的函數：只在現有照片上疊加文字，不增加邊框
+function annotateExportPhoto(imgUrl, serialNo, style, customText) {
+    return new Promise(async (resolve) => {
+        // 確保字體載入
+        try { await document.fonts.load('600 40px "Noto Serif TC"'); } catch (e) {}
+        try { await document.fonts.load('bold 36px "Courier New"'); } catch (e) {}
+
+        const img = new Image();
+        img.onload = () => {
+            // 使用圖片原本的大小（因為已經包含邊框了）
+            const w = img.width;
+            const h = img.height;
+            
+            // 建立畫布
+            const canvas = document.createElement('canvas');
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            
+            // 1. 繪製原本的照片（包含既有的日期與邊框）
+            ctx.drawImage(img, 0, 0);
+
+            // 2. 補上序號 (如果需要)
+            // 只有當 serialNo 有值時才繪製
+            if (serialNo && serialNo !== "") {
+                let serX = 30, serY = 30, serColor = 'rgba(255,255,255,0.8)';
+                
+                // 根據風格決定位置 (配合原本 processFinalPhoto 的邏輯)
+                if (style === 'white') {
+                    serX = 50; serY = h - 60; serColor = '#333'; 
+                } else if (style === 'film') {
+                    serX = 40; serY = h - 40; serColor = 'rgba(255,255,255,0.6)';
+                }
+
+                ctx.shadowColor = style === 'white' ? 'transparent' : '#000'; 
+                ctx.shadowBlur = 2; 
+                ctx.fillStyle = serColor; 
+                ctx.font = `bold 36px "Courier New", monospace`; 
+                ctx.textAlign = 'left'; 
+                ctx.textBaseline = 'bottom'; 
+                ctx.fillText(`No.${serialNo}`, serX, serY);
+            }
+
+            // 3. 補上自定義文字 (Caption)
+            if (style === 'white' && customText && customText.trim() !== "") {
+                ctx.fillStyle = '#111'; 
+                ctx.shadowBlur = 0;
+                ctx.font = `600 38px "Noto Serif TC", serif`; 
+                ctx.textAlign = 'center'; 
+                ctx.textBaseline = 'bottom'; 
+                // 繪製在底部中央
+                ctx.fillText(customText, w / 2, h - 40);
+            }
+
+            resolve(canvas.toDataURL('image/jpeg', 0.92));
+        };
+        img.src = imgUrl;
+    });
+}
         
     
        /* [MODIFIED] Smooth Transition Version */
@@ -1360,52 +1420,51 @@ document.getElementById('alb-share').addEventListener('click', () => {
         document.getElementById('exp-no-serial').addEventListener('click', () => processExport(false));
         document.getElementById('exp-with-serial').addEventListener('click', () => processExport(true));
        async function processExport(addSerial) { 
-    // [新增] 獲取輸入框文字
     const customText = document.getElementById('exp-text-input').value;
-    
     const selectedData = currentAlbumData.filter(p => selectedAlbumIds.has(p.id)); 
     const filesToShare = []; 
     
-    for (let p of selectedData) { 
-        let finalDataUrl = p.image; 
-        
-        // [修改] 無論是否要加 Serial，我們都調用 overlaySerial 來處理自定義文字
-        // 邏輯：如果用戶選 NO SERIAL，我們傳一個空字串或不繪製 Serial，但仍需繪製自定義文字
-        // 為了保持簡單，這裡稍微改寫邏輯：
-        
-        // 如果需要 Serial 或 有輸入自定義文字，都要重新繪製
-        if (addSerial || (p.style === 'white' && customText)) {
-             // 如果選 NO SERIAL，傳入空字串給 serialNo (或者在 overlaySerial 裡判斷，這裡用空字串稍微取巧但有效)
-             // 但為了不破壞原本 No.XXX 的格式，我們這樣做：
-             const serialToPrint = addSerial ? p.serial : ""; 
-             
-             // 注意：如果 serialToPrint 是空字串，overlaySerial 會印出 "No."，我們微調一下 overlaySerial 避免這個狀況
-             // 為了最少修改，建議直接傳入 p.serial，但如果 addSerial 為 false，我們稍微 hack 一下 overlaySerial 的顯示
-             // 更好的方式是直接傳遞：
-             finalDataUrl = await overlaySerial(p.image, addSerial ? p.serial : "", p.style, customText);
-        }
+    document.body.style.cursor = 'wait';
 
-        const fileName = `RETRO_${Date.now()}_${p.serial}.jpg`; 
-        
-        if (exportActionType === 'download') { 
-            const link = document.createElement('a'); 
-            link.download = fileName; 
-            link.href = finalDataUrl; 
-            link.click(); 
-            await new Promise(r => setTimeout(r, 200)); 
-        } else { 
-            const blob = await (await fetch(finalDataUrl)).blob(); 
-            filesToShare.push(new File([blob], fileName, { type: 'image/jpeg' })); 
+    try {
+        for (let p of selectedData) { 
+            // [修改] 改用 annotateExportPhoto，避免重複疊加邊框
+            const finalDataUrl = await annotateExportPhoto(
+                p.image, 
+                addSerial ? p.serial : "", // 如果要序號就傳，不要就傳空字串
+                p.style, 
+                customText
+            );
+
+            const fileName = `RETRO_${Date.now()}_${p.serial}.jpg`; 
+            
+            if (exportActionType === 'download') { 
+                const link = document.createElement('a'); 
+                link.download = fileName; 
+                link.href = finalDataUrl; 
+                link.click(); 
+                await new Promise(r => setTimeout(r, 200)); 
+            } else { 
+                const blob = await (await fetch(finalDataUrl)).blob(); 
+                filesToShare.push(new File([blob], fileName, { type: 'image/jpeg' })); 
+            } 
         } 
-    } 
-    
-    if (exportActionType === 'share' && filesToShare.length > 0) { 
-        try { await navigator.share({ files: filesToShare }); } catch (e) {} 
-    } 
-    
-    const idsToRemove = selectedData.map(p => p.id); 
-    await deleteFromAlbum(idsToRemove); 
-    resetToCameraUI(); 
+        
+        if (exportActionType === 'share' && filesToShare.length > 0) { 
+            try { await navigator.share({ files: filesToShare }); } catch (e) {} 
+        } 
+        
+        const idsToRemove = selectedData.map(p => p.id); 
+        await deleteFromAlbum(idsToRemove); 
+        await loadAlbum();
+        resetToCameraUI(); 
+
+    } catch (err) {
+        console.error("Export failed:", err);
+        alert("EXPORT ERROR");
+    } finally {
+        document.body.style.cursor = 'default';
+    }
 }
         function resetToCameraUI() { exportModal.style.display = 'none'; closeBackDoor(); document.getElementById('review-overlay').style.display = 'none'; pendingPhoto = null; updateLeverUI(); }
         function checkOrientation() { if (window.innerHeight > window.innerWidth) { document.getElementById('orientation-lock').style.display = 'flex'; document.getElementById('camera-container').style.display = 'none'; fsPrompt.style.display = 'none'; } else { document.getElementById('orientation-lock').style.display = 'none'; if (document.fullscreenElement) { document.getElementById('camera-container').style.display = 'block'; document.getElementById('fullscreen-prompt').style.display = 'none'; resizeElements(); } else { enforceFullscreen(); } } }
