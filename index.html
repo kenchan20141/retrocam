@@ -8,7 +8,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Lumigraph</title>
+<title>Lumigraph WebGL</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -401,12 +401,47 @@ body.is-selfie .shutter-release-btn { display: none; }
 .exp-scale { display: flex; gap: 6px; position: relative; align-items: center; margin: 0 5px; }
 .exp-dot { width: 4px; height: 4px; background: #50ff50; opacity: 0.5; border-radius: 50%; }
 .exp-dot.center { width: 6px; height: 6px; opacity: 1; background: #ff5050; box-shadow: 0 0 5px #ff0000; } /* 中央紅點 */
-.exp-needle { 
-    position: absolute; bottom: -8px; left: 50%; 
-    width: 0; height: 0; 
-    border-left: 4px solid transparent; border-right: 4px solid transparent; border-bottom: 6px solid #50ff50;
-    transform: translateX(-50%);
-    animation: meterShake 2s infinite ease-in-out;
+.exp-needle {
+    position: absolute; 
+    bottom: -8px; 
+    /* 預設在中間 */
+    left: 50%; 
+    
+    width: 0; 
+    height: 0; 
+    border-left: 4px solid transparent; 
+    border-right: 4px solid transparent; 
+    border-bottom: 6px solid #50ff50; /* 螢光綠 */
+    
+    transform: translateX(-50%); /* 確保指針尖端對準位置 */
+    
+    pointer-events: none; /* 確保不擋住點擊 */
+    
+    /* [關鍵] 移除 animation，加入 transition 讓移動變順暢 */
+    transition: left 0.2s ease-out; 
+}
+
+/* [新增] 自拍模式下的指針顏色 (紅色) */
+body.is-selfie .exp-needle {
+    border-left-color: transparent !important;
+    border-right-color: transparent !important;
+    border-bottom-color: #ff5050 !important; /* 只保留底部紅色 */
+    background-color: transparent !important;
+}
+
+/* 2. 修正圓點：恢復成實心圓 */
+/* 原本的設定把背景變透明了，這裡改回紅色填充 */
+body.is-selfie .exp-dot {
+    background-color: #ff5050 !important;
+    border: none !important; /* 移除邊框，變回實心 */
+    opacity: 0.5;
+}
+
+/* 3. 中央點：保持高亮 */
+body.is-selfie .exp-dot.center {
+    background-color: #ff0000 !important;
+    opacity: 1;
+    box-shadow: 0 0 6px #ff0000 !important;
 }
 @keyframes meterShake { 0% {left:50%} 20% {left:45%} 40% {left:55%} 60% {left:48%} 100% {left:50%} }
 
@@ -425,14 +460,51 @@ body.is-selfie .shutter-release-btn { display: none; }
 /* 自拍模式下的顏色變化 (變成紅色錄影風) */
 body.is-selfie .fs-ui-layer, 
 body.is-selfie .vf-mode-badge, 
-body.is-selfie .batt-icon, 
-body.is-selfie .exp-dot,
-body.is-selfie .exp-needle {
-    color: #ff5050; border-color: #ff5050; background-color: transparent;
+body.is-selfie .batt-icon {
+    color: #50ff50 !important;
+    border-color: #50ff50 !important;
 }
-body.is-selfie .batt-level,
+
+/* 2. 修正普通刻度點：變回實心綠色 */
 body.is-selfie .exp-dot {
-    background-color: #ff5050;
+    background-color: #50ff50 !important; /* 綠色背景 */
+    border: none !important;              /* 移除邊框 */
+    opacity: 0.5;
+}
+
+/* 3. 修正指針：變回綠色三角形 */
+body.is-selfie .exp-needle {
+    border-left-color: transparent !important;  /* 左右透明 */
+    border-right-color: transparent !important; /* 左右透明 */
+    border-bottom-color: #50ff50 !important;    /* 底部綠色 */
+    background-color: transparent !important;   /* 背景透明 */
+}
+
+/* 4. 修正電池：變回綠色 */
+body.is-selfie .batt-level {
+    background-color: #50ff50 !important;
+}
+
+/* 5. [關鍵] 只有「中央點」維持紅色高亮 */
+body.is-selfie .exp-dot.center {
+    background-color: #ff5050 !important; /* 紅色背景 */
+    box-shadow: 0 0 5px #ff0000 !important; /* 紅色光暈 */
+    opacity: 1;
+}
+
+    /* [修復] 強制讓曝光按鈕可以被點擊 */
+#exp-btn-minus, 
+#exp-btn-plus {
+    pointer-events: auto !important; /* 關鍵：恢復點擊感應 */
+    cursor: pointer;
+    z-index: 100; /* 確保浮在最上層 */
+    padding: 10px; /* 增加點擊範圍，手指好按 */
+    user-select: none; /* 防止雙擊選取文字 */
+}
+
+/* 確保指針不會擋住點擊 */
+.exp-needle {
+    pointer-events: none;
 }
     
 </style>
@@ -479,11 +551,18 @@ body.is-selfie .exp-dot {
             <div class="vf-batt"><span>BAT</span><div class="batt-icon"><div class="batt-level"></div></div></div>
         </div>
         <div class="vf-data-bottom">
-            <div class="exp-meter">
-                <span>-</span>
-                <div class="exp-scale"><div class="exp-dot"></div><div class="exp-dot"></div><div class="exp-dot center"></div><div class="exp-dot"></div><div class="exp-dot"></div><div class="exp-needle"></div></div>
-                <span>+</span>
-            </div>
+          <div class="exp-meter">
+    <!-- ID 是 exp-btn-minus -->
+    <span id="exp-btn-minus" style="font-size:20px;">-</span>
+    
+    <div class="exp-scale">
+        <div class="exp-dot"></div><div class="exp-dot"></div><div class="exp-dot center"></div><div class="exp-dot"></div><div class="exp-dot"></div>
+        <div class="exp-needle" id="exp-needle"></div>
+    </div>
+    
+    <!-- ID 是 exp-btn-plus -->
+    <span id="exp-btn-plus" style="font-size:20px;">+</span>
+</div>
             <div class="vf-params"><span class="vf-yellow">1/125</span><span class="vf-yellow">F2.8</span><span class="vf-iso">ISO 400</span></div>
             <div class="vf-counter-box"><span class="vf-label">REM</span><span id="fs-counter" class="vf-big-num">36</span></div>
         </div>
@@ -945,7 +1024,33 @@ body.is-selfie .exp-dot {
 
     document.getElementById('enter-fs-btn').addEventListener('click', () => { startFullscreenAndCamera(); });
     function startFullscreenAndCamera() { const el = document.documentElement; const rfs = el.requestFullscreen || el.webkitRequestFullScreen; if (rfs) { rfs.call(el).then(() => { initSystem().then(initCamera); if(isOrientationLocked && screen.orientation && screen.orientation.lock) { screen.orientation.lock('landscape').catch(()=>{}); } }).catch(() => { initSystem().then(initCamera); }); } }
-    async function initCamera() { try { if(video.srcObject) { video.srcObject.getTracks().forEach(track => track.stop()); } const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: isSelfieMode ? 'user' : 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false }); video.srcObject = stream; video.onloadedmetadata = () => { video.play(); renderLoop(); }; } catch (err) { console.error("Camera Error", err); } }
+   async function initCamera() { 
+        try { 
+            if(video.srcObject) { video.srcObject.getTracks().forEach(track => track.stop()); } 
+            
+            const stream = await navigator.mediaDevices.getUserMedia({ 
+                video: { 
+                    facingMode: isSelfieMode ? 'user' : 'environment', 
+                    width: { ideal: 1280 }, 
+                    height: { ideal: 720 },
+                    // [新增] 請求曝光模式為連續自動 (這是讓 EV 生效的前提)
+                    advanced: [{ exposureMode: 'continuous' }]
+                }, 
+                audio: false 
+            }); 
+            
+            video.srcObject = stream; 
+            video.onloadedmetadata = () => { 
+                video.play(); 
+                renderLoop(); 
+                
+                // [新增] 相機啟動後，初始化曝光控制按鈕
+                initExposureControl();
+            }; 
+        } catch (err) { 
+            console.error("Camera Error", err); 
+        } 
+    }
     function enforceFullscreen() { if (!document.fullscreenElement) { fsPrompt.style.display = 'flex'; document.getElementById('camera-container').style.display = 'none'; fsViewfinder.style.display = 'none'; } }
     document.addEventListener('fullscreenchange', enforceFullscreen);
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') { if (video.srcObject) { video.srcObject.getTracks().forEach(track => track.stop()); video.srcObject = null; } if(shutterAudio) { shutterAudio.pause(); shutterAudio.currentTime = 0; } } else if (document.visibilityState === 'visible') { enforceFullscreen(); setTimeout(() => { if (!video.srcObject || !video.srcObject.active) { initCamera(); } }, 300); } });
@@ -1014,30 +1119,10 @@ body.is-selfie .exp-dot {
         }
     }
 
-    // [修改] 點擊打開觀景窗時，計算白框大小
- vfTrigger.addEventListener('click', (e) => { 
-        e.stopPropagation(); 
-        fsViewfinder.style.display = 'block'; 
-        
-        // 1. 立即計算白框大小 (85%)
-        updateFSGuideFrame();
-        
-        // 2. 更新復古數值
-        randomizeOSD();
-
-        // 3. 確保剛打開時圓圈是白色的 (移除 focused)
-        const circle = document.getElementById('splitCircle');
-        if(circle) circle.classList.remove('focused');
-
-        // 素描模式隱藏對焦框邏輯
-        if(isSketchMode) { 
-            splitCircle.style.display = 'none'; 
-            fsGuideFrame.style.display = 'none'; 
-        } else { 
-            splitCircle.style.display = 'block'; 
-            fsGuideFrame.style.display = 'block'; 
-        } 
-    });
+    // [新代碼] 綁定兩個觀景窗按鈕，統一使用相同的開啟邏輯
+vfTrigger.addEventListener('click', openFullScreenViewfinder);
+frontVfTrigger.addEventListener('click', openFullScreenViewfinder);
+ 
     
     vfCloseBtn.addEventListener('click', (e) => { e.stopPropagation(); fsViewfinder.style.display = 'none'; });
     fsViewfinder.addEventListener('click', (e) => { if(e.target.id !== 'vf-close-btn') handleShutter(e); });
@@ -1084,6 +1169,38 @@ function randomizeOSD() {
         params[0].textContent = s;
         params[1].textContent = a;
     }
+}
+
+    // [新增] 共用函數：打開全螢幕觀景窗 (統一邏輯)
+function openFullScreenViewfinder(e) {
+    e.stopPropagation();
+    
+    // 確保相機已啟動
+    if (!video.srcObject || !video.srcObject.active) return;
+
+    fsViewfinder.style.display = 'block';
+    
+    // 1. 每次進入，曝光歸零 (還原操作邏輯)
+    resetExposure();
+
+    // 2. 計算白框大小
+    updateFSGuideFrame();
+    
+    // 3. 更新復古數值
+    randomizeOSD();
+
+    // 4. 確保剛打開時圓圈是白色的 (移除之前的綠色鎖定)
+    const circle = document.getElementById('splitCircle');
+    if(circle) circle.classList.remove('focused');
+
+    // 5. 素描模式隱藏對焦框
+    if(isSketchMode) { 
+        splitCircle.style.display = 'none'; 
+        fsGuideFrame.style.display = 'none'; 
+    } else { 
+        splitCircle.style.display = 'block'; 
+        fsGuideFrame.style.display = 'block'; 
+    } 
 }
 
     
@@ -1374,6 +1491,122 @@ function randomizeOSD() {
         updateFSGuideFrame(); // 延遲再執行一次確保準確
     }, 300); 
 });
+
+
+// 1. 真實電量系統
+async function initBatterySystem() {
+    const battLevel = document.querySelector('.batt-level');
+    const battIcon = document.querySelector('.batt-icon');
+    
+    if (navigator.getBattery) {
+        // 支援 API (Android, PC)
+        try {
+            const battery = await navigator.getBattery();
+            
+            const updateBatt = () => {
+                // 轉換為百分比寬度 (0.0 - 1.0)
+                battLevel.style.width = (battery.level * 100) + '%';
+                
+                // 充電中顯示綠色/黃色提示
+                if(battery.charging) {
+                    battIcon.style.borderColor = '#ffff00'; // 充電變黃
+                    battLevel.style.backgroundColor = '#ffff00';
+                } else {
+                    battIcon.style.borderColor = ''; // 恢復原色
+                    battLevel.style.backgroundColor = '';
+                }
+            };
+            
+            // 初始執行與監聽
+            updateBatt();
+            battery.addEventListener('levelchange', updateBatt);
+            battery.addEventListener('chargingchange', updateBatt);
+            
+        } catch (e) {
+            console.log("Battery API Error", e);
+        }
+    } else {
+        // 不支援 API (iOS Safari) - 保持預設 CSS 動畫或設為滿電
+        // 這裡我們讓它顯示 85% 假裝一下，避免空的
+        if(battLevel) battLevel.style.width = '85%';
+    }
+}
+
+/* --- [新增] 全域曝光變數與重置函數 --- */
+let currentEV = 0; 
+const STEP_EV = 0.5; // 每次點擊移動 0.5 EV (半格)
+const MAX_EV = 2.0;  // 最大 +2
+const MIN_EV = -2.0; // 最小 -2
+
+/* --- [重置函數] --- */
+function resetExposure() {
+    currentEV = 0;
+    const needle = document.getElementById('exp-needle');
+    if(needle) needle.style.left = '50%'; // 回到正中間
+    
+    if (video.srcObject) {
+        video.style.filter = 'brightness(100%)';
+        const track = video.srcObject.getVideoTracks()[0];
+        const capabilities = track.getCapabilities ? track.getCapabilities() : {};
+        if (capabilities.exposureCompensation) {
+            track.applyConstraints({ advanced: [{ exposureCompensation: 0 }] }).catch(()=>{});
+        }
+    }
+}
+
+/* --- [曝光控制函數] --- */
+async function initExposureControl() {
+    const btnPlus = document.getElementById('exp-btn-plus');
+    const btnMinus = document.getElementById('exp-btn-minus');
+    const needle = document.getElementById('exp-needle');
+
+    if (!btnPlus || !btnMinus || !needle) return;
+
+    // 移除舊監聽器
+    const newPlus = btnPlus.cloneNode(true);
+    const newMinus = btnMinus.cloneNode(true);
+    btnPlus.parentNode.replaceChild(newPlus, btnPlus);
+    btnMinus.parentNode.replaceChild(newMinus, btnMinus);
+
+    const applyExposure = async (direction) => {
+        // 1. 計算數值
+        if (direction === 'up') currentEV = Math.min(currentEV + STEP_EV, MAX_EV);
+        else currentEV = Math.max(currentEV - STEP_EV, MIN_EV);
+
+        // 2. 移動指針 (完全數學對應，不會亂跳)
+        // -2 EV = 10% (左邊)
+        //  0 EV = 50% (中間)
+        // +2 EV = 90% (右邊)
+        const needlePos = 50 + (currentEV * 20); 
+        needle.style.left = needlePos + '%';
+        
+        // 3. 執行曝光調整
+        if (video.srcObject) {
+            const track = video.srcObject.getVideoTracks()[0];
+            const capabilities = track.getCapabilities ? track.getCapabilities() : {};
+
+            if (capabilities.exposureCompensation) {
+                try {
+                    await track.applyConstraints({
+                        advanced: [{ exposureCompensation: currentEV }]
+                    });
+                } catch (err) { console.warn("EV error", err); }
+            } else {
+                // iOS 模擬亮度
+                const brightness = 1 + (currentEV * 0.2); 
+                video.style.filter = `brightness(${brightness})`;
+            }
+        }
+    };
+
+    newPlus.addEventListener('click', (e) => { e.stopPropagation(); e.preventDefault(); applyExposure('up'); });
+    newMinus.addEventListener('click', (e) => { e.stopPropagation(); e.preventDefault(); applyExposure('down'); });
+}
+
+// 初始啟動
+initBatterySystem();
+
+    
 
 function updateFSGuideFrame() {
     const container = document.getElementById('fs-viewfinder');
