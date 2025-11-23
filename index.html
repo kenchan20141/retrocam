@@ -868,7 +868,12 @@ body.is-selfie .exp-dot.center {
                         c = (c - 0.5) * 1.35 + 0.5;
                         vec3 gray = vec3(dot(c, vec3(0.299, 0.587, 0.114)));
                         c = mix(gray, c, 1.25);
-                        float dist = distance(uv, vec2(0.5, 0.5));
+                       // 利用 u_seed 產生隨機偏移量 (-0.1 到 +0.1 之間)
+float offX = (rand(vec2(u_seed, 11.0)) - 0.5) * 0.015; 
+float offY = (rand(vec2(u_seed, 22.0)) - 0.5) * 0.015;
+
+// 計算距離
+float dist = distance(uv, vec2(0.5 + offX, 0.5 + offY));
                         float vignette = smoothstep(1.2, 0.25, dist * 1.0); 
                         c *= vignette;
                         c += vec3(0.0, 0.02, 0.01) * (1.0 - c);
