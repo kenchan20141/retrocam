@@ -734,58 +734,7 @@
             }); 
         });
 
-        function applyFrameAndDate(imgUrl, dateObj, style) { 
-            return new Promise(resolve => { 
-                const img = new Image(); 
-                img.onload = () => { 
-                    let w = 1920, h = 1080; 
-                    let padTop = 0, padSide = 0, padBottom = 0; 
-                    if (style === 'white') { padTop = 50; padSide = 50; padBottom = 150; w = 1200; h = Math.floor(w * (9/16)) + padTop + padBottom; } 
-                    else if (style === 'film') { padTop = 80; padSide = 0; padBottom = 80; } 
-                    
-                    finalCanvas.width = w; finalCanvas.height = h; 
-                    const ctx = finalCanvas.getContext('2d'); 
-                    ctx.filter = 'none'; 
-                    
-                    if (style === 'white') { 
-                        ctx.fillStyle = '#fff'; ctx.fillRect(0,0,w,h); 
-                        ctx.drawImage(img, padSide, padTop, w - padSide*2, h - padTop - padBottom); 
-                    } else if (style === 'film') { 
-                        ctx.drawImage(img, 0, padTop, w, h - padTop*2); 
-                        ctx.fillStyle = '#111'; ctx.fillRect(0, 0, w, padTop); ctx.fillRect(0, h - padBottom, w, padBottom); 
-                        ctx.fillStyle = '#fff'; const holeW = 30, gap = 20; 
-                        for(let x = 30; x < w; x += (holeW + gap)) { ctx.fillRect(x, 20, holeW, 40); ctx.fillRect(x, h - 60, holeW, 40); } 
-                    } else { 
-                        ctx.drawImage(img, 0, 0, w, h); 
-                    } 
-                    
-                    // [MODIFIED] Positive Film Effect Calculation
-                    // Enhance contrast and saturation for the final output
-                    ctx.globalCompositeOperation = 'overlay';
-                    ctx.fillStyle = 'rgba(10, 10, 20, 0.2)'; // Slight dark cast for depth
-                    ctx.fillRect(0, 0, w, h);
-                    ctx.globalCompositeOperation = 'source-over';
-
-                    const d = new Date(dateObj); 
-                    const dateStr = `'${d.getFullYear().toString().slice(-2)} ${(d.getMonth()+1).toString().padStart(2,'0')} ${d.getDate().toString().padStart(2,'0')}`; 
-                    let dateX = (style === 'white') ? w - padSide - 30 : ((style === 'film') ? w - 50 : w - 60); 
-                    let dateY = (style === 'white' || style === 'film') ? h - padBottom - 30 : h - 50; 
-                    
-                    if (isSketchMode) { 
-                        ctx.save(); ctx.shadowBlur = 0; 
-                        const m = SKETCH_MODES[currentModeIdx]; 
-                        if(m.id === 'SKETCH_CYBER') ctx.fillStyle = '#0f0'; else if(m.id === 'SKETCH_BLUE') ctx.fillStyle = '#fff'; else if(m.id === 'SKETCH_HK_NEON') ctx.fillStyle = '#ff00cc'; else ctx.fillStyle = 'rgba(50, 50, 50, 0.85)'; 
-                        ctx.font = `normal 45px "Segoe Print", "Comic Sans MS", cursive`; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom'; ctx.translate(dateX, dateY); ctx.rotate(-0.05); ctx.fillText(dateStr, 0, 0); ctx.restore(); 
-                    } else { 
-                        ctx.shadowColor = '#ff5500'; ctx.shadowBlur = 15; ctx.fillStyle = 'rgba(255, 170, 50, 0.9)'; 
-                        const fontSize = style === 'white' ? 40 : 50; 
-                        ctx.font = `bold ${fontSize}px "Courier New", monospace`; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom'; ctx.fillText(dateStr, dateX, dateY); 
-                    } 
-                    resolve(finalCanvas.toDataURL('image/jpeg', 0.9)); 
-                }; 
-                img.src = imgUrl; 
-            }); 
-        }
+        function applyFrameAndDate(imgUrl, dateObj, style) { return new Promise(resolve => { const img = new Image(); img.onload = () => { let w = 1920, h = 1080; let padTop = 0, padSide = 0, padBottom = 0; if (style === 'white') { padTop = 50; padSide = 50; padBottom = 150; w = 1200; h = Math.floor(w * (9/16)) + padTop + padBottom; } else if (style === 'film') { padTop = 80; padSide = 0; padBottom = 80; } finalCanvas.width = w; finalCanvas.height = h; const ctx = finalCanvas.getContext('2d'); ctx.filter = 'none'; if (style === 'white') { ctx.fillStyle = '#fff'; ctx.fillRect(0,0,w,h); ctx.drawImage(img, padSide, padTop, w - padSide*2, h - padTop - padBottom); } else if (style === 'film') { ctx.drawImage(img, 0, padTop, w, h - padTop*2); ctx.fillStyle = '#111'; ctx.fillRect(0, 0, w, padTop); ctx.fillRect(0, h - padBottom, w, padBottom); ctx.fillStyle = '#fff'; const holeW = 30, gap = 20; for(let x = 30; x < w; x += (holeW + gap)) { ctx.fillRect(x, 20, holeW, 40); ctx.fillRect(x, h - 60, holeW, 40); } } else { ctx.drawImage(img, 0, 0, w, h); } const d = new Date(dateObj); const dateStr = `'${d.getFullYear().toString().slice(-2)} ${(d.getMonth()+1).toString().padStart(2,'0')} ${d.getDate().toString().padStart(2,'0')}`; let dateX = (style === 'white') ? w - padSide - 30 : ((style === 'film') ? w - 50 : w - 60); let dateY = (style === 'white' || style === 'film') ? h - padBottom - 30 : h - 50; if (isSketchMode) { ctx.save(); ctx.shadowBlur = 0; const m = SKETCH_MODES[currentModeIdx]; if(m.id === 'SKETCH_CYBER') ctx.fillStyle = '#0f0'; else if(m.id === 'SKETCH_BLUE') ctx.fillStyle = '#fff'; else if(m.id === 'SKETCH_HK_NEON') ctx.fillStyle = '#ff00cc'; else ctx.fillStyle = 'rgba(50, 50, 50, 0.85)'; ctx.font = `normal 45px "Segoe Print", "Comic Sans MS", cursive`; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom'; ctx.translate(dateX, dateY); ctx.rotate(-0.05); ctx.fillText(dateStr, 0, 0); ctx.restore(); } else { ctx.shadowColor = '#ff5500'; ctx.shadowBlur = 15; ctx.fillStyle = 'rgba(255, 170, 50, 0.9)'; const fontSize = style === 'white' ? 40 : 50; ctx.font = `bold ${fontSize}px "Courier New", monospace`; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom'; ctx.fillText(dateStr, dateX, dateY); } resolve(finalCanvas.toDataURL('image/jpeg', 0.9)); }; img.src = imgUrl; }); }
         
         function overlaySerial(imgUrl, serialNo, style) { return new Promise(resolve => { const img = new Image(); img.onload = () => { finalCanvas.width = img.width; finalCanvas.height = img.height; const ctx = finalCanvas.getContext('2d'); ctx.drawImage(img, 0, 0); let x = 30, y = 30, color = '#fff'; if (style === 'white') { x = 50; y = img.height - 80; color = '#333'; } else if (style === 'film') { x = 40; y = 100; color = 'rgba(255,255,255,0.8)'; } else { color = 'rgba(255,255,255,0.8)'; } ctx.shadowColor = style === 'white' ? 'transparent' : '#000'; ctx.shadowBlur = 2; ctx.fillStyle = color; ctx.font = `bold 36px "Courier New", monospace`; ctx.textAlign = 'left'; ctx.textBaseline = 'top'; ctx.fillText(`No.${serialNo}`, x, y); resolve(finalCanvas.toDataURL('image/jpeg', 0.9)); }; img.src = imgUrl; }); }
         async function startDevelopingAnimation(photos, style) { devOverlay.style.display = 'flex'; devStatus.textContent = "PREPARING..."; const processed = []; for (let p of photos) { const thisSerial = globalSerialCounter++; localStorage.setItem('global_serial_counter', globalSerialCounter); const finalImg = await applyFrameAndDate(p.image, p.date, style); processed.push({ img: finalImg, serial: thisSerial, style: style }); } for (let i = 0; i < processed.length; i++) { devStatus.textContent = `DEVELOPING ${i+1}/${processed.length}`; devImageWrap.src = processed[i].img; devImageWrap.style.border = style === 'white' ? 'none' : '8px solid white'; devImageWrap.style.animation = 'none'; devImageWrap.offsetHeight; devImageWrap.style.animation = 'developProcess 3s forwards'; await new Promise(r => setTimeout(r, 3200)); await saveToAlbum(processed[i].img, processed[i].serial, processed[i].style); } devStatus.textContent = "FINISHED"; await new Promise(r => setTimeout(r, 800)); devOverlay.style.display = 'none'; if (isRollMode) { await clearTemp(); currentFrame = 0; updateCounterDisplay(); } else { pendingPhoto = null; } updateLeverUI(); }
