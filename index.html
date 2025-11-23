@@ -132,6 +132,30 @@
     @keyframes lensFlash { 0% { opacity: 0.8; } 100% { opacity: 0; } }
     .camera-interior { width: 100%; height: 100%; background: #0a0a0a; border-radius: 0 0 8px 8px; box-shadow: inset 0 0 40px #000; position: absolute; top: 0; left: 0; z-index: 1; display: flex; flex-direction: column; overflow: hidden; border-left: 1px solid #333; border-right: 1px solid #333; border-bottom: 1px solid #333; }
 
+/* [新增] 相簿讀取中的提示樣式 */
+#album-loader {
+    position: absolute; 
+    top: 50%; left: 50%; 
+    transform: translate(-50%, -50%);
+    color: #c00; /* 使用紅色LED風格 */
+    font-family: 'Courier New', monospace; 
+    font-weight: bold;
+    font-size: 16px; 
+    letter-spacing: 3px; 
+    z-index: 100;
+    display: none; /* 預設隱藏 */
+    animation: blinkText 0.8s infinite;
+    text-shadow: 0 0 5px rgba(204, 0, 0, 0.6);
+    pointer-events: none;
+}
+
+@keyframes blinkText { 
+    0%, 100% { opacity: 1; } 
+    50% { opacity: 0.3; } 
+}
+
+
+    
     .album-container { flex: 1; padding: 20px; overflow-y: auto; display: none; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 15px; align-content: flex-start; }
     .album-container.active { display: grid; }
     .album-container::-webkit-scrollbar { width: 8px; }
@@ -422,6 +446,10 @@
 
         <div class="camera-body">
             <div class="camera-interior">
+
+<!-- [新增] Loading 提示文字 -->
+    <div id="album-loader">READING DATA...</div>
+                
                 <div class="album-container" id="albumGrid"></div>
                 
                 <div class="static-canister-overlay" id="staticCanister">
@@ -1034,35 +1062,73 @@ async function startDevelopingAnimation(photos, style) {
         btnViewFilm.addEventListener('click', () => { isFilmViewMode = true; updateViewVisibility(); });
         btnViewGrid.addEventListener('click', () => { isFilmViewMode = false; updateViewVisibility(); });
 
-       async function loadAlbum() {
-            albumGrid.innerHTML = ''; 
-            filmStripView.innerHTML = ''; 
+      async function loadAlbum() {
+    const loader = document.getElementById('album-loader');
+    const grid = document.getElementById('albumGrid');
+    const strip = document.getElementById('filmStripView');
+
+    // 1. 顯示 Loading
+    loader.style.display = 'block';
+    grid.innerHTML = ''; 
+    strip.innerHTML = ''; 
+
+    // 2. 延遲執行，讓瀏覽器有時間渲染出 "READING DATA..." 文字
+    setTimeout(async () => {
+        try {
             selectedAlbumIds.clear(); 
             currentAlbumData = await getAlbumPhotos(); 
             currentAlbumData.sort((a,b) => b.timestamp - a.timestamp); 
             
             if(currentAlbumData.length === 0) { 
                 const emptyMsg = '<p style="color:#555; width:100%; text-align:center; margin-top:50px; font-family:monospace;">ALBUM EMPTY</p>';
-                albumGrid.innerHTML = emptyMsg; filmStripView.innerHTML = emptyMsg;
+                grid.innerHTML = emptyMsg; 
+                strip.innerHTML = emptyMsg;
             } else {
-                for (const p of currentAlbumData) {
-                    // Grid View
+                const gridFragment = document.createDocumentFragment();
+                const stripFragment = document.createDocumentFragment();
+
+                // [關鍵優化] 使用 Promise.all 並行讀取所有圖片尺寸
+                // 這比原本的 "await 一張、再 await 下一張" 快非常多
+                const imageTasks = currentAlbumData.map(p => {
+                    return new Promise((resolve) => {
+                        const img = new Image();
+                        img.onload = () => {
+                            // 計算原始比例寬度
+                            const visibleHeight = 152; // 對應 CSS 高度 (扣除邊框)
+                            const naturalRatio = img.width / img.height;
+                            const calculatedWidth = visibleHeight * naturalRatio;
+                            resolve({ p: p, width: calculatedWidth, valid: true });
+                        };
+                        img.onerror = () => {
+                            // 讀取失敗的備案 (3:2)
+                            resolve({ p: p, width: 228, valid: false });
+                        };
+                        img.src = p.image;
+                    });
+                });
+
+                // 等待所有圖片尺寸計算完成
+                const processedItems = await Promise.all(imageTasks);
+
+                // 開始建立 DOM
+                for (const item of processedItems) {
+                    const p = item.p;
+
+                    // --- Grid View (方塊視圖) ---
                     const div = document.createElement('div'); div.className = 'album-photo'; div.dataset.id = p.id;
-                    const img = document.createElement('img'); img.src = p.image;
+                    const imgEl = document.createElement('img'); imgEl.src = p.image; imgEl.loading = "lazy"; // 加入 lazy load
                     const seq = document.createElement('div'); seq.className = 'album-seq'; seq.textContent = `No.${p.serial}`;
-                    div.appendChild(img); div.appendChild(seq);
+                    div.appendChild(imgEl); div.appendChild(seq);
                     div.onclick = (e) => { if (div.clickTimeout) { clearTimeout(div.clickTimeout); div.clickTimeout = null; showZoom(p.image); } else { div.clickTimeout = setTimeout(() => { div.clickTimeout = null; toggleSelectionAll(p.id); }, 250); } };
-                    albumGrid.appendChild(div);
+                    gridFragment.appendChild(div);
 
-                    // Film Strip View (Translucent Positive Film Look)
-                    const tempImg = new Image(); tempImg.src = p.image;
-                    await tempImg.decode().catch(() => {}); 
-                    const visibleHeight = 152; 
-                    const naturalRatio = tempImg.width / tempImg.height;
-                    const totalWidth = visibleHeight * naturalRatio; 
-
-                    const frameContainer = document.createElement('div'); frameContainer.className = 'film-frame-container'; frameContainer.dataset.id = p.id;
-                    frameContainer.style.width = `${totalWidth}px`; 
+                    // --- Film Strip View (底片視圖 - 保持原始比例) ---
+                    const frameContainer = document.createElement('div'); 
+                    frameContainer.className = 'film-frame-container'; 
+                    frameContainer.dataset.id = p.id;
+                    
+                    // [這裡] 使用剛剛算出來的精確寬度
+                    frameContainer.style.width = `${item.width}px`; 
                     
                     const block = document.createElement('div'); block.className = 'film-block';
                     const blockImg = document.createElement('div'); blockImg.className = 'film-block-img';
@@ -1076,11 +1142,23 @@ async function startDevelopingAnimation(photos, style) {
                         frameContainer.scrollIntoView({behavior: "smooth", block: "center", inline: "center"}); 
                         if (frameContainer.clickTimeout) { clearTimeout(frameContainer.clickTimeout); frameContainer.clickTimeout = null; showZoom(p.image); } else { frameContainer.clickTimeout = setTimeout(() => { frameContainer.clickTimeout = null; toggleSelectionAll(p.id); }, 250); } 
                     };
-                    filmStripView.appendChild(frameContainer);
+                    stripFragment.appendChild(frameContainer);
                 }
+
+                grid.appendChild(gridFragment);
+                strip.appendChild(stripFragment);
             }
+            
             updateViewVisibility();
+
+        } catch (err) {
+            console.error("Album Load Error", err);
+        } finally {
+            // 3. 隱藏 Loading
+            loader.style.display = 'none';
         }
+    }, 50); // 保留延遲以確保 UI 顯示
+}
         
         function showZoom(imgSrc) { zoomImg.src = imgSrc; zoomOverlay.style.display = 'flex'; }
         zoomOverlay.addEventListener('click', () => { zoomOverlay.style.display = 'none'; });
