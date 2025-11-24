@@ -953,15 +953,6 @@ body.is-selfie .exp-dot.center {
 
 #date-option-wrapper:hover .date-checkbox { border-color: #fff; }
 #date-option-wrapper:hover span { color: #fff; }
-
-    #enter-fs-btn {
-    pointer-events: auto !important; /* 强制允许点击，防止父元素覆盖 */
-    z-index: 10001; /* 高于提示框 */
-    position: relative; /* 确保事件冒泡正常 */
-}
-#fullscreen-prompt {
-    pointer-events: auto; /* 允许整个提示框响应事件 */
-}
     
 </style>
 </head>
@@ -1835,116 +1826,135 @@ let currentRollState = Math.random(); // 這是控制底片風格的靜態亂數
     document.getElementById('enter-fs-btn').addEventListener('click', () => { startFullscreenAndCamera(); });
   // 修改 startFullscreenAndCamera 函數
 async function startFullscreenAndCamera() {
-    // 1. 重置所有状态（包括按钮重置）
+
+// ★ 強制重置按鈕狀態，確保可以重複點擊
+const enterBtn = document.getElementById('enter-fs-btn');
+if (enterBtn) enterBtn.disabled = true;
+    
+    // 1. 重置所有狀態
     releaseCameraResources();
     webGLRenderer = new WebGLRenderer(processCanvas);
-    
-    // [新增] 强制重置 POWER ON 按钮状态（确保可点击）
-    const enterBtn = document.getElementById('enter-fs-btn');
-    if (enterBtn) {
-        enterBtn.disabled = false;
-        enterBtn.style.pointerEvents = 'auto';
-        enterBtn.style.opacity = '1'; // 防止样式覆盖导致不可见
-    }
-    
+
     const fsPrompt = document.getElementById('fullscreen-prompt');
     const cameraContainer = document.getElementById('camera-container');
     const fsViewfinder = document.getElementById('fs-viewfinder');
     const el = document.documentElement;
-    const rfs = el.requestFullscreen || el.webkitRequestFullScreen || el.webkitRequestFullscreen;
+    const rfs = el.requestFullscreen || el.webkitRequestFullScreen || el.webkitRequestFullscreen; // 標準化請求全螢幕方法
     const isIPhone = /iPhone/.test(navigator.userAgent) && !window.MSStream;
-    
-    // 2. 隐藏可能残留的 UI 元素
+
+    // 2. 隱藏可能殘留的 UI 元素
     if (cameraContainer) cameraContainer.style.display = 'none';
     if (fsViewfinder) fsViewfinder.style.display = 'none';
-    
-    // 3. 确保提示框被隐藏（开始执行时）
+    // 3. 確保提示框被隱藏（開始執行時）
+    // ★ 重新啟用按鈕
+const enterBtn = document.getElementById('enter-fs-btn');
+if (enterBtn) enterBtn.disabled = false;
     if (fsPrompt) fsPrompt.style.display = 'none';
-    
-    // 4. 先初始化系统
+
+    // 4. 先初始化系統
     await initSystem();
-    
+
+    // 5. 設置按鈕狀態（假設開始執行後按鈕應該被禁用或隱藏，因為它不再需要）
+    // 注意：這裡的關鍵是，一旦進入相機流程，按鈕就不再需要，所以隱藏提示框即可。
+    // 如果你想在過程中禁用按鈕，可以在函數開始時禁用，成功或失敗後再啟用。
+    // const enterBtn = document.getElementById('enter-fs-btn');
+    // if (enterBtn) enterBtn.disabled = true; // 可選：在處理過程中禁用
+
     if (isIPhone) {
-        // iPhone 不请求全屏，直接启动相机
+        // iPhone 不請求全螢幕，直接啟動相機
         console.log("iPhone mode detected, initializing camera without fullscreen.");
-        if (fsPrompt) fsPrompt.style.display = 'none';
+        // 隱藏提示，顯示相機容器
+        // ★ 重新啟用按鈕
+const enterBtn = document.getElementById('enter-fs-btn');
+if (enterBtn) enterBtn.disabled = false;
+        if (fsPrompt) fsPrompt.style.display = 'none'; // 再次確保
         if (cameraContainer) cameraContainer.style.display = 'block';
         try {
             await initCamera();
-            // 成功后，确保 UI 状态正确
+            // 成功後，確保 UI 狀態正確（相機顯示，提示隱藏）
+            // ★ 重新啟用按鈕
+const enterBtn = document.getElementById('enter-fs-btn');
+if (enterBtn) enterBtn.disabled = false;
             if (fsPrompt) fsPrompt.style.display = 'none';
             if (cameraContainer) cameraContainer.style.display = 'block';
         } catch (err) {
-            console.error("Failed to initialize camera on iPhone mode:", err);
-            // [修订] 失败时，显示提示并重置按钮
-            if (fsPrompt) fsPrompt.style.display = 'flex';
-            if (cameraContainer) cameraContainer.style.display = 'none';
-            if (enterBtn) {
-                enterBtn.disabled = false;
-                enterBtn.style.pointerEvents = 'auto';
-            }
+             console.error("Failed to initialize camera on iPhone mode:", err);
+             // 初始化失敗，重新顯示提示
+             if (fsPrompt) fsPrompt.style.display = 'flex';
+             if (cameraContainer) cameraContainer.style.display = 'none';
         }
     } else if (rfs) {
         try {
             console.log("Attempting to enter fullscreen...");
             await rfs.call(el);
             console.log("Fullscreen entered successfully.");
-            if (fsPrompt) fsPrompt.style.display = 'none';
+            // ★ 重新啟用按鈕
+const enterBtn = document.getElementById('enter-fs-btn');
+if (enterBtn) enterBtn.disabled = false;
+            // 請求全螢幕成功後
+            if (fsPrompt) fsPrompt.style.display = 'none'; // 再次確保
             if (cameraContainer) cameraContainer.style.display = 'block';
             await initCamera();
             if (isOrientationLocked && screen.orientation && screen.orientation.lock) {
                 await screen.orientation.lock('landscape').catch(() => {});
             }
-            // 成功后，确保 UI 状态正确
-            if (fsPrompt) fsPrompt.style.display = 'none';
-            if (cameraContainer) cameraContainer.style.display = 'block';
+            // ★ 重新啟用按鈕
+const enterBtn = document.getElementById('enter-fs-btn');
+if (enterBtn) enterBtn.disabled = false;
+             // 成功後，確保 UI 狀態正確（相機顯示，提示隱藏）
+             if (fsPrompt) fsPrompt.style.display = 'none';
+             if (cameraContainer) cameraContainer.style.display = 'block';
         } catch (err) {
             console.warn('Fullscreen failed, falling back to normal mode', err);
-            // [修订] 退回标准模式时，显示提示并重置按钮
-            if (fsPrompt) fsPrompt.style.display = 'flex';
-            if (cameraContainer) cameraContainer.style.display = 'none';
-            if (enterBtn) {
-                enterBtn.disabled = false;
-                enterBtn.style.pointerEvents = 'auto';
-            }
+            // 退回標準模式，但仍然隱藏提示，顯示相機容器
+            // 這裡是關鍵：即使全屏失敗，也要確保相機啟動或 UI 恢復
+            // ★ 重新啟用按鈕
+const enterBtn = document.getElementById('enter-fs-btn');
+if (enterBtn) enterBtn.disabled = false;
+            if (fsPrompt) fsPrompt.style.display = 'none'; // 確保提示不顯示
+            if (cameraContainer) cameraContainer.style.display = 'block'; // 顯示相機容器
             try {
-                await initCamera();
+                await initCamera(); // 嘗試初始化相機
+                // 成功後，確保 UI 狀態正確（相機顯示，提示隱藏）
+                // ★ 重新啟用按鈕
+const enterBtn = document.getElementById('enter-fs-btn');
+if (enterBtn) enterBtn.disabled = false;
                 if (fsPrompt) fsPrompt.style.display = 'none';
                 if (cameraContainer) cameraContainer.style.display = 'block';
             } catch (initErr) {
                 console.error("Failed to initialize camera even in fallback mode:", initErr);
-                // 初始化也失败，则恢复提示并重置按钮
+                // 初始化也失敗，則恢復提示
                 if (fsPrompt) fsPrompt.style.display = 'flex';
                 if (cameraContainer) cameraContainer.style.display = 'none';
-                if (enterBtn) {
-                    enterBtn.disabled = false;
-                    enterBtn.style.pointerEvents = 'auto';
-                }
             }
         }
     } else {
-        // 完全不支持全屏 API 的情况
+        // 完全不支援全屏 API 的情況
         console.warn("Fullscreen API not supported, attempting camera fallback.");
-        if (fsPrompt) fsPrompt.style.display = 'none';
-        if (cameraContainer) cameraContainer.style.display = 'block';
+        // ★ 重新啟用按鈕
+const enterBtn = document.getElementById('enter-fs-btn');
+if (enterBtn) enterBtn.disabled = false;
+        if (fsPrompt) fsPrompt.style.display = 'none'; // 確保提示不顯示
+        if (cameraContainer) cameraContainer.style.display = 'block'; // 顯示相機容器
         try {
-            await initCamera();
+            await initCamera(); // 嘗試初始化相機
+            // 成功後，確保 UI 狀態正確（相機顯示，提示隱藏）
+            // ★ 重新啟用按鈕
+const enterBtn = document.getElementById('enter-fs-btn');
+if (enterBtn) enterBtn.disabled = false;
             if (fsPrompt) fsPrompt.style.display = 'none';
             if (cameraContainer) cameraContainer.style.display = 'block';
         } catch (initErr) {
             console.error("Failed to initialize camera in unsupported fullscreen mode:", initErr);
-            // 初始化也失败，则恢复提示并重置按钮
+            // 初始化也失敗，則恢復提示
             if (fsPrompt) fsPrompt.style.display = 'flex';
             if (cameraContainer) cameraContainer.style.display = 'none';
-            if (enterBtn) {
-                enterBtn.disabled = false;
-                enterBtn.style.pointerEvents = 'auto';
-            }
         }
     }
-    
-    // [新增] 函数结束时，确保按钮状态可用（虽通常此时提示框已隐藏）
-    if (enterBtn) enterBtn.disabled = false;
+
+    // 6. 確保按鈕狀態在函數結束時是可用的（以防執行路徑中有設置為禁用的地方）
+    const enterBtn = document.getElementById('enter-fs-btn');
+    if (enterBtn) enterBtn.disabled = false; // 啟用按鈕（雖然通常此時按鈕所在的提示框已被隱藏）
 }
 
 
@@ -1984,30 +1994,29 @@ function releaseCameraResources() {
 // 2. 重寫 visibilitychange 事件處理
 document.removeEventListener('visibilitychange', handleVisibilityChange);
 function handleVisibilityChange() {
-  if (document.visibilityState === 'hidden') {
-    // 進入背景：關閉串流、停止渲染
-    releaseCameraResources();
-  } else if (document.visibilityState === 'visible') {
-    // 關鍵修復：更徹底的相機重啟機制
-    setTimeout(async () => {
-      // 先強制釋放所有資源
-      releaseCameraResources();
-      // 重建 UI 狀態
-      fsPrompt.style.display = 'flex';
-      document.getElementById('camera-container').style.display = 'none';
-      fsViewfinder.style.display = 'none';
-      
-      // 重建 WebGL
-      webGLRenderer = new WebGLRenderer(processCanvas); 
-      
-
-      
-      // 重置全螢幕狀態
-      if (document.fullscreenElement) {
-        document.exitFullscreen().catch(() => {});
-      }
-    }, 300);
-  }
+    if (document.visibilityState === 'hidden') {
+        releaseCameraResources();
+    } else if (document.visibilityState === 'visible') {
+        setTimeout(async () => {
+            releaseCameraResources();
+            
+            // ★ 關鍵修復：重建 WebGL 後立即檢查全屏狀態
+            webGLRenderer = new WebGLRenderer(processCanvas);
+            
+            if (document.fullscreenElement) {
+                // 仍在全屏，重新初始化相機
+                try {
+                    await initCamera();
+                } catch (err) {
+                    console.error('Re-init failed:', err);
+                    setTimeout(initCamera, 500);
+                }
+            } else {
+                // 不在全屏，恢復提示畫面
+                enforceFullscreen();
+            }
+        }, 300);
+    }
 }
 document.addEventListener('visibilitychange', handleVisibilityChange);
 
@@ -2082,21 +2091,31 @@ async function initCamera() {
     // 初始化曝光控制
     initExposureControl();
     
-  } catch (err) { 
+ } catch (err) {
     console.error("Camera init Error", err);
-    // 針對特定錯誤提供恢復策略
+    
+    // ★ 關鍵修復：相機初始化失敗時，確保 UI 狀態正確
+    const fsPrompt = document.getElementById('fullscreen-prompt');
+    const cameraContainer = document.getElementById('camera-container');
+    
     if (err.name === 'NotAllowedError') {
-      console.log('User denied camera permission');
-      // 可以在這裡添加用戶提示
+        console.log('User denied camera permission');
+        if (fsPrompt) fsPrompt.style.display = 'flex';
+        if (cameraContainer) cameraContainer.style.display = 'none';
     } else if (err.name === 'NotFoundError') {
-      console.log('Camera device not found');
+        console.log('Camera device not found');
+        if (fsPrompt) fsPrompt.style.display = 'flex';
+        if (cameraContainer) cameraContainer.style.display = 'none';
     } else {
-      // 其他錯誤，嘗試重試
-      setTimeout(initCamera, 1500);
+        // ★ 其他錯誤，僅在仍處於全屏時才重試
+        if (document.fullscreenElement) {
+            setTimeout(initCamera, 1500);
+        } else {
+            if (fsPrompt) fsPrompt.style.display = 'flex';
+            if (cameraContainer) cameraContainer.style.display = 'none';
+        }
     }
-  } 
 }
-
 
     // 6. 優化 PWA 生命周期
 if ('serviceWorker' in navigator) {
@@ -2164,60 +2183,54 @@ if ('serviceWorker' in navigator) {
     const cameraContainer = document.getElementById('camera-container');
     const fsViewfinder = document.getElementById('fs-viewfinder');
     
-    // [新增] 获取并重置按钮
-    const enterBtn = document.getElementById('enter-fs-btn');
-    if (enterBtn) {
-        enterBtn.disabled = false;
-        enterBtn.style.pointerEvents = 'auto';
-        enterBtn.style.opacity = '1';
-    }
-    
     if (!isFullscreen) {
-        // 退出全屏时
+        // 退出全屏時
         console.log("Fullscreen ended, resetting UI and releasing resources.");
-        // 释放相机资源
         releaseCameraResources();
-        // 隐藏相机和取景器容器
+        
         if (cameraContainer) cameraContainer.style.display = 'none';
         if (fsViewfinder) fsViewfinder.style.display = 'none';
-        // 重新显示全屏提示
+        
         if (fsPrompt) {
             fsPrompt.style.display = 'flex';
-            // [修订] 确保提示框子元素可点击（防止 z-index 或 overflow 覆盖）
-            fsPrompt.style.pointerEvents = 'auto';
-            fsPrompt.style.zIndex = '10000';
-        }
-        // [新增] 重绑按钮事件（防止事件丢失）
-        if (enterBtn) {
-            enterBtn.onclick = null; // 先移除旧事件
-            enterBtn.addEventListener('click', () => { startFullscreenAndCamera(); }, { once: false });
+            const enterBtn = document.getElementById('enter-fs-btn');
+            if (enterBtn) {
+                enterBtn.disabled = false;
+                // ★ 關鍵修復：移除所有舊的事件監聽器並重新綁定
+                const newBtn = enterBtn.cloneNode(true);
+                enterBtn.parentNode.replaceChild(newBtn, enterBtn);
+                newBtn.addEventListener('click', () => { startFullscreenAndCamera(); });
+            }
         }
     } else {
-        // 已进入全屏
         console.log("Currently in fullscreen.");
+        // ★ 重新啟用按鈕
+const enterBtn = document.getElementById('enter-fs-btn');
+if (enterBtn) enterBtn.disabled = false;
         if (fsPrompt) fsPrompt.style.display = 'none';
     }
 }
     document.addEventListener('fullscreenchange', enforceFullscreen);
-   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'hidden') {
-        // 进入背景：关闭串流、停止渲染
-        releaseCameraResources();
-    } else if (document.visibilityState === 'visible') {
-        // [修订] 调用 enforceFullscreen 进行统一重置（包含按钮重绑）
-        enforceFullscreen();
-        setTimeout(async () => {
-            // 重建 WebGL + 相机
-            webGLRenderer = new WebGLRenderer(processCanvas);
-            try {
-                await initCamera();
-            } catch (err) {
-                console.error('Re-init failed, retrying:', err);
-                // 再次尝试（iOS 重试机制）
-                setTimeout(initCamera, 500);
-            }
-        }, 300);
+    document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') {
+    // 進入背景：關閉串流、停止渲染
+    if (video.srcObject) {
+      video.srcObject.getTracks().forEach(track => track.stop());
+      video.srcObject = null;
     }
+    if (shutterAudio) {
+      shutterAudio.pause();
+      shutterAudio.currentTime = 0;
+    }
+  } else if (document.visibilityState === 'visible') {
+    // 關鍵修復：重新初始化整個相機系統（含 WebGL）
+    enforceFullscreen();
+    setTimeout(async () => {
+      // 重建 WebGL + 相機
+      webGLRenderer = new WebGLRenderer(processCanvas); // ★ 重建 WebGL
+      await initCamera();
+    }, 300);
+  }
 });
     orientationBtn.addEventListener('click', async () => { isOrientationLocked = !isOrientationLocked; orientationBtn.classList.toggle('locked', isOrientationLocked); localStorage.setItem('orientationLocked', isOrientationLocked); if (isOrientationLocked) { try { if (screen.orientation && screen.orientation.lock) { await screen.orientation.lock('landscape'); } } catch (e) { } } else { try { if (screen.orientation && screen.orientation.unlock) { screen.orientation.unlock(); } } catch (e) {} } });
 
