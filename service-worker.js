@@ -37,7 +37,6 @@ self.addEventListener('activate', (e) => {
 });
 
 // 關鍵修復: 處理離線導航請求
-// 替換整個 fetch 事件處理程序
 self.addEventListener('fetch', (e) => {
   // 只處理同源請求
   if (new URL(e.request.url).origin !== self.location.origin) {
@@ -55,7 +54,7 @@ self.addEventListener('fetch', (e) => {
         })
         .catch(() => {
           // 所有方法都失敗，返回一個基本的離線頁面
-          return new Response('<!DOCTYPE html><html><head><title>Lumigraph Offline</title><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head><body style="background:#000;color:#fff;display:flex;justify-content:center;align-items:center;height:100vh"><div style="text-align:center"><h1>OFFLINE MODE</h1><p>Please use the POWER ON button to continue</p></div></body></html>', {
+          return new Response('<!DOCTYPE html><html><head><title>Offline</title></head><body><h1>You are offline</h1><p>Please go back and try again when online.</p></body></html>', {
             headers: { 'Content-Type': 'text/html' }
           });
         })
@@ -73,8 +72,7 @@ self.addEventListener('fetch', (e) => {
         return fetch(e.request)
           .catch(() => {
             // 如果是核心資產，即使網路失敗也嘗試從快取獲取
-            if (CORE_ASSETS.includes(new URL(e.request.url).pathname) || 
-                e.request.url.includes('service-worker.js')) {
+            if (CORE_ASSETS.includes(new URL(e.request.url).pathname)) {
               return caches.match(e.request);
             }
             throw new Error('Network and cache both failed');
