@@ -1824,34 +1824,193 @@ let currentRollState = Math.random(); // 這是控制底片風格的靜態亂數
     function updateLeverUI() { const isEndOfRoll = isRollMode && currentFrame >= 36; if (!isFilmAdvanced || isEndOfRoll) { readyLight.classList.add('active'); leverBase.classList.add('glow'); } else { readyLight.classList.remove('active'); leverBase.classList.remove('glow'); } }
 
     document.getElementById('enter-fs-btn').addEventListener('click', () => { startFullscreenAndCamera(); });
-  function startFullscreenAndCamera() {
-    const el = document.documentElement;
-    const rfs = el.requestFullscreen || el.webkitRequestFullScreen;
-
-    // 【核心判斷】是否為 iPhone（不包含 iPad）
-    const isIPhone = /iPhone/.test(navigator.userAgent) && !window.MSStream;
-
-    if (isIPhone) {
-        // iPhone：不請求全螢幕，直接啟動相機
-        initSystem().then(initCamera);
-        fsPrompt.style.display = 'none';
-        document.getElementById('camera-container').style.display = 'block';
-    } else if (rfs) {
-        // 其他裝置（iPad / Android）：走原本全螢幕流程
-        rfs.call(el).then(() => {
-            initSystem().then(initCamera);
-            if (isOrientationLocked && screen.orientation && screen.orientation.lock) {
-                screen.orientation.lock('landscape').catch(() => {});
-            }
-        }).catch(() => {
-            // 全螢幕失敗 fallback（極少數 Android）
-            initSystem().then(initCamera);
-        });
-    } else {
-        // 極端 fallback（理論上不會觸發）
-        initSystem().then(initCamera);
+  // 修改 startFullscreenAndCamera 函數
+async function startFullscreenAndCamera() {
+  const el = document.documentElement;
+  const rfs = el.requestFullscreen || el.webkitRequestFullScreen;
+  
+  const isIPhone = /iPhone/.test(navigator.userAgent) && !window.MSStream;
+  
+  // 先初始化系統，再處理全屏
+  await initSystem();
+  
+  if (isIPhone) {
+    // iPhone 不請求全螢幕，直接啟動相機
+    fsPrompt.style.display = 'none';
+    document.getElementById('camera-container').style.display = 'block';
+    await initCamera();
+  } else if (rfs) {
+    try {
+      await rfs.call(el);
+      await initCamera();
+      if (isOrientationLocked && screen.orientation && screen.orientation.lock) {
+        await screen.orientation.lock('landscape').catch(() => {});
+      }
+    } catch (err) {
+      console.warn('Fullscreen failed, falling back to normal mode', err);
+      // 全螢幕失敗後仍然嘗試初始化相機
+      await initCamera();
     }
+  }
 }
+
+
+// 1. 強化相機資源釋放
+function releaseCameraResources() {
+  if (video.srcObject) {
+    const tracks = video.srcObject.getTracks();
+    tracks.forEach(track => {
+      try {
+        track.stop();
+      } catch (e) {
+        console.warn('Error stopping track:', e);
+      }
+    });
+    video.srcObject = null;
+  }
+  
+  // 釋放音頻資源
+  if (shutterAudio) {
+    shutterAudio.pause();
+    shutterAudio.currentTime = 0;
+  }
+  
+  // 重建 WebGL 渲染器
+  if (webGLRenderer && webGLRenderer.gl) {
+    try {
+      // 嘗試重置 WebGL context
+      const ext = webGLRenderer.gl.getExtension('WEBGL_lose_context');
+      if (ext) {
+        ext.loseContext();
+        ext.restoreContext();
+      }
+    } catch (e) {
+      console.warn('WebGL context reset failed, will recreate:', e);
+      webGLRenderer = new WebGLRenderer(processCanvas);
+    }
+  }
+}
+
+// 2. 修改 visibilitychange 事件處理
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') {
+    // 進入背景：關閉串流、停止渲染
+    releaseCameraResources();
+  } else if (document.visibilityState === 'visible') {
+    // 關鍵修復：更徹底的相機重啟機制
+    setTimeout(async () => {
+      // 先強制釋放所有資源
+      releaseCameraResources();
+      
+      // 重建 WebGL
+      webGLRenderer = new WebGLRenderer(processCanvas); 
+      
+      // 重新初始化相機
+      try {
+        await initCamera();
+      } catch (err) {
+        console.error('Re-init failed, retrying:', err);
+        // 再次嘗試
+        setTimeout(initCamera, 500);
+      }
+    }, 300);
+  }
+});
+
+// 3. 增加錯誤邊界和恢復機制
+window.addEventListener('error', (e) => {
+  console.error('Global error caught:', e);
+  
+  // WebGL 相關錯誤處理
+  if (e.message && (e.message.includes('WebGL') || e.message.includes('context lost'))) {
+    console.log('WebGL context lost, attempting recovery...');
+    setTimeout(() => {
+      if (webGLRenderer) {
+        webGLRenderer = new WebGLRenderer(processCanvas);
+      }
+    }, 1000);
+  }
+});
+
+// 4. 增強相機初始化函數
+async function initCamera() { 
+  try {
+    releaseCameraResources(); // 確保先清理
+    
+    const stream = await navigator.mediaDevices.getUserMedia({ 
+      video: { 
+        facingMode: isSelfieMode ? 'user' : 'environment', 
+        width: { ideal: 1280 }, 
+        height: { ideal: 720 },
+        advanced: [{ exposureMode: 'continuous' }]
+      }, 
+      audio: false 
+    }); 
+    
+    // 確保正確設置
+    video.srcObject = stream;
+    await new Promise((resolve) => {
+      video.onloadedmetadata = resolve;
+      video.play().catch(e => {
+        console.error('Video play failed:', e);
+        resolve(); // 繼續執行
+      });
+    });
+    
+    renderLoop(); 
+    
+    // 初始化曝光控制
+    initExposureControl();
+    
+  } catch (err) { 
+    console.error("Camera init Error", err);
+    // 針對特定錯誤提供恢復策略
+    if (err.name === 'NotAllowedError') {
+      console.log('User denied camera permission');
+      // 可以在這裡添加用戶提示
+    } else if (err.name === 'NotFoundError') {
+      console.log('Camera device not found');
+    } else {
+      // 其他錯誤，嘗試重試
+      setTimeout(initCamera, 1500);
+    }
+  } 
+}
+
+
+    // 6. 優化 PWA 生命周期
+if ('serviceWorker' in navigator) {
+  // 監聽 controllerchange 事件
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    // 新的 SW 已激活，提示用戶刷新
+    if (!sessionStorage.getItem('pwa-refresh-prompted')) {
+      sessionStorage.setItem('pwa-refresh-prompted', 'true');
+      if (confirm('New version available. Reload to update?')) {
+        window.location.reload();
+      }
+    }
+  });
+  
+  // 註冊後檢查更新
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.getRegistration().then(reg => {
+      if (reg) {
+        reg.update();
+      }
+    });
+  });
+  
+  // 監聽 app install 事件
+  window.addEventListener('beforeinstallprompt', (e) => {
+    // 可選：延遲安裝提示，直到用戶有明確意圖
+    e.preventDefault();
+    // 將事件保存以便稍後觸發
+    window.deferredPrompt = e;
+  });
+}
+
+
+    
    async function initCamera() { 
         try { 
             if(video.srcObject) { video.srcObject.getTracks().forEach(track => track.stop()); } 
