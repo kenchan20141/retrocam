@@ -1813,48 +1813,51 @@ let currentRollState = Math.random(); // 這是控制底片風格的靜態亂數
     function updateCounterDisplay() { if (!isRollMode) { frameCounterUI.textContent = "S"; fsCounter.textContent = "1"; } else { if (currentFrame === 0) frameCounterUI.textContent = "S"; else if (currentFrame >= 36) frameCounterUI.textContent = "E"; else frameCounterUI.textContent = currentFrame; fsCounter.textContent = (36 - currentFrame) + " LEFT"; } }
     function updateLeverUI() { const isEndOfRoll = isRollMode && currentFrame >= 36; if (!isFilmAdvanced || isEndOfRoll) { readyLight.classList.add('active'); leverBase.classList.add('glow'); } else { readyLight.classList.remove('active'); leverBase.classList.remove('glow'); } }
 
-    // [新增] 簡單的 iOS 偵測
-    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+    // 1. 精準偵測 iOS (包含 iPhone 與 iPad)
+    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
-    // [修改] POWER ON 按鈕點擊事件
+    // 2. POWER ON 按鈕邏輯
     document.getElementById('enter-fs-btn').addEventListener('click', async () => {
+        
         if (isIOS) {
-            // --- [iOS 專用邏輯] ---
-            // 1. 初始化系統 (音效/資料庫)，必須在點擊事件中立即執行以解鎖 AudioContext
+            // --- [iOS 專用流程] ---
+            // 關鍵點：在這裡我們 "不" 呼叫隱藏畫面的指令，也不呼叫全屏 API
+            
+            // A. 先啟動音效系統
             await initSystem();
 
-            // 2. 直接請求相機 (這會立刻觸發 iOS 的「是否允許使用相機」彈窗)
-            // 程式會在這裡「暫停」，直到用戶點下「允許」或「拒絕」
+            // B. 請求相機 (這時系統會彈出「允許相機」的視窗)
+            // 注意：此時 POWER ON 畫面仍然擋在最前面，使用者不會看到黑屏
             try {
-                await initCamera();
-
-                // 3. 只有當 initCamera 執行完畢且視訊流成功啟動後，才切換畫面
+                await initCamera(); 
+                
+                // C. 只有程式碼跑到這裡，代表使用者已經點了「允許」且相機啟動了
+                // 這時候我們才把 POWER ON 畫面拿掉
                 if (video.srcObject && video.srcObject.active) {
-                    // 隱藏歡迎頁面 (模擬進入全螢幕的效果)
                     document.getElementById('fullscreen-prompt').style.display = 'none';
-                    // 顯示相機容器
                     document.getElementById('camera-container').style.display = 'block';
                     
-                    // 強制觸發一次尺寸調整與白框修正
+                    // iOS 排版修正
                     resizeElements();
                     updateFSGuideFrame();
-                    
-                    // 嘗試隱藏 iOS 網址列 (盡可能)
                     window.scrollTo(0, 1);
                 }
+
             } catch (err) {
-                console.error("iOS Camera Permission Failed", err);
-                alert("請允許相機權限以啟動 LUMIGRAPH");
+                // 如果使用者點了「拒絕」，POWER ON 畫面會繼續保留
+                // 並提示使用者
+                alert("需允許相機權限才能使用。請重整網頁並點擊允許。");
+                console.error(err);
             }
 
         } else {
-            // --- [安卓/電腦 原有邏輯] --- 
-            // 保持絕對不變：先全螢幕 -> 再開相機
+            // --- [Android / 電腦 專用流程] ---
+            // 保持原本邏輯：先全屏 -> 再開相機 -> 再隱藏介面
             startFullscreenAndCamera();
         }
     });
 
-    // [保持原樣] 安卓/PC 使用的函數
+    // 3. [保持原樣] Android/PC 專用的全屏啟動函數
     function startFullscreenAndCamera() { 
         const el = document.documentElement; 
         const rfs = el.requestFullscreen || el.webkitRequestFullScreen; 
@@ -1866,11 +1869,10 @@ let currentRollState = Math.random(); // 這是控制底片風格的靜態亂數
                     screen.orientation.lock('landscape').catch(()=>{}); 
                 } 
             }).catch(() => { 
-                // 如果全螢幕被拒絕，仍然嘗試啟動
                 initSystem().then(initCamera); 
             }); 
         } else {
-            // 這是針對非 iOS 但又不支援 RFS 的罕見舊設備的備案
+            // 針對不支援全屏 API 的舊設備
             initSystem().then(initCamera);
             document.getElementById('fullscreen-prompt').style.display = 'none';
             document.getElementById('camera-container').style.display = 'block';
