@@ -1813,8 +1813,69 @@ let currentRollState = Math.random(); // 這是控制底片風格的靜態亂數
     function updateCounterDisplay() { if (!isRollMode) { frameCounterUI.textContent = "S"; fsCounter.textContent = "1"; } else { if (currentFrame === 0) frameCounterUI.textContent = "S"; else if (currentFrame >= 36) frameCounterUI.textContent = "E"; else frameCounterUI.textContent = currentFrame; fsCounter.textContent = (36 - currentFrame) + " LEFT"; } }
     function updateLeverUI() { const isEndOfRoll = isRollMode && currentFrame >= 36; if (!isFilmAdvanced || isEndOfRoll) { readyLight.classList.add('active'); leverBase.classList.add('glow'); } else { readyLight.classList.remove('active'); leverBase.classList.remove('glow'); } }
 
-    document.getElementById('enter-fs-btn').addEventListener('click', () => { startFullscreenAndCamera(); });
-    function startFullscreenAndCamera() { const el = document.documentElement; const rfs = el.requestFullscreen || el.webkitRequestFullScreen; if (rfs) { rfs.call(el).then(() => { initSystem().then(initCamera); if(isOrientationLocked && screen.orientation && screen.orientation.lock) { screen.orientation.lock('landscape').catch(()=>{}); } }).catch(() => { initSystem().then(initCamera); }); } }
+    // [新增] 簡單的 iOS 偵測
+    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+    // [修改] POWER ON 按鈕點擊事件
+    document.getElementById('enter-fs-btn').addEventListener('click', async () => {
+        if (isIOS) {
+            // --- [iOS 專用邏輯] ---
+            // 1. 初始化系統 (音效/資料庫)，必須在點擊事件中立即執行以解鎖 AudioContext
+            await initSystem();
+
+            // 2. 直接請求相機 (這會立刻觸發 iOS 的「是否允許使用相機」彈窗)
+            // 程式會在這裡「暫停」，直到用戶點下「允許」或「拒絕」
+            try {
+                await initCamera();
+
+                // 3. 只有當 initCamera 執行完畢且視訊流成功啟動後，才切換畫面
+                if (video.srcObject && video.srcObject.active) {
+                    // 隱藏歡迎頁面 (模擬進入全螢幕的效果)
+                    document.getElementById('fullscreen-prompt').style.display = 'none';
+                    // 顯示相機容器
+                    document.getElementById('camera-container').style.display = 'block';
+                    
+                    // 強制觸發一次尺寸調整與白框修正
+                    resizeElements();
+                    updateFSGuideFrame();
+                    
+                    // 嘗試隱藏 iOS 網址列 (盡可能)
+                    window.scrollTo(0, 1);
+                }
+            } catch (err) {
+                console.error("iOS Camera Permission Failed", err);
+                alert("請允許相機權限以啟動 LUMIGRAPH");
+            }
+
+        } else {
+            // --- [安卓/電腦 原有邏輯] --- 
+            // 保持絕對不變：先全螢幕 -> 再開相機
+            startFullscreenAndCamera();
+        }
+    });
+
+    // [保持原樣] 安卓/PC 使用的函數
+    function startFullscreenAndCamera() { 
+        const el = document.documentElement; 
+        const rfs = el.requestFullscreen || el.webkitRequestFullScreen; 
+        
+        if (rfs) { 
+            rfs.call(el).then(() => { 
+                initSystem().then(initCamera); 
+                if(isOrientationLocked && screen.orientation && screen.orientation.lock) { 
+                    screen.orientation.lock('landscape').catch(()=>{}); 
+                } 
+            }).catch(() => { 
+                // 如果全螢幕被拒絕，仍然嘗試啟動
+                initSystem().then(initCamera); 
+            }); 
+        } else {
+            // 這是針對非 iOS 但又不支援 RFS 的罕見舊設備的備案
+            initSystem().then(initCamera);
+            document.getElementById('fullscreen-prompt').style.display = 'none';
+            document.getElementById('camera-container').style.display = 'block';
+        }
+    }
    async function initCamera() { 
         try { 
             if(video.srcObject) { video.srcObject.getTracks().forEach(track => track.stop()); } 
