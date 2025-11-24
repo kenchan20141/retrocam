@@ -1881,7 +1881,27 @@ let currentRollState = Math.random(); // 這是控制底片風格的靜態亂數
     }
     function enforceFullscreen() { if (!document.fullscreenElement) { fsPrompt.style.display = 'flex'; document.getElementById('camera-container').style.display = 'none'; fsViewfinder.style.display = 'none'; } }
     document.addEventListener('fullscreenchange', enforceFullscreen);
-    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') { if (video.srcObject) { video.srcObject.getTracks().forEach(track => track.stop()); video.srcObject = null; } if(shutterAudio) { shutterAudio.pause(); shutterAudio.currentTime = 0; } } else if (document.visibilityState === 'visible') { enforceFullscreen(); setTimeout(() => { if (!video.srcObject || !video.srcObject.active) { initCamera(); } }, 300); } });
+    document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') {
+    // 進入背景：關閉串流、停止渲染
+    if (video.srcObject) {
+      video.srcObject.getTracks().forEach(track => track.stop());
+      video.srcObject = null;
+    }
+    if (shutterAudio) {
+      shutterAudio.pause();
+      shutterAudio.currentTime = 0;
+    }
+  } else if (document.visibilityState === 'visible') {
+    // 關鍵修復：重新初始化整個相機系統（含 WebGL）
+    enforceFullscreen();
+    setTimeout(async () => {
+      // 重建 WebGL + 相機
+      webGLRenderer = new WebGLRenderer(processCanvas); // ★ 重建 WebGL
+      await initCamera();
+    }, 300);
+  }
+});
     orientationBtn.addEventListener('click', async () => { isOrientationLocked = !isOrientationLocked; orientationBtn.classList.toggle('locked', isOrientationLocked); localStorage.setItem('orientationLocked', isOrientationLocked); if (isOrientationLocked) { try { if (screen.orientation && screen.orientation.lock) { await screen.orientation.lock('landscape'); } } catch (e) { } } else { try { if (screen.orientation && screen.orientation.unlock) { screen.orientation.unlock(); } } catch (e) {} } });
 
     document.getElementById('filmSelectBtn').addEventListener('click', () => { isMenuLocked = false; openFilmSelector(); });
@@ -1942,8 +1962,10 @@ let currentRollState = Math.random(); // 這是控制底片風格的靜態亂數
     });
 
    function renderLoop() {
-    requestAnimationFrame(renderLoop);
-    if (!video.srcObject || !video.srcObject.active || video.paused || !webGLRenderer) return;
+  requestAnimationFrame(renderLoop);
+  if (!video.srcObject || !video.srcObject.active || video.paused || !webGLRenderer?.gl) {
+    return; // ★ 防止用無效 WebGL 繪圖
+  }
 
     const modes = getModes(); 
     validateModeIndex(); 
