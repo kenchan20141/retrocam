@@ -1,6 +1,6 @@
 {
-  "name": "Retro Cam",
-  "short_name": "RetroCam",
+  "name": "Lumigraph",
+  "short_name": "Lumigraph",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#000000",
