@@ -1826,48 +1826,79 @@ let currentRollState = Math.random(); // 這是控制底片風格的靜態亂數
     document.getElementById('enter-fs-btn').addEventListener('click', () => { startFullscreenAndCamera(); });
   // 修改 startFullscreenAndCamera 函數
 async function startFullscreenAndCamera() {
-  // 重置所有狀態
-  releaseCameraResources();
-  webGLRenderer = new WebGLRenderer(processCanvas);
+  // 關鍵: 防止重複點擊觸發多重初始化
+  const enterBtn = document.getElementById('enter-fs-btn');
+  if (enterBtn.disabled) return;
+  enterBtn.disabled = true;
+  enterBtn.style.opacity = '0.5';
   
-  const el = document.documentElement;
-  const rfs = el.requestFullscreen || el.webkitRequestFullScreen;
-  const isIPhone = /iPhone/.test(navigator.userAgent) && !window.MSStream;
-  
-  // 先初始化系統
-  await initSystem();
-  
-  if (isIPhone) {
-    // iPhone 不請求全螢幕，直接啟動相機
+  try {
+    // 1. 先確保釋放所有資源
+    releaseCameraResources();
+    
+    // 2. 重建 WebGL
+    webGLRenderer = new WebGLRenderer(processCanvas);
+    
+    // 3. 重置 UI
     fsPrompt.style.display = 'none';
     document.getElementById('camera-container').style.display = 'block';
-    await initCamera();
-  } else if (rfs) {
-    try {
-      await rfs.call(el);
-      fsPrompt.style.display = 'none';
-      document.getElementById('camera-container').style.display = 'block';
+    
+    // 4. 嘗試全螢幕
+    const el = document.documentElement;
+    const rfs = el.requestFullscreen || el.webkitRequestFullScreen;
+    const isIPhone = /iPhone/.test(navigator.userAgent) && !window.MSStream;
+    
+    if (isIPhone) {
+      // iPhone 特殊處理
       await initCamera();
-      if (isOrientationLocked && screen.orientation && screen.orientation.lock) {
-        await screen.orientation.lock('landscape').catch(() => {});
+    } else if (rfs) {
+      try {
+        await rfs.call(el);
+        await initCamera();
+        
+        // 嘗試鎖定方向
+        if (isOrientationLocked && screen.orientation?.lock) {
+          await screen.orientation.lock('landscape').catch(() => {});
+        }
+      } catch (err) {
+        console.warn('Fullscreen failed, falling back to normal mode', err);
+        await initCamera();
       }
-    } catch (err) {
-      console.warn('Fullscreen failed, falling back to normal mode', err);
-      // 退回標準模式
-      fsPrompt.style.display = 'none';
-      document.getElementById('camera-container').style.display = 'block';
-      await initCamera();
+    }
+    
+    // 5. 確保更新 UI 狀態
+    if (isRollMode) {
+      rollModeSwitch.classList.add('mode-36');
+    } else {
+      rollModeSwitch.classList.remove('mode-36');
+    }
+    updateCounterDisplay();
+    updateLeverUI();
+    
+  } catch (err) {
+    console.error('Startup error:', err);
+    // 錯誤時重置按鈕
+    enterBtn.disabled = false;
+    enterBtn.style.opacity = '1';
+    
+    // 嘗試最小化恢復
+    fsPrompt.style.display = 'flex';
+    document.getElementById('camera-container').style.display = 'none';
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    retroAlert("STARTUP ERROR\nPlease try again");
+  } finally {
+    // 確保按鈕始終可點擊（除非正在初始化）
+    if (!video.srcObject?.active) {
+      enterBtn.disabled = false;
+      enterBtn.style.opacity = '1';
     }
   }
-  
-  // 確保 POWER ON 按鈕始終可點擊
-  document.getElementById('enter-fs-btn').onclick = startFullscreenAndCamera;
 }
 
 
-// 1. 強化相機資源釋放
-// 1. 強化相機資源釋放
+// 1. 完整重寫資源釋放函數
 function releaseCameraResources() {
+  // 1. 釋放相機串流
   if (video.srcObject) {
     const tracks = video.srcObject.getTracks();
     tracks.forEach(track => {
@@ -1879,55 +1910,103 @@ function releaseCameraResources() {
     });
     video.srcObject = null;
   }
-  // 釋放音頻資源
+  
+  // 2. 釋放音頻資源
   if (shutterAudio) {
     shutterAudio.pause();
     shutterAudio.currentTime = 0;
   }
-  // 重建 WebGL 渲染器
-  if (webGLRenderer) {
+  if (latchAudio) {
+    latchAudio.pause();
+    latchAudio.currentTime = 0;
+  }
+  
+  // 3. 重置 WebGL 上下文 (關鍵!)
+  if (webGLRenderer && webGLRenderer.gl) {
     try {
-      const gl = webGLRenderer.gl;
-      if (gl) {
-        gl.getExtension('WEBGL_lose_context').loseContext();
+      // 使用標準方式釋放 WebGL 資源
+      const ext = webGLRenderer.gl.getExtension('WEBGL_lose_context');
+      if (ext) {
+        ext.loseContext();
+      }
+      
+      // 手動清理所有 WebGL 資源
+      const numTextures = webGLRenderer.gl.getParameter(webGLRenderer.gl.MAX_TEXTURE_IMAGE_UNITS);
+      for (let i = 0; i < numTextures; i++) {
+        webGLRenderer.gl.activeTexture(webGLRenderer.gl.TEXTURE0 + i);
+        const texture = webGLRenderer.gl.getParameter(webGLRenderer.gl.TEXTURE_BINDING_2D);
+        if (texture) webGLRenderer.gl.deleteTexture(texture);
+      }
+      
+      // 釋放其他 WebGL 資源
+      if (webGLRenderer.program) {
+        webGLRenderer.gl.deleteProgram(webGLRenderer.program);
+        webGLRenderer.program = null;
+      }
+      if (webGLRenderer.texture) {
+        webGLRenderer.gl.deleteTexture(webGLRenderer.texture);
+        webGLRenderer.texture = null;
       }
     } catch (e) {
-      console.warn('WebGL context reset failed:', e);
+      console.warn('WebGL cleanup error:', e);
     }
-    webGLRenderer = null;
   }
+  webGLRenderer = null;
+  
+  // 4. 重置 UI 狀態
+  fsViewfinder.style.display = 'none';
+  document.getElementById('camera-container').style.display = 'none';
+  fsPrompt.style.display = 'flex';
+  currentZoom = 1.0; // 重置縮放
+  if (zoomTextEl) zoomTextEl.textContent = "1.0x";
 }
 
-// 2. 重寫 visibilitychange 事件處理
+// 2. 完全重寫 visibilitychange 處理
 document.removeEventListener('visibilitychange', handleVisibilityChange);
 function handleVisibilityChange() {
   if (document.visibilityState === 'hidden') {
-    // 進入背景：關閉串流、停止渲染
+    // 進入背景：徹底釋放所有資源
     releaseCameraResources();
+    
+    // 主動關閉全螢幕
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch(() => {});
+    }
+    
+    // 儲存關鍵狀態
+    localStorage.setItem('appWasInFullscreen', 'true');
   } else if (document.visibilityState === 'visible') {
-    // 關鍵修復：更徹底的相機重啟機制
+    // 關鍵修復：延遲重啟，確保系統資源已釋放
     setTimeout(async () => {
-      // 先強制釋放所有資源
+      // 1. 先強制釋放所有可能的殘留資源
       releaseCameraResources();
-      // 重建 UI 狀態
-      fsPrompt.style.display = 'flex';
-      document.getElementById('camera-container').style.display = 'none';
-      fsViewfinder.style.display = 'none';
       
-      // 重建 WebGL
-      webGLRenderer = new WebGLRenderer(processCanvas); 
-      
-      // 重新綁定事件
-      document.getElementById('enter-fs-btn').onclick = startFullscreenAndCamera;
-      
-      // 重置全螢幕狀態
-      if (document.fullscreenElement) {
-        document.exitFullscreen().catch(() => {});
+      // 2. 重建 WebGL 渲染器
+      if (!webGLRenderer || !webGLRenderer.gl) {
+        webGLRenderer = new WebGLRenderer(processCanvas);
       }
-    }, 300);
+      
+      // 3. 重置 UI 按鈕狀態，確保 POWER ON 可點擊
+      const enterBtn = document.getElementById('enter-fs-btn');
+      if (enterBtn) {
+        enterBtn.onclick = startFullscreenAndCamera;
+        enterBtn.disabled = false;
+        enterBtn.style.opacity = '1';
+      }
+      
+      // 4. 如果之前是全螢幕狀態，自動重啟
+      if (localStorage.getItem('appWasInFullscreen') === 'true') {
+        localStorage.removeItem('appWasInFullscreen');
+        await startFullscreenAndCamera();
+      }
+      
+      // 5. 強制重新綁定所有事件
+      rebindAllEventListeners();
+    }, 500); // 關鍵延遲，确保資源完全釋放
   }
 }
 document.addEventListener('visibilitychange', handleVisibilityChange);
+
 
 // 2. 修改 visibilitychange 事件處理
 document.addEventListener('visibilitychange', () => {
@@ -1970,6 +2049,35 @@ window.addEventListener('error', (e) => {
   }
 });
 
+
+// 3. 新增：完全重綁所有事件
+function rebindAllEventListeners() {
+  // 釋放相機後重綁的核心按鈕
+  const enterBtn = document.getElementById('enter-fs-btn');
+  if (enterBtn) {
+    enterBtn.onclick = null;
+    enterBtn.onclick = startFullscreenAndCamera;
+  }
+  
+  // 重新綁定觀景窗觸發
+  vfTrigger.onclick = openFullScreenViewfinder;
+  frontVfTrigger.onclick = openFullScreenViewfinder;
+  
+  // 重新綁定關閉按鈕
+  vfCloseBtn.onclick = (e) => { e.stopPropagation(); fsViewfinder.style.display = 'none'; };
+  
+  // 重新綁定快門按鈕
+  shutterBtn.onclick = handleShutter;
+  document.getElementById('selfieShutterBtn').onclick = handleShutter;
+  
+  // 重新綁定方向鎖
+  orientationBtn.onclick = orientationBtn.onclick; // 保留原邏輯
+  
+  // 重新綁定曝光控制
+  initExposureControl();
+}
+
+    
 // 4. 增強相機初始化函數
 async function initCamera() { 
   try {
