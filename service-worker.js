@@ -43,33 +43,42 @@ self.addEventListener('fetch', (e) => {
     return;
   }
 
-  // 導航請求 (HTML) - 嚴格離線處理
+  // 處理導航請求 (HTML頁面)
   if (e.request.mode === 'navigate') {
     e.respondWith(
-      fetch(e.request).catch(() => {
-        // 100% 離線可靠性: 確保即使在離線狀態也返回快取的 HTML
-        return caches.match('/index.html') || caches.match('/');
-      })
+      // 嘗試從網路獲取
+      fetch(e.request)
+        .catch(() => {
+          // 網路失敗，從快取獲取
+          return caches.match('/index.html') || caches.match('/');
+        })
+        .catch(() => {
+          // 所有方法都失敗，返回一個基本的離線頁面
+          return new Response('<!DOCTYPE html><html><head><title>Offline</title></head><body><h1>You are offline</h1><p>Please go back and try again when online.</p></body></html>', {
+            headers: { 'Content-Type': 'text/html' }
+          });
+        })
     );
     return;
   }
 
-  // 靜態資源請求 - 強制從快取讀取
-  if (e.request.destination === 'script' || 
-      e.request.destination === 'style' || 
-      e.request.destination === 'image' ||
-      e.request.destination === 'font') {
-    e.respondWith(
-      caches.match(e.request).then(cachedResponse => {
-        if (cachedResponse) return cachedResponse;
-        return fetch(e.request);
+  // 處理非導航請求
+  e.respondWith(
+    caches.match(e.request)
+      .then(cachedResponse => {
+        if (cachedResponse) {
+          return cachedResponse;
+        }
+        return fetch(e.request)
+          .catch(() => {
+            // 如果是核心資產，即使網路失敗也嘗試從快取獲取
+            if (CORE_ASSETS.includes(new URL(e.request.url).pathname)) {
+              return caches.match(e.request);
+            }
+            throw new Error('Network and cache both failed');
+          });
       })
-    );
-    return;
-  }
-
-  // 其他請求 - 先嘗試網路，失敗後不回退
-  e.respondWith(fetch(e.request));
+  );
 });
 
 // 關鍵: 處理客戶端訊息
