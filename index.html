@@ -1826,6 +1826,8 @@ let currentRollState = Math.random(); // 這是控制底片風格的靜態亂數
     document.getElementById('enter-fs-btn').addEventListener('click', () => { startFullscreenAndCamera(); });
   // 修改 startFullscreenAndCamera 函數
 async function startFullscreenAndCamera() {
+    if (isReloading) return; // [新增] 旗標檢查
+    
     // 1. 重置所有狀態
     releaseCameraResources();
     webGLRenderer = new WebGLRenderer(processCanvas);
@@ -1833,7 +1835,7 @@ async function startFullscreenAndCamera() {
     const cameraContainer = document.getElementById('camera-container');
     const fsViewfinder = document.getElementById('fs-viewfinder');
     const el = document.documentElement;
-    const rfs = el.requestFullscreen || el.webkitRequestFullScreen || el.webkitRequestFullscreen; // 標準化請求全螢幕方法
+    const rfs = el.requestFullscreen || el.webkitRequestFullScreen || el.webkitRequestFullscreen;
     const isIPhone = /iPhone/.test(navigator.userAgent) && !window.MSStream;
     
     // 2. 隱藏可能殘留的 UI 元素
@@ -1847,12 +1849,14 @@ async function startFullscreenAndCamera() {
     await initSystem();
     
     if (isIPhone) {
-        // [保持] iPhone 不請求全螢幕，直接啟動相機
+        // [修改] iPhone 模式：加強直屏檢查
         console.log("iPhone mode detected, initializing camera without fullscreen.");
         if (fsPrompt) fsPrompt.style.display = 'none';
         if (cameraContainer) cameraContainer.style.display = 'block';
         try {
             await initCamera();
+            // [新增] iPhone 專屬：強制檢查方向
+            checkOrientation();
             if (fsPrompt) fsPrompt.style.display = 'none';
             if (cameraContainer) cameraContainer.style.display = 'block';
         } catch (err) {
@@ -1871,6 +1875,8 @@ async function startFullscreenAndCamera() {
             if (isOrientationLocked && screen.orientation && screen.orientation.lock) {
                 await screen.orientation.lock('landscape').catch(() => {});
             }
+            // [新增] 進入後檢查方向
+            checkOrientation();
             if (fsPrompt) fsPrompt.style.display = 'none';
             if (cameraContainer) cameraContainer.style.display = 'block';
         } catch (err) {
@@ -1879,6 +1885,7 @@ async function startFullscreenAndCamera() {
             if (cameraContainer) cameraContainer.style.display = 'block';
             try {
                 await initCamera();
+                checkOrientation(); // [新增] 後備模式也檢查
                 if (fsPrompt) fsPrompt.style.display = 'none';
                 if (cameraContainer) cameraContainer.style.display = 'block';
             } catch (initErr) {
@@ -1888,12 +1895,13 @@ async function startFullscreenAndCamera() {
             }
         }
     } else {
-        // [保持] 完全不支援全屏 API 的情況
+        // [修改] 不支援全屏：加強直屏鎖定
         console.warn("Fullscreen API not supported, attempting camera fallback.");
         if (fsPrompt) fsPrompt.style.display = 'none';
         if (cameraContainer) cameraContainer.style.display = 'block';
         try {
             await initCamera();
+            checkOrientation(); // [新增] 檢查方向
             if (fsPrompt) fsPrompt.style.display = 'none';
             if (cameraContainer) cameraContainer.style.display = 'block';
         } catch (initErr) {
@@ -1906,7 +1914,42 @@ async function startFullscreenAndCamera() {
     // 5. 確保按鈕狀態在函數結束時是可用的
     const enterBtn = document.getElementById('enter-fs-btn');
     if (enterBtn) enterBtn.disabled = false;
+    isReloading = false; // [新增] 重置旗標
 }
+
+// [修訂] visibilitychange 事件：加入旗標 + 只在非全屏時 reload
+document.addEventListener('visibilitychange', () => {
+    if (isReloading) return; // [新增] 旗標檢查
+    
+    if (document.visibilityState === 'hidden') {
+        // 進入背景：關閉串流、停止渲染
+        if (video.srcObject) {
+            video.srcObject.getTracks().forEach(track => track.stop());
+            video.srcObject = null;
+        }
+        if (shutterAudio) {
+            shutterAudio.pause();
+            shutterAudio.currentTime = 0;
+        }
+    } else if (document.visibilityState === 'visible') {
+        // [修改] 頁面恢復可見時，檢查全屏狀態，若非全屏則 reload
+        const isFullscreen = !!(document.fullscreenElement || document.webkitFullscreenElement);
+        if (!isFullscreen) {
+            console.log("Page visible but not fullscreen, reloading to reset.");
+            isReloading = true; // [新增] 設定旗標
+            setTimeout(() => {
+                window.location.reload();
+            }, 100);
+            return;
+        }
+        // 若仍處於全屏，則重建資源
+        setTimeout(async () => {
+            webGLRenderer = new WebGLRenderer(processCanvas);
+            await initCamera();
+            checkOrientation(); // [新增] 恢復後檢查方向
+        }, 300);
+    }
+});
 
 // [修訂] visibilitychange 事件：退出全屏後的背景切換，也觸發 reload（與 fullscreenchange 同步）
 document.addEventListener('visibilitychange', () => {
@@ -2149,8 +2192,14 @@ if ('serviceWorker' in navigator) {
             console.error("Camera Error", err); 
         } 
     }
-   function enforceFullscreen() {
-    const isFullscreen = !!(document.fullscreenElement || document.webkitFullscreenElement); // 檢查是否處於全螢幕狀態
+// [新增] 全域旗標：防止多次 reload
+let isReloading = false;
+
+// [修訂] 強化全屏退出處理：加入旗標 + 更穩定的 reload
+function enforceFullscreen() {
+    if (isReloading) return; // [新增] 旗標檢查，避免重複
+    
+    const isFullscreen = !!(document.fullscreenElement || document.webkitFullscreenElement);
     const fsPrompt = document.getElementById('fullscreen-prompt');
     const cameraContainer = document.getElementById('camera-container');
     const fsViewfinder = document.getElementById('fs-viewfinder');
@@ -2158,6 +2207,7 @@ if ('serviceWorker' in navigator) {
     if (!isFullscreen) {
         // [修改] 退出全螢幕時，直接自動重新整理頁面（解決 POWER ON 按鈕無法點擊問題）
         console.log("Fullscreen ended, reloading page to reset state.");
+        isReloading = true; // [新增] 設定旗標
         // 短暫延遲確保事件完成，再 reload（避免瀏覽器阻塞）
         setTimeout(() => {
             window.location.reload();
@@ -2169,6 +2219,7 @@ if ('serviceWorker' in navigator) {
         if (fsPrompt) fsPrompt.style.display = 'none';
         if (cameraContainer) cameraContainer.style.display = 'block';
         if (fsViewfinder) fsViewfinder.style.display = 'block'; // 確保取景器顯示
+        isReloading = false; // [新增] 重置旗標
     }
 }
     document.addEventListener('fullscreenchange', enforceFullscreen);
@@ -2870,7 +2921,66 @@ currentRollState = Math.random();
         }
     }
     function resetToCameraUI() { exportModal.style.display = 'none'; closeBackDoor(); document.getElementById('review-overlay').style.display = 'none'; pendingPhoto = null; updateLeverUI(); }
-    function checkOrientation() { if (window.innerHeight > window.innerWidth) { document.getElementById('orientation-lock').style.display = 'flex'; document.getElementById('camera-container').style.display = 'none'; fsPrompt.style.display = 'none'; } else { document.getElementById('orientation-lock').style.display = 'none'; if (document.fullscreenElement) { document.getElementById('camera-container').style.display = 'block'; document.getElementById('fullscreen-prompt').style.display = 'none'; resizeElements(); } else { enforceFullscreen(); } } }
+   function checkOrientation() {
+    // [新增] 延遲檢查，確保旋轉完成
+    setTimeout(() => {
+        if (window.innerHeight > window.innerWidth) {
+            // 直屏：強制顯示鎖定畫面，並禁用互動
+            console.log("Portrait mode detected, locking orientation.");
+            document.getElementById('orientation-lock').style.display = 'flex';
+            document.getElementById('camera-container').style.display = 'none';
+            document.getElementById('fullscreen-prompt').style.display = 'none';
+            
+            // [新增] 禁用相機渲染與按鈕（防止直屏誤操作）
+            if (video.srcObject) {
+                video.pause(); // 暫停視頻
+            }
+            const enterBtn = document.getElementById('enter-fs-btn');
+            if (enterBtn) enterBtn.disabled = true; // 禁用 POWER ON
+            const allButtons = document.querySelectorAll('button, [id*="Btn"]'); // 所有按鈕
+            allButtons.forEach(btn => btn.style.pointerEvents = 'none'); // 禁用點擊
+            
+            // [新增] 強制鎖定（如果支援）
+            if (screen.orientation && screen.orientation.lock) {
+                screen.orientation.lock('landscape').catch(() => {});
+            }
+        } else {
+            // 橫屏：恢復正常
+            console.log("Landscape mode, resuming normal operation.");
+            document.getElementById('orientation-lock').style.display = 'none';
+            if (document.fullscreenElement) {
+                document.getElementById('camera-container').style.display = 'block';
+                document.getElementById('fullscreen-prompt').style.display = 'none';
+                resizeElements();
+            } else {
+                enforceFullscreen(); // 呼叫檢查全屏
+            }
+            
+            // [新增] 恢復互動
+            if (video.srcObject) {
+                video.play().catch(() => {});
+            }
+            const enterBtn = document.getElementById('enter-fs-btn');
+            if (enterBtn) enterBtn.disabled = false;
+            const allButtons = document.querySelectorAll('button, [id*="Btn"]');
+            allButtons.forEach(btn => btn.style.pointerEvents = 'auto');
+        }
+    }, 200); // [新增] 200ms 延遲，確保旋轉穩定
+}
+
+// [修訂] resize 事件：加入旗標 + 多重檢查
+window.addEventListener('resize', () => {
+    if (isReloading) return; // [新增] 旗標檢查
+    
+    checkOrientation();
+    resizeElements();
+    updateFSGuideFrame();
+    setTimeout(() => {
+        checkOrientation(); // [新增] 延遲再檢查一次，防止直屏漏網
+        resizeElements();
+        updateFSGuideFrame();
+    }, 300);
+});
     function resizeElements() { const container = document.getElementById('camera-container'); const w = window.innerWidth; const h = window.innerHeight; const baseW = 760; const baseH = 420; const isTablet = (w / h) < 1.6; const multiplier = isTablet ? 0.8 : 0.85; const scale = Math.min(w / baseW, h / baseH) * multiplier; container.style.top = '53%'; container.style.left = '50%'; container.style.transform = `translate(-50%, -50%) scale(${scale})`; if (document.fullscreenElement || window.innerHeight < window.innerWidth) { container.style.display = 'block'; } }
    window.addEventListener('resize', () => { 
     checkOrientation(); 
