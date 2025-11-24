@@ -7,7 +7,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Lumigraph</title>
 
@@ -1143,15 +1142,6 @@ body.is-selfie .exp-dot.center {
 
 <script>
 
-    // 【新增：註冊 Service Worker】
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./service-worker.js')
-      .then(reg => console.log('SW registered'))
-      .catch(err => console.warn('SW failed:', err));
-  });
-}
-
 let currentRollState = Math.random(); // 這是控制底片風格的靜態亂數
     
     /* --- 1. WEBGL RENDERER CLASS (NEW) --- */
@@ -1824,231 +1814,7 @@ let currentRollState = Math.random(); // 這是控制底片風格的靜態亂數
     function updateLeverUI() { const isEndOfRoll = isRollMode && currentFrame >= 36; if (!isFilmAdvanced || isEndOfRoll) { readyLight.classList.add('active'); leverBase.classList.add('glow'); } else { readyLight.classList.remove('active'); leverBase.classList.remove('glow'); } }
 
     document.getElementById('enter-fs-btn').addEventListener('click', () => { startFullscreenAndCamera(); });
-  // 修改 startFullscreenAndCamera 函數
-async function startFullscreenAndCamera() {
-  // 重置所有狀態
-  releaseCameraResources();
-  webGLRenderer = new WebGLRenderer(processCanvas);
-  
-  const el = document.documentElement;
-  const rfs = el.requestFullscreen || el.webkitRequestFullScreen;
-  const isIPhone = /iPhone/.test(navigator.userAgent) && !window.MSStream;
-  
-  // 先初始化系統
-  await initSystem();
-  
-  if (isIPhone) {
-    // iPhone 不請求全螢幕，直接啟動相機
-    fsPrompt.style.display = 'none';
-    document.getElementById('camera-container').style.display = 'block';
-    await initCamera();
-  } else if (rfs) {
-    try {
-      await rfs.call(el);
-      fsPrompt.style.display = 'none';
-      document.getElementById('camera-container').style.display = 'block';
-      await initCamera();
-      if (isOrientationLocked && screen.orientation && screen.orientation.lock) {
-        await screen.orientation.lock('landscape').catch(() => {});
-      }
-    } catch (err) {
-      console.warn('Fullscreen failed, falling back to normal mode', err);
-      // 退回標準模式
-      fsPrompt.style.display = 'none';
-      document.getElementById('camera-container').style.display = 'block';
-      await initCamera();
-    }
-  }
-  
-  // 確保 POWER ON 按鈕始終可點擊
-  document.getElementById('enter-fs-btn').onclick = startFullscreenAndCamera;
-}
-
-
-// 1. 強化相機資源釋放
-// 1. 強化相機資源釋放
-function releaseCameraResources() {
-  if (video.srcObject) {
-    const tracks = video.srcObject.getTracks();
-    tracks.forEach(track => {
-      try {
-        track.stop();
-      } catch (e) {
-        console.warn('Error stopping track:', e);
-      }
-    });
-    video.srcObject = null;
-  }
-  // 釋放音頻資源
-  if (shutterAudio) {
-    shutterAudio.pause();
-    shutterAudio.currentTime = 0;
-  }
-  // 重建 WebGL 渲染器
-  if (webGLRenderer) {
-    try {
-      const gl = webGLRenderer.gl;
-      if (gl) {
-        gl.getExtension('WEBGL_lose_context').loseContext();
-      }
-    } catch (e) {
-      console.warn('WebGL context reset failed:', e);
-    }
-    webGLRenderer = null;
-  }
-}
-
-// 2. 重寫 visibilitychange 事件處理
-document.removeEventListener('visibilitychange', handleVisibilityChange);
-function handleVisibilityChange() {
-  if (document.visibilityState === 'hidden') {
-    // 進入背景：關閉串流、停止渲染
-    releaseCameraResources();
-  } else if (document.visibilityState === 'visible') {
-    // 關鍵修復：更徹底的相機重啟機制
-    setTimeout(async () => {
-      // 先強制釋放所有資源
-      releaseCameraResources();
-      // 重建 UI 狀態
-      fsPrompt.style.display = 'flex';
-      document.getElementById('camera-container').style.display = 'none';
-      fsViewfinder.style.display = 'none';
-      
-      // 重建 WebGL
-      webGLRenderer = new WebGLRenderer(processCanvas); 
-      
-      // 重新綁定事件
-      document.getElementById('enter-fs-btn').onclick = startFullscreenAndCamera;
-      
-      // 重置全螢幕狀態
-      if (document.fullscreenElement) {
-        document.exitFullscreen().catch(() => {});
-      }
-    }, 300);
-  }
-}
-document.addEventListener('visibilitychange', handleVisibilityChange);
-
-// 2. 修改 visibilitychange 事件處理
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'hidden') {
-    // 進入背景：關閉串流、停止渲染
-    releaseCameraResources();
-  } else if (document.visibilityState === 'visible') {
-    // 關鍵修復：更徹底的相機重啟機制
-    setTimeout(async () => {
-      // 先強制釋放所有資源
-      releaseCameraResources();
-      
-      // 重建 WebGL
-      webGLRenderer = new WebGLRenderer(processCanvas); 
-      
-      // 重新初始化相機
-      try {
-        await initCamera();
-      } catch (err) {
-        console.error('Re-init failed, retrying:', err);
-        // 再次嘗試
-        setTimeout(initCamera, 500);
-      }
-    }, 300);
-  }
-});
-
-// 3. 增加錯誤邊界和恢復機制
-window.addEventListener('error', (e) => {
-  console.error('Global error caught:', e);
-  
-  // WebGL 相關錯誤處理
-  if (e.message && (e.message.includes('WebGL') || e.message.includes('context lost'))) {
-    console.log('WebGL context lost, attempting recovery...');
-    setTimeout(() => {
-      if (webGLRenderer) {
-        webGLRenderer = new WebGLRenderer(processCanvas);
-      }
-    }, 1000);
-  }
-});
-
-// 4. 增強相機初始化函數
-async function initCamera() { 
-  try {
-    releaseCameraResources(); // 確保先清理
-    
-    const stream = await navigator.mediaDevices.getUserMedia({ 
-      video: { 
-        facingMode: isSelfieMode ? 'user' : 'environment', 
-        width: { ideal: 1280 }, 
-        height: { ideal: 720 },
-        advanced: [{ exposureMode: 'continuous' }]
-      }, 
-      audio: false 
-    }); 
-    
-    // 確保正確設置
-    video.srcObject = stream;
-    await new Promise((resolve) => {
-      video.onloadedmetadata = resolve;
-      video.play().catch(e => {
-        console.error('Video play failed:', e);
-        resolve(); // 繼續執行
-      });
-    });
-    
-    renderLoop(); 
-    
-    // 初始化曝光控制
-    initExposureControl();
-    
-  } catch (err) { 
-    console.error("Camera init Error", err);
-    // 針對特定錯誤提供恢復策略
-    if (err.name === 'NotAllowedError') {
-      console.log('User denied camera permission');
-      // 可以在這裡添加用戶提示
-    } else if (err.name === 'NotFoundError') {
-      console.log('Camera device not found');
-    } else {
-      // 其他錯誤，嘗試重試
-      setTimeout(initCamera, 1500);
-    }
-  } 
-}
-
-
-    // 6. 優化 PWA 生命周期
-if ('serviceWorker' in navigator) {
-  // 監聽 controllerchange 事件
-  navigator.serviceWorker.addEventListener('controllerchange', () => {
-    // 新的 SW 已激活，提示用戶刷新
-    if (!sessionStorage.getItem('pwa-refresh-prompted')) {
-      sessionStorage.setItem('pwa-refresh-prompted', 'true');
-      if (confirm('New version available. Reload to update?')) {
-        window.location.reload();
-      }
-    }
-  });
-  
-  // 註冊後檢查更新
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.getRegistration().then(reg => {
-      if (reg) {
-        reg.update();
-      }
-    });
-  });
-  
-  // 監聽 app install 事件
-  window.addEventListener('beforeinstallprompt', (e) => {
-    // 可選：延遲安裝提示，直到用戶有明確意圖
-    e.preventDefault();
-    // 將事件保存以便稍後觸發
-    window.deferredPrompt = e;
-  });
-}
-
-
-    
+    function startFullscreenAndCamera() { const el = document.documentElement; const rfs = el.requestFullscreen || el.webkitRequestFullScreen; if (rfs) { rfs.call(el).then(() => { initSystem().then(initCamera); if(isOrientationLocked && screen.orientation && screen.orientation.lock) { screen.orientation.lock('landscape').catch(()=>{}); } }).catch(() => { initSystem().then(initCamera); }); } }
    async function initCamera() { 
         try { 
             if(video.srcObject) { video.srcObject.getTracks().forEach(track => track.stop()); } 
@@ -2078,27 +1844,7 @@ if ('serviceWorker' in navigator) {
     }
     function enforceFullscreen() { if (!document.fullscreenElement) { fsPrompt.style.display = 'flex'; document.getElementById('camera-container').style.display = 'none'; fsViewfinder.style.display = 'none'; } }
     document.addEventListener('fullscreenchange', enforceFullscreen);
-    document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'hidden') {
-    // 進入背景：關閉串流、停止渲染
-    if (video.srcObject) {
-      video.srcObject.getTracks().forEach(track => track.stop());
-      video.srcObject = null;
-    }
-    if (shutterAudio) {
-      shutterAudio.pause();
-      shutterAudio.currentTime = 0;
-    }
-  } else if (document.visibilityState === 'visible') {
-    // 關鍵修復：重新初始化整個相機系統（含 WebGL）
-    enforceFullscreen();
-    setTimeout(async () => {
-      // 重建 WebGL + 相機
-      webGLRenderer = new WebGLRenderer(processCanvas); // ★ 重建 WebGL
-      await initCamera();
-    }, 300);
-  }
-});
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') { if (video.srcObject) { video.srcObject.getTracks().forEach(track => track.stop()); video.srcObject = null; } if(shutterAudio) { shutterAudio.pause(); shutterAudio.currentTime = 0; } } else if (document.visibilityState === 'visible') { enforceFullscreen(); setTimeout(() => { if (!video.srcObject || !video.srcObject.active) { initCamera(); } }, 300); } });
     orientationBtn.addEventListener('click', async () => { isOrientationLocked = !isOrientationLocked; orientationBtn.classList.toggle('locked', isOrientationLocked); localStorage.setItem('orientationLocked', isOrientationLocked); if (isOrientationLocked) { try { if (screen.orientation && screen.orientation.lock) { await screen.orientation.lock('landscape'); } } catch (e) { } } else { try { if (screen.orientation && screen.orientation.unlock) { screen.orientation.unlock(); } } catch (e) {} } });
 
     document.getElementById('filmSelectBtn').addEventListener('click', () => { isMenuLocked = false; openFilmSelector(); });
@@ -2159,10 +1905,8 @@ if ('serviceWorker' in navigator) {
     });
 
    function renderLoop() {
-  requestAnimationFrame(renderLoop);
-  if (!video.srcObject || !video.srcObject.active || video.paused || !webGLRenderer?.gl) {
-    return; // ★ 防止用無效 WebGL 繪圖
-  }
+    requestAnimationFrame(renderLoop);
+    if (!video.srcObject || !video.srcObject.active || video.paused || !webGLRenderer) return;
 
     const modes = getModes(); 
     validateModeIndex(); 
