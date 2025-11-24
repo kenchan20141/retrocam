@@ -2519,7 +2519,7 @@ currentRollState = Math.random();
     
     const exportModal = document.getElementById('export-modal'); let exportActionType = ''; 
     function checkSelection() { if (selectedAlbumIds.size === 0) return false; return true; }
-     document.getElementById('alb-download').addEventListener('click', () => { 
+    document.getElementById('alb-download').addEventListener('click', () => { 
         if(!checkSelection()) { 
             retroAlert("SELECT PHOTOS FIRST"); 
             return; 
@@ -2527,18 +2527,25 @@ currentRollState = Math.random();
         
         exportActionType = 'download'; 
         
-        // 獲取輸入框元素
+        // 1. 取得輸入框元素並清空
         const inputEl = document.getElementById('exp-text-input');
-        
-        // [修訂] 強制隱藏 CAPTION 輸入框並清空內容，不再判斷風格
         inputEl.value = ""; 
-        inputEl.style.display = 'none';  
+        
+        // 2. 取得選中的照片資料
+        const selectedPhotos = currentAlbumData.filter(p => selectedAlbumIds.has(p.id));
+        
+        // 3. [修訂邏輯] 只有當「選取數量為 1」且「風格為 white (拍立得)」時，才顯示輸入框
+        if (selectedPhotos.length === 1 && selectedPhotos[0].style === 'white') {
+            inputEl.style.display = 'block'; // 顯示
+        } else {
+            inputEl.style.display = 'none';  // 隱藏 (多選或非拍立得風格)
+        }
         
         exportModal.style.display = 'flex'; 
     });
 
     // [修改] 分享按鈕監聽器：加入同樣的檢查邏輯
-    document.getElementById('alb-share').addEventListener('click', () => { 
+     document.getElementById('alb-share').addEventListener('click', () => { 
         if(!checkSelection()) { 
             retroAlert("SELECT PHOTOS FIRST"); 
             return; 
@@ -2551,12 +2558,19 @@ currentRollState = Math.random();
         
         exportActionType = 'share'; 
         
-        // 獲取輸入框元素
+        // 1. 取得輸入框元素並清空
         const inputEl = document.getElementById('exp-text-input');
-        
-        // [修訂] 強制隱藏 CAPTION 輸入框並清空內容，不再判斷風格
         inputEl.value = ""; 
-        inputEl.style.display = 'none';  
+        
+        // 2. 取得選中的照片資料
+        const selectedPhotos = currentAlbumData.filter(p => selectedAlbumIds.has(p.id));
+        
+        // 3. [修訂邏輯] 同樣嚴格限制：單張 + 拍立得風格
+        if (selectedPhotos.length === 1 && selectedPhotos[0].style === 'white') {
+            inputEl.style.display = 'block'; // 顯示
+        } else {
+            inputEl.style.display = 'none';  // 隱藏
+        }
         
         exportModal.style.display = 'flex'; 
     });
