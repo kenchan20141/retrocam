@@ -1746,8 +1746,8 @@ let currentRollState = Math.random(); // 這是控制底片風格的靜態亂數
     validateModeIndex();
 
     /* --- AUDIO --- */
-    const shutterAudio = new Audio('https://taira-komori.net/sound_os2/electric01/camera1.mp3'); shutterAudio.preload = 'auto';
-    const latchAudio = new Audio('https://taira-komori.net/sound_os2/electric01/fluorescent_switch1.mp3'); latchAudio.volume = 1.0; latchAudio.preload = 'auto';
+    const shutterAudio = new Audio('camera.mp3'); shutterAudio.preload = 'auto';
+    const latchAudio = new Audio('kick.mp3'); latchAudio.volume = 1.0; latchAudio.preload = 'auto';
     const AudioContext = window.AudioContext || window.webkitAudioContext; const actx = new AudioContext();
     function playShutterSound() { shutterAudio.currentTime = 0; const playPromise = shutterAudio.play(); if (playPromise !== undefined) { playPromise.catch(error => { if (actx.state === 'suspended') actx.resume(); const t = actx.currentTime; const oscClick = actx.createOscillator(); const gainClick = actx.createGain(); oscClick.type = 'square'; oscClick.frequency.setValueAtTime(800, t); oscClick.frequency.exponentialRampToValueAtTime(100, t + 0.05); gainClick.gain.setValueAtTime(0.5, t); gainClick.gain.exponentialRampToValueAtTime(0.01, t + 0.05); oscClick.connect(gainClick).connect(actx.destination); oscClick.start(t); oscClick.stop(t + 0.05); }); } }
     function playLeverSound() { if (actx.state === 'suspended') actx.resume(); const t = actx.currentTime; for(let i=0; i<5; i++) { const osc = actx.createOscillator(); const gain = actx.createGain(); osc.type = 'sawtooth'; osc.frequency.setValueAtTime(800, t + i*0.06); osc.frequency.exponentialRampToValueAtTime(100, t + i*0.06 + 0.03); gain.gain.setValueAtTime(1.2, t + i*0.06); gain.gain.exponentialRampToValueAtTime(0.01, t + i*0.06 + 0.03); osc.connect(gain); gain.connect(actx.destination); osc.start(t + i*0.06); osc.stop(t + i*0.06 + 0.04); } }
