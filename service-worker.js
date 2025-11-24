@@ -1,5 +1,5 @@
 // service-worker.js
-const CACHE_NAME = 'lumigraph-v8'; // ★ 關鍵：改成 v6，強制新快取！舊 v5 會被刪除
+const CACHE_NAME = 'lumigraph-v9'; // ★ 關鍵：改成 v6，強制新快取！舊 v5 會被刪除
 const CORE_ASSETS = [
   '/',
   '/index.html',
