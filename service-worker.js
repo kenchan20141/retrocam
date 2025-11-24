@@ -1,5 +1,5 @@
 // service-worker.js
-const CACHE_NAME = 'lumigraph-v6'; // 強制更新版本
+const CACHE_NAME = 'lumigraph-v7'; // ★ 關鍵：改成 v6，強制新快取！舊 v5 會被刪除
 const CORE_ASSETS = [
   '/',
   '/index.html',
@@ -16,7 +16,7 @@ self.addEventListener('install', (e) => {
   e.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
       return cache.addAll(CORE_ASSETS)
-        .then(() => self.skipWaiting());
+        .then(() => self.skipWaiting()); // ★ 強化：立即激活新 SW，跳過等待
     })
   );
 });
@@ -27,7 +27,7 @@ self.addEventListener('activate', (e) => {
       return Promise.all(
         cacheNames
           .filter(name => name !== CACHE_NAME)
-          .map(name => caches.delete(name))
+          .map(name => caches.delete(name)) // ★ 刪除所有舊快取（包括 v5）
       );
     }).then(() => {
       // 立即取得所有客戶端控制權
@@ -46,7 +46,7 @@ self.addEventListener('fetch', (e) => {
   // 處理導航請求 (HTML頁面)
   if (e.request.mode === 'navigate') {
     e.respondWith(
-      // 嘗試從網路獲取
+      // 嘗試從網路獲取（優先新版本）
       fetch(e.request)
         .catch(() => {
           // 網路失敗，從快取獲取
@@ -81,9 +81,12 @@ self.addEventListener('fetch', (e) => {
   );
 });
 
-// 關鍵: 處理客戶端訊息
+// 關鍵: 處理客戶端訊息（強化更新觸發）
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
-    self.skipWaiting();
+    self.skipWaiting(); // 立即激活
+  } else if (event.data && event.data.type === 'FORCE_UPDATE') {
+    // ★ 新增：客戶端可強制 SW 更新
+    self.registration.update();
   }
 });
