@@ -38,25 +38,25 @@ self.addEventListener('activate', (e) => {
 
 // 關鍵修復: 處理離線導航請求
 self.addEventListener('fetch', (e) => {
-  // 處理導航請求
+  // 只處理同源請求
+  if (new URL(e.request.url).origin !== self.location.origin) {
+    return;
+  }
+
+  // 處理導航請求 (HTML頁面)
   if (e.request.mode === 'navigate') {
     e.respondWith(
+      // 嘗試從網路獲取
       fetch(e.request)
-        .then(response => {
-          // 只有成功獲取時才更新緩存
-          if (response.status === 200) {
-            caches.open(CACHE_NAME).then(cache => {
-              cache.put(e.request, response.clone());
-            });
-          }
-          return response;
+        .catch(() => {
+          // 網路失敗，從快取獲取
+          return caches.match('/index.html') || caches.match('/');
         })
         .catch(() => {
-          // 從緩存中獲取，但添加隨機參數避免使用過期版本
-          const url = new URL(e.request.url);
-          url.searchParams.set('sw-bypass', Date.now());
-          return caches.match(url.toString())
-            .then(response => response || caches.match('/index.html'));
+          // 所有方法都失敗，返回一個基本的離線頁面
+          return new Response('<!DOCTYPE html><html><head><title>Offline</title></head><body><h1>You are offline</h1><p>Please go back and try again when online.</p></body></html>', {
+            headers: { 'Content-Type': 'text/html' }
+          });
         })
     );
     return;
@@ -83,11 +83,6 @@ self.addEventListener('fetch', (e) => {
 
 // 關鍵: 處理客戶端訊息
 self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'FORCE_REFRESH') {
-    self.skipWaiting();
-    event.ports[0].postMessage({ success: true });
-  }
-  // 保留現有的 SKIP_WAITING 處理
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
   }
