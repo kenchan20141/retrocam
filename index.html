@@ -1826,12 +1826,15 @@ let currentRollState = Math.random(); // 這是控制底片風格的靜態亂數
     document.getElementById('enter-fs-btn').addEventListener('click', () => { startFullscreenAndCamera(); });
   // 修改 startFullscreenAndCamera 函數
 async function startFullscreenAndCamera() {
+  // 重置所有狀態
+  releaseCameraResources();
+  webGLRenderer = new WebGLRenderer(processCanvas);
+  
   const el = document.documentElement;
   const rfs = el.requestFullscreen || el.webkitRequestFullScreen;
-  
   const isIPhone = /iPhone/.test(navigator.userAgent) && !window.MSStream;
   
-  // 先初始化系統，再處理全屏
+  // 先初始化系統
   await initSystem();
   
   if (isIPhone) {
@@ -1842,19 +1845,27 @@ async function startFullscreenAndCamera() {
   } else if (rfs) {
     try {
       await rfs.call(el);
+      fsPrompt.style.display = 'none';
+      document.getElementById('camera-container').style.display = 'block';
       await initCamera();
       if (isOrientationLocked && screen.orientation && screen.orientation.lock) {
         await screen.orientation.lock('landscape').catch(() => {});
       }
     } catch (err) {
       console.warn('Fullscreen failed, falling back to normal mode', err);
-      // 全螢幕失敗後仍然嘗試初始化相機
+      // 退回標準模式
+      fsPrompt.style.display = 'none';
+      document.getElementById('camera-container').style.display = 'block';
       await initCamera();
     }
   }
+  
+  // 確保 POWER ON 按鈕始終可點擊
+  document.getElementById('enter-fs-btn').onclick = startFullscreenAndCamera;
 }
 
 
+// 1. 強化相機資源釋放
 // 1. 強化相機資源釋放
 function releaseCameraResources() {
   if (video.srcObject) {
@@ -1868,28 +1879,55 @@ function releaseCameraResources() {
     });
     video.srcObject = null;
   }
-  
   // 釋放音頻資源
   if (shutterAudio) {
     shutterAudio.pause();
     shutterAudio.currentTime = 0;
   }
-  
   // 重建 WebGL 渲染器
-  if (webGLRenderer && webGLRenderer.gl) {
+  if (webGLRenderer) {
     try {
-      // 嘗試重置 WebGL context
-      const ext = webGLRenderer.gl.getExtension('WEBGL_lose_context');
-      if (ext) {
-        ext.loseContext();
-        ext.restoreContext();
+      const gl = webGLRenderer.gl;
+      if (gl) {
+        gl.getExtension('WEBGL_lose_context').loseContext();
       }
     } catch (e) {
-      console.warn('WebGL context reset failed, will recreate:', e);
-      webGLRenderer = new WebGLRenderer(processCanvas);
+      console.warn('WebGL context reset failed:', e);
     }
+    webGLRenderer = null;
   }
 }
+
+// 2. 重寫 visibilitychange 事件處理
+document.removeEventListener('visibilitychange', handleVisibilityChange);
+function handleVisibilityChange() {
+  if (document.visibilityState === 'hidden') {
+    // 進入背景：關閉串流、停止渲染
+    releaseCameraResources();
+  } else if (document.visibilityState === 'visible') {
+    // 關鍵修復：更徹底的相機重啟機制
+    setTimeout(async () => {
+      // 先強制釋放所有資源
+      releaseCameraResources();
+      // 重建 UI 狀態
+      fsPrompt.style.display = 'flex';
+      document.getElementById('camera-container').style.display = 'none';
+      fsViewfinder.style.display = 'none';
+      
+      // 重建 WebGL
+      webGLRenderer = new WebGLRenderer(processCanvas); 
+      
+      // 重新綁定事件
+      document.getElementById('enter-fs-btn').onclick = startFullscreenAndCamera;
+      
+      // 重置全螢幕狀態
+      if (document.fullscreenElement) {
+        document.exitFullscreen().catch(() => {});
+      }
+    }, 300);
+  }
+}
+document.addEventListener('visibilitychange', handleVisibilityChange);
 
 // 2. 修改 visibilitychange 事件處理
 document.addEventListener('visibilitychange', () => {
