@@ -1,5 +1,5 @@
 // service-worker.js
-const CACHE_NAME = 'lumigraph-v2'; // ⚠️ 更改版本号强制更新
+const CACHE_NAME = 'lumigraph-v3'; // ⚠️ 更改版本号强制更新
 const urlsToCache = [
   'index.html',           // ✅ 明確指定 HTML
   './manifest.json',
