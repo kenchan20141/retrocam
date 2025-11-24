@@ -1826,11 +1826,6 @@ let currentRollState = Math.random(); // 這是控制底片風格的靜態亂數
     document.getElementById('enter-fs-btn').addEventListener('click', () => { startFullscreenAndCamera(); });
   // 修改 startFullscreenAndCamera 函數
 async function startFullscreenAndCamera() {
-
-// ★ 強制重置按鈕狀態，確保可以重複點擊
-const enterBtn = document.getElementById('enter-fs-btn');
-if (enterBtn) enterBtn.disabled = true;
-    
     // 1. 重置所有狀態
     releaseCameraResources();
     webGLRenderer = new WebGLRenderer(processCanvas);
@@ -1846,9 +1841,6 @@ if (enterBtn) enterBtn.disabled = true;
     if (cameraContainer) cameraContainer.style.display = 'none';
     if (fsViewfinder) fsViewfinder.style.display = 'none';
     // 3. 確保提示框被隱藏（開始執行時）
-    // ★ 重新啟用按鈕
-const enterBtn = document.getElementById('enter-fs-btn');
-if (enterBtn) enterBtn.disabled = false;
     if (fsPrompt) fsPrompt.style.display = 'none';
 
     // 4. 先初始化系統
@@ -1864,17 +1856,11 @@ if (enterBtn) enterBtn.disabled = false;
         // iPhone 不請求全螢幕，直接啟動相機
         console.log("iPhone mode detected, initializing camera without fullscreen.");
         // 隱藏提示，顯示相機容器
-        // ★ 重新啟用按鈕
-const enterBtn = document.getElementById('enter-fs-btn');
-if (enterBtn) enterBtn.disabled = false;
         if (fsPrompt) fsPrompt.style.display = 'none'; // 再次確保
         if (cameraContainer) cameraContainer.style.display = 'block';
         try {
             await initCamera();
             // 成功後，確保 UI 狀態正確（相機顯示，提示隱藏）
-            // ★ 重新啟用按鈕
-const enterBtn = document.getElementById('enter-fs-btn');
-if (enterBtn) enterBtn.disabled = false;
             if (fsPrompt) fsPrompt.style.display = 'none';
             if (cameraContainer) cameraContainer.style.display = 'block';
         } catch (err) {
@@ -1888,9 +1874,6 @@ if (enterBtn) enterBtn.disabled = false;
             console.log("Attempting to enter fullscreen...");
             await rfs.call(el);
             console.log("Fullscreen entered successfully.");
-            // ★ 重新啟用按鈕
-const enterBtn = document.getElementById('enter-fs-btn');
-if (enterBtn) enterBtn.disabled = false;
             // 請求全螢幕成功後
             if (fsPrompt) fsPrompt.style.display = 'none'; // 再次確保
             if (cameraContainer) cameraContainer.style.display = 'block';
@@ -1898,9 +1881,6 @@ if (enterBtn) enterBtn.disabled = false;
             if (isOrientationLocked && screen.orientation && screen.orientation.lock) {
                 await screen.orientation.lock('landscape').catch(() => {});
             }
-            // ★ 重新啟用按鈕
-const enterBtn = document.getElementById('enter-fs-btn');
-if (enterBtn) enterBtn.disabled = false;
              // 成功後，確保 UI 狀態正確（相機顯示，提示隱藏）
              if (fsPrompt) fsPrompt.style.display = 'none';
              if (cameraContainer) cameraContainer.style.display = 'block';
@@ -1908,17 +1888,11 @@ if (enterBtn) enterBtn.disabled = false;
             console.warn('Fullscreen failed, falling back to normal mode', err);
             // 退回標準模式，但仍然隱藏提示，顯示相機容器
             // 這裡是關鍵：即使全屏失敗，也要確保相機啟動或 UI 恢復
-            // ★ 重新啟用按鈕
-const enterBtn = document.getElementById('enter-fs-btn');
-if (enterBtn) enterBtn.disabled = false;
             if (fsPrompt) fsPrompt.style.display = 'none'; // 確保提示不顯示
             if (cameraContainer) cameraContainer.style.display = 'block'; // 顯示相機容器
             try {
                 await initCamera(); // 嘗試初始化相機
                 // 成功後，確保 UI 狀態正確（相機顯示，提示隱藏）
-                // ★ 重新啟用按鈕
-const enterBtn = document.getElementById('enter-fs-btn');
-if (enterBtn) enterBtn.disabled = false;
                 if (fsPrompt) fsPrompt.style.display = 'none';
                 if (cameraContainer) cameraContainer.style.display = 'block';
             } catch (initErr) {
@@ -1931,17 +1905,11 @@ if (enterBtn) enterBtn.disabled = false;
     } else {
         // 完全不支援全屏 API 的情況
         console.warn("Fullscreen API not supported, attempting camera fallback.");
-        // ★ 重新啟用按鈕
-const enterBtn = document.getElementById('enter-fs-btn');
-if (enterBtn) enterBtn.disabled = false;
         if (fsPrompt) fsPrompt.style.display = 'none'; // 確保提示不顯示
         if (cameraContainer) cameraContainer.style.display = 'block'; // 顯示相機容器
         try {
             await initCamera(); // 嘗試初始化相機
             // 成功後，確保 UI 狀態正確（相機顯示，提示隱藏）
-            // ★ 重新啟用按鈕
-const enterBtn = document.getElementById('enter-fs-btn');
-if (enterBtn) enterBtn.disabled = false;
             if (fsPrompt) fsPrompt.style.display = 'none';
             if (cameraContainer) cameraContainer.style.display = 'block';
         } catch (initErr) {
@@ -1994,29 +1962,30 @@ function releaseCameraResources() {
 // 2. 重寫 visibilitychange 事件處理
 document.removeEventListener('visibilitychange', handleVisibilityChange);
 function handleVisibilityChange() {
-    if (document.visibilityState === 'hidden') {
-        releaseCameraResources();
-    } else if (document.visibilityState === 'visible') {
-        setTimeout(async () => {
-            releaseCameraResources();
-            
-            // ★ 關鍵修復：重建 WebGL 後立即檢查全屏狀態
-            webGLRenderer = new WebGLRenderer(processCanvas);
-            
-            if (document.fullscreenElement) {
-                // 仍在全屏，重新初始化相機
-                try {
-                    await initCamera();
-                } catch (err) {
-                    console.error('Re-init failed:', err);
-                    setTimeout(initCamera, 500);
-                }
-            } else {
-                // 不在全屏，恢復提示畫面
-                enforceFullscreen();
-            }
-        }, 300);
-    }
+  if (document.visibilityState === 'hidden') {
+    // 進入背景：關閉串流、停止渲染
+    releaseCameraResources();
+  } else if (document.visibilityState === 'visible') {
+    // 關鍵修復：更徹底的相機重啟機制
+    setTimeout(async () => {
+      // 先強制釋放所有資源
+      releaseCameraResources();
+      // 重建 UI 狀態
+      fsPrompt.style.display = 'flex';
+      document.getElementById('camera-container').style.display = 'none';
+      fsViewfinder.style.display = 'none';
+      
+      // 重建 WebGL
+      webGLRenderer = new WebGLRenderer(processCanvas); 
+      
+
+      
+      // 重置全螢幕狀態
+      if (document.fullscreenElement) {
+        document.exitFullscreen().catch(() => {});
+      }
+    }, 300);
+  }
 }
 document.addEventListener('visibilitychange', handleVisibilityChange);
 
@@ -2091,31 +2060,21 @@ async function initCamera() {
     // 初始化曝光控制
     initExposureControl();
     
- } catch (err) {
+  } catch (err) { 
     console.error("Camera init Error", err);
-    
-    // ★ 關鍵修復：相機初始化失敗時，確保 UI 狀態正確
-    const fsPrompt = document.getElementById('fullscreen-prompt');
-    const cameraContainer = document.getElementById('camera-container');
-    
+    // 針對特定錯誤提供恢復策略
     if (err.name === 'NotAllowedError') {
-        console.log('User denied camera permission');
-        if (fsPrompt) fsPrompt.style.display = 'flex';
-        if (cameraContainer) cameraContainer.style.display = 'none';
+      console.log('User denied camera permission');
+      // 可以在這裡添加用戶提示
     } else if (err.name === 'NotFoundError') {
-        console.log('Camera device not found');
-        if (fsPrompt) fsPrompt.style.display = 'flex';
-        if (cameraContainer) cameraContainer.style.display = 'none';
+      console.log('Camera device not found');
     } else {
-        // ★ 其他錯誤，僅在仍處於全屏時才重試
-        if (document.fullscreenElement) {
-            setTimeout(initCamera, 1500);
-        } else {
-            if (fsPrompt) fsPrompt.style.display = 'flex';
-            if (cameraContainer) cameraContainer.style.display = 'none';
-        }
+      // 其他錯誤，嘗試重試
+      setTimeout(initCamera, 1500);
     }
+  } 
 }
+
 
     // 6. 優化 PWA 生命周期
 if ('serviceWorker' in navigator) {
@@ -2178,35 +2137,34 @@ if ('serviceWorker' in navigator) {
         } 
     }
    function enforceFullscreen() {
-    const isFullscreen = !!(document.fullscreenElement || document.webkitFullscreenElement);
+    const isFullscreen = !!(document.fullscreenElement || document.webkitFullscreenElement); // 檢查是否處於全螢幕狀態
     const fsPrompt = document.getElementById('fullscreen-prompt');
     const cameraContainer = document.getElementById('camera-container');
     const fsViewfinder = document.getElementById('fs-viewfinder');
-    
+
     if (!isFullscreen) {
-        // 退出全屏時
+        // 退出全螢幕時
         console.log("Fullscreen ended, resetting UI and releasing resources.");
+        // 釋放相機資源
         releaseCameraResources();
-        
+        // 隱藏相機和取景器容器
         if (cameraContainer) cameraContainer.style.display = 'none';
         if (fsViewfinder) fsViewfinder.style.display = 'none';
-        
+        // 重新顯示全螢幕提示
         if (fsPrompt) {
-            fsPrompt.style.display = 'flex';
+            fsPrompt.style.display = 'flex'; // 確保提示框顯示
+            // 確保按鈕可以點擊並啟用
             const enterBtn = document.getElementById('enter-fs-btn');
             if (enterBtn) {
-                enterBtn.disabled = false;
-                // ★ 關鍵修復：移除所有舊的事件監聽器並重新綁定
-                const newBtn = enterBtn.cloneNode(true);
-                enterBtn.parentNode.replaceChild(newBtn, enterBtn);
-                newBtn.addEventListener('click', () => { startFullscreenAndCamera(); });
+                 enterBtn.disabled = false; // 確保按鈕未被禁用
+                 // 如果按鈕有其他樣式或類別影響點擊，確保它們被清除
+                 // enterBtn.style.pointerEvents = 'auto'; // 通常 flex 會使其可點擊，但可以加上
             }
         }
     } else {
+        // 已進入全螢幕 (此處主要用於檢查狀態，實際進入邏輯在 startFullscreenAndCamera)
         console.log("Currently in fullscreen.");
-        // ★ 重新啟用按鈕
-const enterBtn = document.getElementById('enter-fs-btn');
-if (enterBtn) enterBtn.disabled = false;
+        // 在全屏模式下，確保提示框被隱藏（以防萬一）
         if (fsPrompt) fsPrompt.style.display = 'none';
     }
 }
