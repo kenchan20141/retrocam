@@ -1,5 +1,5 @@
 // service-worker.js
-const CACHE_NAME = 'lumigraph-v5'; // 強制更新版本
+const CACHE_NAME = 'lumigraph-v6'; // 強制更新版本
 const CORE_ASSETS = [
   '/',
   '/index.html',
