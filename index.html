@@ -1142,6 +1142,15 @@ body.is-selfie .exp-dot.center {
 
 <script>
 
+    // 【新增：註冊 Service Worker】
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./service-worker.js')
+      .then(reg => console.log('SW registered'))
+      .catch(err => console.warn('SW failed:', err));
+  });
+}
+
 let currentRollState = Math.random(); // 這是控制底片風格的靜態亂數
     
     /* --- 1. WEBGL RENDERER CLASS (NEW) --- */
@@ -1814,7 +1823,34 @@ let currentRollState = Math.random(); // 這是控制底片風格的靜態亂數
     function updateLeverUI() { const isEndOfRoll = isRollMode && currentFrame >= 36; if (!isFilmAdvanced || isEndOfRoll) { readyLight.classList.add('active'); leverBase.classList.add('glow'); } else { readyLight.classList.remove('active'); leverBase.classList.remove('glow'); } }
 
     document.getElementById('enter-fs-btn').addEventListener('click', () => { startFullscreenAndCamera(); });
-    function startFullscreenAndCamera() { const el = document.documentElement; const rfs = el.requestFullscreen || el.webkitRequestFullScreen; if (rfs) { rfs.call(el).then(() => { initSystem().then(initCamera); if(isOrientationLocked && screen.orientation && screen.orientation.lock) { screen.orientation.lock('landscape').catch(()=>{}); } }).catch(() => { initSystem().then(initCamera); }); } }
+  function startFullscreenAndCamera() {
+    const el = document.documentElement;
+    const rfs = el.requestFullscreen || el.webkitRequestFullScreen;
+
+    // 【核心判斷】是否為 iPhone（不包含 iPad）
+    const isIPhone = /iPhone/.test(navigator.userAgent) && !window.MSStream;
+
+    if (isIPhone) {
+        // iPhone：不請求全螢幕，直接啟動相機
+        initSystem().then(initCamera);
+        fsPrompt.style.display = 'none';
+        document.getElementById('camera-container').style.display = 'block';
+    } else if (rfs) {
+        // 其他裝置（iPad / Android）：走原本全螢幕流程
+        rfs.call(el).then(() => {
+            initSystem().then(initCamera);
+            if (isOrientationLocked && screen.orientation && screen.orientation.lock) {
+                screen.orientation.lock('landscape').catch(() => {});
+            }
+        }).catch(() => {
+            // 全螢幕失敗 fallback（極少數 Android）
+            initSystem().then(initCamera);
+        });
+    } else {
+        // 極端 fallback（理論上不會觸發）
+        initSystem().then(initCamera);
+    }
+}
    async function initCamera() { 
         try { 
             if(video.srcObject) { video.srcObject.getTracks().forEach(track => track.stop()); } 
