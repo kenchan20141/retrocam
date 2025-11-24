@@ -1,6 +1,6 @@
 {
-  "name": "Lumigrpah",
-  "short_name": "Lumigrpah",
+  "name": "Retro Cam",
+  "short_name": "RetroCam",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#000000",
