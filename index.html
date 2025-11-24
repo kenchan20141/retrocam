@@ -1899,35 +1899,63 @@ function releaseCameraResources() {
 }
 
 // 2. 重寫 visibilitychange 事件處理
+// 替換整個的 visibilitychange 事件處理和相關函數
 document.removeEventListener('visibilitychange', handleVisibilityChange);
+
 function handleVisibilityChange() {
   if (document.visibilityState === 'hidden') {
     // 進入背景：關閉串流、停止渲染
-    releaseCameraResources();
+    if (video.srcObject) {
+      video.srcObject.getTracks().forEach(track => {
+        try { track.stop(); } catch(e) {}
+      });
+      video.srcObject = null;
+    }
+    if (shutterAudio) {
+      shutterAudio.pause();
+      shutterAudio.currentTime = 0;
+    }
   } else if (document.visibilityState === 'visible') {
-    // 關鍵修復：更徹底的相機重啟機制
+    // 頁面重新顯示時
     setTimeout(async () => {
-      // 先強制釋放所有資源
-      releaseCameraResources();
-      // 重建 UI 狀態
-      fsPrompt.style.display = 'flex';
-      document.getElementById('camera-container').style.display = 'none';
-      fsViewfinder.style.display = 'none';
+      // 檢查是否卡在 POWER ON 畫面
+      if (fsPrompt.style.display === 'flex' && document.getElementById('camera-container').style.display === 'none') {
+        // 重置所有按鈕狀態
+        document.getElementById('enter-fs-btn').onclick = null;
+        document.getElementById('enter-fs-btn').addEventListener('click', startFullscreenAndCamera);
+        document.getElementById('enter-fs-btn').style.pointerEvents = 'auto';
+        document.getElementById('enter-fs-btn').style.opacity = '1';
+      }
       
-      // 重建 WebGL
-      webGLRenderer = new WebGLRenderer(processCanvas); 
-      
-      // 重新綁定事件
-      document.getElementById('enter-fs-btn').onclick = startFullscreenAndCamera;
-      
-      // 重置全螢幕狀態
-      if (document.fullscreenElement) {
-        document.exitFullscreen().catch(() => {});
+      // 檢查相機資源是否需要重建
+      try {
+        if (!video.srcObject || !webGLRenderer?.gl) {
+          webGLRenderer = new WebGLRenderer(processCanvas); 
+          await initSystem();
+        }
+      } catch (err) {
+        console.error('Recovery failed, full reset needed', err);
+        // 完全重置應用狀態
+        location.reload();
       }
     }, 300);
   }
 }
+
 document.addEventListener('visibilitychange', handleVisibilityChange);
+
+// 額外添加: 每次頁面加載時確保 POWER ON 按鈕始終可點擊
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    const powerBtn = document.getElementById('enter-fs-btn');
+    if (powerBtn) {
+      powerBtn.style.pointerEvents = 'auto';
+      powerBtn.style.opacity = '1';
+      // 重新綁定點擊事件
+      powerBtn.onclick = startFullscreenAndCamera;
+    }
+  }, 500);
+});
 
 // 2. 修改 visibilitychange 事件處理
 document.addEventListener('visibilitychange', () => {
