@@ -1,11 +1,10 @@
 // service-worker.js
-
 const CACHE_NAME = 'lumigraph-v2'; // ⚠️ 更改版本号强制更新
 const urlsToCache = [
-  './',
+  'index.html',           // ✅ 明確指定 HTML
   './manifest.json',
   './icon-512.png',
-  './icon-192.png', // 建议加上 192px icon
+  './icon-192.png',
 ];
 
 self.addEventListener('install', (e) => {
@@ -16,7 +15,6 @@ self.addEventListener('install', (e) => {
   );
 });
 
-// 激活时删除旧缓存
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -32,27 +30,19 @@ self.addEventListener('activate', (e) => {
   );
 });
 
-// 策略：HTML 用 network-first（保证最新），其他用 cache-first
 self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
+  if (url.origin !== self.location.origin) return;
 
-  // 只处理同源请求
-  if (url.origin !== self.location.origin) {
-    return;
-  }
-
-  // 如果是 HTML 文档（导航请求）
+  // 導航請求（HTML）：network-first + offline fallback
   if (e.request.mode === 'navigate') {
     e.respondWith(
-      fetch(e.request).catch(() => {
-        // 网络失败 → 回退到缓存的 HTML（离线兜底）
-        return caches.match('./');
-      })
+      fetch(e.request).catch(() => caches.match('index.html')) // ✅ 改為 index.html
     );
     return;
   }
 
-  // 其他资源（图片、JSON 等）用缓存优先
+  // 其他資源：cache-first
   e.respondWith(
     caches.match(e.request).then(r => r || fetch(e.request))
   );
