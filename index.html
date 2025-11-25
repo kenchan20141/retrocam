@@ -1731,15 +1731,41 @@ let currentRollState = Math.random(); // 這是控制底片風格的靜態亂數
           labelColor: '#fff' }
     ];
     const SKETCH_MODES = [ 
-        { id: 'SKETCH_BW', name: 'PENCIL', sub: '2B GRAPHITE', color: '#333', idx:20 }, 
-        { id: 'SKETCH_COL', name: 'CRAYON', sub: 'SOFT PASTEL', color: '#d2691e', idx:21 }, 
-        { id: 'SKETCH_INK', name: 'INK', sub: 'COMIC PEN', color: '#000', idx:22 }, 
-        { id: 'SKETCH_OIL', name: 'OIL', sub: 'IMPASTO', color: '#8b4513', idx:23 }, 
-        { id: 'SKETCH_CYBER', name: 'CYBER', sub: 'NEON GRID', color: '#0f0', idx:24 }, 
-        { id: 'SKETCH_BLUE', name: 'BLUE', sub: 'BLUEPRINT', color: '#4169e1', idx:25 }, 
-        { id: 'SKETCH_HK_NEON', name: 'HK NEON', sub: 'NIGHT LIGHTS', color: '#ff00cc', idx:26 }, 
-        { id: 'SKETCH_SHUIMO', name: 'SHUIMO', sub: 'INK WASH', color: '#111', idx:27 } 
-    ];
+    { id: 'SKETCH_BW', name: 'PENCIL', sub: '2B GRAPHITE', color: '#333', idx:20,
+      canisterColor: 'silver',
+      labelBg: 'linear-gradient(135deg, #f5f5f5, #ddd)',
+      labelColor: '#333',
+      texture: 'paper' },
+    { id: 'SKETCH_COL', name: 'CRAYON', sub: 'SOFT PASTEL', color: '#d2691e', idx:21,
+      canisterColor: 'champagne',
+      labelBg: 'linear-gradient(135deg, #ffdab9, #ffcc99)',
+      labelColor: '#8b4513' },
+    { id: 'SKETCH_INK', name: 'INK', sub: 'COMIC PEN', color: '#000', idx:22,
+      canisterColor: 'dark',
+      labelBg: 'linear-gradient(to bottom, #0a0a0a, #333)',
+      labelColor: '#fff' },
+    { id: 'SKETCH_OIL', name: 'OIL', sub: 'IMPASTO', color: '#8b4513', idx:23,
+      canisterColor: 'dark', 
+      labelBg: 'linear-gradient(180deg, #8b4513, #5c3d20)',
+      labelColor: '#f5f5dc' },
+    { id: 'SKETCH_CYBER', name: 'CYBER', sub: 'NEON GRID', color: '#0f0', idx:24,
+      canisterColor: 'dark',
+      labelBg: 'linear-gradient(45deg, #000, #0f0)',
+      labelColor: '#a0ffa0' },
+    { id: 'SKETCH_BLUE', name: 'BLUE', sub: 'BLUEPRINT', color: '#4169e1', idx:25,
+      canisterColor: 'silver',
+      labelBg: 'linear-gradient(to bottom, #e6f0ff, #a0c0ff)',
+      labelColor: '#00008b' },
+    { id: 'SKETCH_HK_NEON', name: 'HK NEON', sub: 'NIGHT LIGHTS', color: '#ff00cc', idx:26,
+      canisterColor: 'dark',
+      labelBg: 'linear-gradient(90deg, #1a0022, #ff00cc, #1a0022)',
+      labelColor: '#ffccff' },
+    { id: 'SKETCH_SHUIMO', name: 'SHUIMO', sub: 'INK WASH', color: '#111', idx:27,
+      canisterColor: 'champagne',
+      labelBg: 'linear-gradient(to bottom, #f5f5e0, #e8e8d0)',
+      labelColor: '#333',
+      texture: 'paper' }
+];
     let savedMode = localStorage.getItem('camModeIdx'); let currentModeIdx = savedMode ? parseInt(savedMode) : 0;
     function getModes() { return isSketchMode ? SKETCH_MODES : REAL_MODES; }
     function validateModeIndex() { const modes = getModes(); if (currentModeIdx < 0 || currentModeIdx >= modes.length) currentModeIdx = 0; }
