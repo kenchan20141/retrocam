@@ -1622,100 +1622,99 @@ let currentRollState = Math.random(); // 這是控制底片風格的靜態亂數
     let exposureCtx = exposureCanvas.getContext('2d');
     
     const REAL_MODES = [
-        { id: 'BW', name: 'B&W', sub: 'STREET 400', color: '#000', idx:0,
+        { id: 'BW', name: 'B&W', sub: 'STREET 1600', color: '#000', idx:0, iso: '800',
           canisterColor: 'silver',
           labelBg: 'linear-gradient(135deg, #f0f0f0, #ccc)',
           labelColor: '#111' },
         
-        { id: 'COLOR', name: 'COLOR', sub: 'GAME-CAM', color: '#c00', idx:1,
+        { id: 'COLOR', name: 'COLOR', sub: 'GAME-CAM', color: '#c00', idx:1, iso: '800',
           canisterColor: 'dark',
           labelBg: 'linear-gradient(to top, #7d0000, #c00)',
           labelColor: '#fff' },
           
-        { id: 'CCD', name: 'DIGI', sub: 'CCD SENSOR', color: '#0055cc', idx:2,
+        { id: 'CCD', name: 'DIGI', sub: 'CCD SENSOR', color: '#0055cc', idx:2, iso: '400',
           canisterColor: 'silver',
           labelBg: 'linear-gradient(#0055cc, #002288)',
           labelColor: '#fff' },
           
-        { id: 'HCBW', name: 'HC-BW', sub: 'FINE 100', color: '#555', idx:3,
+        { id: 'HCBW', name: 'HC-BW', sub: 'FINE 100', color: '#555', idx:3, iso: '800',
           canisterColor: 'dark',
           labelBg: '#111',
           labelColor: '#fff' },
           
-        { id: 'FILM_TEAL', name: 'FILM: TEAL', sub: 'KYOTO 400', color: '#008080', idx:4,
+        { id: 'FILM_TEAL', name: 'FILM: TEAL', sub: 'KYOTO 400', color: '#008080', idx:4, iso: '400',
           canisterColor: 'champagne',
           labelBg: 'linear-gradient(to right, #005f5f, #008080, #a0d8d8)',
           labelColor: '#fff',
           texture: 'paper' },
           
-        { id: 'FILM_SUN', name: 'FILM: SUN', sub: 'CALI 200', color: '#ffcc00', idx:5,
+        { id: 'FILM_SUN', name: 'FILM: SUN', sub: 'CALI 200', color: '#ffcc00', idx:5, iso: '200',
           canisterColor: 'silver',
           labelBg: 'linear-gradient(135deg, #ff8c00, #ffcc00)',
           labelColor: '#4d2600' },
           
-        { id: 'FILM_VIVID', name: 'FILM: VIVID', sub: 'SLIDE 100', color: '#ff0055', idx:6,
+        { id: 'FILM_VIVID', name: 'FILM: VIVID', sub: 'SLIDE 100', color: '#ff0055', idx:6, iso: '100',
           canisterColor: 'silver',
           labelBg: 'linear-gradient(45deg, #ff0055, #ff66a3, #fff)',
           labelColor: '#000' },
           
-        { id: 'FILM_AGED', name: 'FILM: AGED', sub: 'EURO 800', color: '#8b4513', idx:7,
+        { id: 'FILM_AGED', name: 'FILM: AGED', sub: 'EURO 800', color: '#8b4513', idx:7, iso: '800',
           canisterColor: 'dark',
           labelBg: 'linear-gradient(180deg, #5c3d20, #8b4513)',
           labelColor: '#f0e68c',
           texture: 'paper' },
           
-        { id: 'FILM_SOFT', name: 'FILM: SOFT', sub: 'AIRY 400H', color: '#90e0ef', idx:8,
+        { id: 'FILM_SOFT', name: 'FILM: SOFT', sub: 'AIRY 400H', color: '#90e0ef', idx:8, iso: '400',
           canisterColor: 'champagne',
           labelBg: 'linear-gradient(to bottom, #d1f5f5, #90e0ef)',
           labelColor: '#006666' },
           
-        { id: 'FILM_MOOD', name: 'FILM: MOOD', sub: 'HK 1990', color: '#006633', idx:9,
+        { id: 'FILM_MOOD', name: 'FILM: MOOD', sub: 'HK 1990', color: '#006633', idx:9, iso: '800',
           canisterColor: 'dark',
           labelBg: 'linear-gradient(#004d26, #008040)',
           labelColor: '#ffdd99' },
           
-        { id: 'FILM_AOI', name: 'FILM: AOI', sub: 'TOKYO BLUE', color: '#0080ff', idx:10,
+        { id: 'FILM_AOI', name: 'FILM: AOI', sub: 'TOKYO BLUE', color: '#0080ff', idx:10, iso: '200',
           canisterColor: 'silver',
           labelBg: 'linear-gradient(to top, #0050a0, #0080ff, #a0d8ff)',
           labelColor: '#fff' },
  
-        /* [新增] C800T 風格 - TUNGSTEN 800 */
-          { id: 'FILM_CINE', name: 'FILM: CINE', sub: 'TUNGSTEN 800', color: '#ff3333', idx:12,
+        { id: 'FILM_CINE', name: 'FILM: CINE', sub: 'TUNGSTEN 800', color: '#ff3333', idx:12, iso: '800',
           canisterColor: 'dark',
-          labelBg: 'linear-gradient(90deg, #111 0%, #222 50%, #cc0000 100%)', // 紅色夜光風格
+          labelBg: 'linear-gradient(90deg, #111 0%, #222 50%, #cc0000 100%)',
           labelColor: '#fff' }
     ];
-    const SKETCH_MODES = [ 
-    { id: 'SKETCH_BW', name: 'PENCIL', sub: '2B GRAPHITE', color: '#333', idx:20,
+    const SKETCH_MODES = [
+    { id: 'SKETCH_BW', name: 'PENCIL', sub: '2B GRAPHITE', color: '#333', idx:20, iso: '800',
       canisterColor: 'silver',
       labelBg: 'linear-gradient(135deg, #f5f5f5, #ddd)',
       labelColor: '#333',
       texture: 'paper' },
-    { id: 'SKETCH_COL', name: 'CRAYON', sub: 'SOFT PASTEL', color: '#d2691e', idx:21,
+    { id: 'SKETCH_COL', name: 'CRAYON', sub: 'SOFT PASTEL', color: '#d2691e', idx:21, iso: '800',
       canisterColor: 'champagne',
       labelBg: 'linear-gradient(135deg, #ffdab9, #ffcc99)',
       labelColor: '#8b4513' },
-    { id: 'SKETCH_INK', name: 'INK', sub: 'COMIC PEN', color: '#000', idx:22,
+    { id: 'SKETCH_INK', name: 'INK', sub: 'COMIC PEN', color: '#000', idx:22, iso: '800',
       canisterColor: 'dark',
       labelBg: 'linear-gradient(to bottom, #0a0a0a, #333)',
       labelColor: '#fff' },
-    { id: 'SKETCH_OIL', name: 'OIL', sub: 'IMPASTO', color: '#8b4513', idx:23,
-      canisterColor: 'dark', 
+    { id: 'SKETCH_OIL', name: 'OIL', sub: 'IMPASTO', color: '#8b4513', idx:23, iso: '800',
+      canisterColor: 'dark',
       labelBg: 'linear-gradient(180deg, #8b4513, #5c3d20)',
       labelColor: '#f5f5dc' },
-    { id: 'SKETCH_CYBER', name: 'CYBER', sub: 'NEON GRID', color: '#9400d3', idx:24,
+    { id: 'SKETCH_CYBER', name: 'CYBER', sub: 'NEON GRID', color: '#0f0', idx:24, iso: '800',
       canisterColor: 'dark',
       labelBg: 'linear-gradient(45deg, #000, #0f0)',
       labelColor: '#a0ffa0' },
-    { id: 'SKETCH_BLUE', name: 'BLUE', sub: 'BLUEPRINT', color: '#4169e1', idx:25,
+    { id: 'SKETCH_BLUE', name: 'BLUE', sub: 'BLUEPRINT', color: '#4169e1', idx:25, iso: '800',
       canisterColor: 'silver',
       labelBg: 'linear-gradient(to bottom, #e6f0ff, #a0c0ff)',
       labelColor: '#00008b' },
-    { id: 'SKETCH_HK_NEON', name: 'HK NEON', sub: 'NIGHT LIGHTS', color: '#ff00cc', idx:26,
+    { id: 'SKETCH_HK_NEON', name: 'HK NEON', sub: 'NIGHT LIGHTS', color: '#ff00cc', idx:26, iso: '800',
       canisterColor: 'dark',
       labelBg: 'linear-gradient(90deg, #1a0022, #ff00cc, #1a0022)',
       labelColor: '#ffccff' },
-    { id: 'SKETCH_SHUIMO', name: 'SHUIMO', sub: 'INK WASH', color: '#111', idx:27,
+    { id: 'SKETCH_SHUIMO', name: 'SHUIMO', sub: 'INK WASH', color: '#111', idx:27, iso: '800',
       canisterColor: 'champagne',
       labelBg: 'linear-gradient(to bottom, #f5f5e0, #e8e8d0)',
       labelColor: '#333',
@@ -1922,29 +1921,28 @@ let currentRollState = Math.random(); // 這是控制底片風格的靜態亂數
      function renderFilmSelector() {
         const modes = getModes();
         filmRollContainer.innerHTML = ''; // 清空容器
-
+ 
         modes.forEach((m, index) => {
             const canister = document.createElement('div');
             canister.className = 'film-canister';
             if (index === currentModeIdx) {
                 canister.classList.add('active');
             }
-
+ 
             const bodyClass = `canister-body canister-body--${m.canisterColor || 'silver'}`;
             const labelTextureClass = m.texture === 'paper' ? 'label-texture-paper' : '';
-
-            // [核心修改] HTML 結構簡化，移除了 canister-cap 元素
-            // 所有視覺效果都將由 .canister-body 和它的偽元素來完成
+ 
+            // [修改] 將原本寫死的 400 替換為 ${m.iso}
             canister.innerHTML = `
                 <div class="${bodyClass}">
                     <div class="canister-label ${labelTextureClass}" style="background: ${m.labelBg};">
                         <div class="cl-name" style="color: ${m.labelColor};">${m.name}</div>
                         <div class="cl-sub" style="color: ${m.labelColor}; opacity: 0.8;">${m.sub}</div>
-                        <div class="cl-iso" style="border-color: ${m.labelColor}; color: ${m.labelColor};">400</div>
+                        <div class="cl-iso" style="border-color: ${m.labelColor}; color: ${m.labelColor};">${m.iso}</div>
                     </div>
                 </div>
             `;
-
+ 
             canister.addEventListener('click', (e) => {
                 e.stopPropagation();
                 selectModeFromRoll(index);
