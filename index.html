@@ -1182,8 +1182,8 @@ let currentRollState = Math.random(); // 這是控制底片風格的靜態亂數
                 }
             `;
 
-          // Fragment Shader：包含所有濾鏡模式 (已加入高光修復 ACES 算法)
-         const fsSource = `
+            // Fragment Shader：包含所有濾鏡模式 (含 HK 1990)
+           const fsSource = `
                 precision highp float;
                 
                 uniform sampler2D u_image;
@@ -1197,46 +1197,12 @@ let currentRollState = Math.random(); // 這是控制底片風格的靜態亂數
                     return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
                 }
 
-                // [修改] ACES Tone Mapping (針對暗部優化)
-                // 調整參數 e (從 0.14 降至 0.10) 稍微放寬暗部的壓縮率
-                vec3 aces(vec3 x) {
-                    const float a = 2.51;
-                    const float b = 0.03;
-                    const float c = 2.43;
-                    const float d = 0.59;
-                    const float e = 0.10; // [修改] 降低此值可減少死黑感
-                    return clamp((x * (a * x + b)) / (x * (c * x + d) + e), 0.0, 1.0);
-                }
-
-                // [核心修改] 全新調色函數：解決發紅與死黑
                 vec3 adjustColor(vec3 color, float brightness, float contrast, float saturation) {
-                    // 1. 亮度 (Gain)
-                    color = color * brightness;
-
-                    // 2. 對比度 (Contrast)
-                    const vec3 middle = vec3(0.5);
-                    color = (color - middle) * contrast + middle;
-
-                    // 3. [關鍵] 計算亮度 (Luma)
+                    vec3 avg = vec3(0.5);
+                    color = mix(avg, color, contrast);
+                    color = color + (brightness - 1.0);
                     float gray = dot(color, vec3(0.299, 0.587, 0.114));
-                    
-                    // 4. [解決發紅] 暗部去飽和 (Shadow Desaturation)
-                    // 當亮度低於 0.15 時，快速將飽和度衰減至 0
-                    // 這能確保最暗的地方是純黑/深灰，不會有紅色噪點
-                    float shadowProtect = smoothstep(0.0, 0.25, gray); 
-                    float finalSat = saturation * shadowProtect; 
-
-                    color = mix(vec3(gray), color, finalSat);
-                    
-                    // 5. [解決死黑] 暗部提升 (Shadow Lift)
-                    // 在對比度調整後，可能產生負值或極低值。
-                    // 這裡我們墊高基底 (0.01) 並限制最小黑位，確保沒有 "Dead Black"
-                    color = max(vec3(0.01), color); 
-                    
-                    // 額外加上微量的 Gamma 提亮暗部細節 (類似 Log 曲線的底部)
-                    // 只有在像素非常暗時才生效
-                    color += (1.0 - smoothstep(0.0, 0.1, gray)) * 0.02;
-
+                    color = mix(vec3(gray), color, saturation);
                     return color;
                 }
 
@@ -1251,41 +1217,70 @@ let currentRollState = Math.random(); // 這是控制底片風格的靜態亂數
                         return; 
                     }
 
-                    // 素描模式 (保持原樣，省略部分以節省空間，功能不變)
+                    // 素描模式
                     if (u_mode >= 20) {
-                        float w = 1.0 / u_texSize.x; float h = 1.0 / u_texSize.y;
+                        float w = 1.0 / u_texSize.x; 
+                        float h = 1.0 / u_texSize.y;
+                        
                         vec3 cR = texture2D(u_image, uv + vec2(w, 0.0)).rgb;
                         vec3 cB = texture2D(u_image, uv + vec2(0.0, h)).rgb;
+                        
                         float gray = dot(c, vec3(0.333));
-                        float diff = abs(gray - dot(cR, vec3(0.333))) + abs(gray - dot(cB, vec3(0.333)));
+                        float grayR = dot(cR, vec3(0.333));
+                        float grayB = dot(cB, vec3(0.333));
+                        
+                        float diff = abs(gray - grayR) + abs(gray - grayB);
+                        
                         if (diff < 0.01) diff = 0.0;
 
                         if (u_mode == 20) { // Pencil
-                            if(diff > 0.06) gl_FragColor = vec4(vec3(0.15), 1.0); else gl_FragColor = vec4(vec3(0.92 + rand(uv)*0.08), 1.0);
+                            if(diff > 0.06) gl_FragColor = vec4(vec3(0.15), 1.0);
+                            else gl_FragColor = vec4(vec3(0.92 + rand(uv)*0.08), 1.0);
                         } else if (u_mode == 22) { // Ink
-                            if(diff > 0.08 || gray < 0.3) gl_FragColor = vec4(vec3(0.05), 1.0); else gl_FragColor = vec4(1.0);
+                            if(diff > 0.08 || gray < 0.3) gl_FragColor = vec4(vec3(0.05), 1.0);
+                            else gl_FragColor = vec4(1.0);
                         } else if (u_mode == 24) { // Cyber
-                             if(diff > 0.1) gl_FragColor = vec4(0.0, 1.0, 0.2, 1.0); else { float grid = (mod(gl_FragCoord.y, 4.0) < 1.0) ? 0.1 : 0.0; gl_FragColor = vec4(0.0, grid, 0.0, 1.0); }
+                             if(diff > 0.1) gl_FragColor = vec4(0.0, 1.0, 0.2, 1.0);
+                             else {
+                                float grid = (mod(gl_FragCoord.y, 4.0) < 1.0) ? 0.1 : 0.0;
+                                gl_FragColor = vec4(0.0, grid, 0.0, 1.0);
+                             }
                         } else if (u_mode == 26) { // HK Neon
-                             if(diff > 0.08) { if(c.r > c.g && c.r > c.b) gl_FragColor = vec4(1.0, 0.0, 0.3, 1.0); else if(c.b > 0.5) gl_FragColor = vec4(0.0, 0.6, 1.0, 1.0); else gl_FragColor = vec4(1.0); } else gl_FragColor = vec4(0.05, 0.02, 0.06, 1.0);
+                             if(diff > 0.08) {
+                                 if(c.r > c.g && c.r > c.b) gl_FragColor = vec4(1.0, 0.0, 0.3, 1.0);
+                                 else if(c.b > 0.5) gl_FragColor = vec4(0.0, 0.6, 1.0, 1.0);
+                                 else gl_FragColor = vec4(1.0);
+                             } else gl_FragColor = vec4(0.05, 0.02, 0.06, 1.0);
                         } else if (u_mode == 21) { // Crayon
-                            float noise = (rand(uv) - 0.5) * 0.2; c = c + noise; if(diff > 0.06) gl_FragColor = vec4(c * 0.6, 1.0); else gl_FragColor = vec4(c + 0.2, 1.0);
+                            float noise = (rand(uv) - 0.5) * 0.2;
+                            c = c + noise;
+                            if(diff > 0.06) gl_FragColor = vec4(c * 0.6, 1.0);
+                            else gl_FragColor = vec4(c + 0.2, 1.0);
                         } else if (u_mode == 25) { // Blueprint
-                            if(diff > 0.06) gl_FragColor = vec4(0.9, 0.95, 1.0, 1.0); else gl_FragColor = vec4(0.0, 0.2, 0.5 + rand(uv)*0.1, 1.0);
+                            if(diff > 0.06) gl_FragColor = vec4(0.9, 0.95, 1.0, 1.0);
+                            else gl_FragColor = vec4(0.0, 0.2, 0.5 + rand(uv)*0.1, 1.0);
                         } else if (u_mode == 23) { // Oil
-                             c = floor(c * 6.0) / 6.0; if(diff > 0.05) c *= 0.8; gl_FragColor = vec4(c, 1.0);
+                             c = floor(c * 6.0) / 6.0; 
+                             if(diff > 0.05) c *= 0.8; 
+                             gl_FragColor = vec4(c, 1.0);
                         } else if (u_mode == 27) { // Shuimo
-                             float ink = gray; if (diff > 0.05) ink -= 0.3; ink = clamp(ink, 0.0, 1.0); ink = smoothstep(0.2, 0.9, ink); gl_FragColor = vec4(vec3(ink), 1.0);
-                        } else { float edge = step(0.06, diff); gl_FragColor = vec4(mix(vec3(1.0), vec3(0.0), edge), 1.0); }
+                             float ink = gray;
+                             if (diff > 0.05) ink -= 0.3; 
+                             ink = clamp(ink, 0.0, 1.0);
+                             ink = smoothstep(0.2, 0.9, ink); 
+                             gl_FragColor = vec4(vec3(ink), 1.0);
+                        } else {
+                            float edge = step(0.06, diff);
+                            gl_FragColor = vec4(mix(vec3(1.0), vec3(0.0), edge), 1.0);
+                        }
                         return;
                     }
 
-                    // --- Real Modes (Enhanced Logic) ---
-
+                    // --- Real Modes ---
                     if (u_mode == 0) { // BW
                         float gray = dot(c, vec3(0.4, 0.5, 0.1)); 
-                        c = vec3(smoothstep(0.02, 0.98, gray)); // 放寬 smoothstep 範圍防止死黑
-                        c = mix(vec3(0.05), vec3(1.0), c); // 提升黑位到 0.05
+                        c = vec3(smoothstep(0.05, 0.95, gray));
+                        c = mix(vec3(0.02), vec3(1.0), c); 
                         float noise = (rand(uv*u_seed) - 0.5) * 0.12;
                         c += noise;
                     } 
@@ -1300,8 +1295,8 @@ let currentRollState = Math.random(); // 這是控制底片風格的靜態亂數
                     }
                     else if (u_mode == 3) { // HCBW
                         float gray = dot(c, vec3(0.6, 0.35, 0.05));
-                        gray = smoothstep(0.1, 0.9, gray); // 放寬範圍
-                        c = vec3(pow(gray, 1.1)); // 降低 Gamma 壓縮
+                        gray = smoothstep(0.15, 0.85, gray);
+                        c = vec3(pow(gray, 1.2));
                         float noise = (rand(uv*u_seed) - 0.5) * 0.15;
                         c += noise;
                     } 
@@ -1317,106 +1312,114 @@ let currentRollState = Math.random(); // 這是控制底片風格的靜態亂數
                         float lum = dot(c, vec3(0.333));
                         c.r += lum * 0.15;
                         c.g += lum * 0.10;
-                        // 修正：不要用 max 強制加色，改用 mix 柔和混合暖色陰影
                         vec3 warmShadow = vec3(0.05, 0.02, 0.0);
-                        float shadowMask = 1.0 - smoothstep(0.0, 0.4, lum);
-                        c = mix(c, warmShadow, shadowMask * 0.3); // 降低混合強度
+                        c = max(c, warmShadow);
+                        c.b *= 0.85; 
                     } 
                     else if (u_mode == 6) { // FILM: VIVID
-                        c = adjustColor(c, 1.0, 1.25, 1.4); // 降低一點對比
+                        c = adjustColor(c, 1.0, 1.3, 1.45);
                         c.r = pow(c.r, 0.95);
-                        c = pow(c, vec3(1.05)); // 降低 Gamma
+                        c.b *= 0.95; 
+                        c = pow(c, vec3(1.1));
                     }  
                     else if (u_mode == 7) { // FILM: AGED
                         float rndType = rand(vec2(u_stat_seed, 10.0));
                         float rndPush = rand(vec2(u_stat_seed, 20.0));
                         float rndGrainSize = rand(vec2(u_stat_seed, 30.0));
-                        float dynamicContrast = 1.0 + (rndPush * 0.25); // 降低隨機對比度上限
+                        float dynamicContrast = 1.0 + (rndPush * 0.35); 
                         float dynamicSat = 1.2 - (rndPush * 0.3);       
                         c = adjustColor(c, 1.05, dynamicContrast, dynamicSat);
-                        
-                        // AGED 模式特殊處理：確保遮罩色不會太深
                         if (rndType < 0.33) { 
+                            c.r *= 0.85; c.g *= 0.95; c.b *= 1.15; 
                             vec3 blueFog = vec3(0.02, 0.05, 0.12);
-                            c = max(c, blueFog); 
+                            c = max(c, blueFog); c = pow(c, vec3(0.95)); 
                         } else if (rndType < 0.66) { 
                             c = mix(vec3(dot(c, vec3(0.333))), c, 0.7);
-                            c = max(c, vec3(0.04)); // 提升黑位
+                            c.g += 0.05; c.r += 0.02;
+                            c = mix(vec3(0.08, 0.1, 0.08), vec3(1.0), c);
                         } else { 
-                            vec3 brownShadow = vec3(0.06, 0.03, 0.02);
+                            c.b *= 0.75; c.r *= 1.1; 
+                            vec3 brownShadow = vec3(0.08, 0.04, 0.02);
                             c = max(c, brownShadow);
+                            c.r += (1.0-c.r) * 0.08; c.g += (1.0-c.g) * 0.04;
                         }
-                        
                         float vignetteStr = 0.3 + (rndPush * 0.5);
                         float dist = distance(uv, vec2(0.5));
-                        float vignette = smoothstep(1.4, 0.4, dist * (0.8 + rndType * 0.4)); // 放寬暗角
+                        float vignette = smoothstep(1.3, 0.3, dist * (0.8 + rndType * 0.4));
                         c *= mix(1.0, vignette, vignetteStr);
-                        
-                        // [修正] 雜訊在暗部改成單色，防止彩色雜訊看起來像紅斑
                         float grainStrength = 0.04 + (rndGrainSize * 0.12);
                         float noise = (rand(uv * u_seed * 2.0) - 0.5) * grainStrength;
-                        float lum = dot(c, vec3(0.333));
-                        if(lum < 0.2) c += vec3(noise); // 暗部加單色雜訊
-                        else c += noise; // 亮部加彩色雜訊
+                        c += noise;
                     }
                     else if (u_mode == 8) { // FILM: SOFT
                         c = adjustColor(c, 1.15, 0.85, 0.9);
-                        c = mix(vec3(0.08, 0.07, 0.08), vec3(1.0), c); // 提升黑位至 0.08
+                        c.r += 0.03; c.b += 0.02;
+                        c = mix(vec3(0.05, 0.04, 0.05), vec3(1.0), c);
                     } 
                     else if (u_mode == 9) { // FILM: MOOD
-                        c = adjustColor(c, 1.0, 1.15, 1.1); // 降低對比
+                        c = adjustColor(c, 1.0, 1.2, 1.1);
                         float lum = dot(c, vec3(0.333));
                         float shadowFactor = 1.0 - smoothstep(0.0, 0.7, lum);
-                        c.g += shadowFactor * 0.10; // 降低綠色偏移量
+                        c.g += shadowFactor * 0.15;
                         c.b = mix(c.b, c.g * 0.5, shadowFactor);
-                        
-                        // 修正 Vignette，避免死黑
+                        float highlightFactor = smoothstep(0.6, 1.0, lum);
+                        c.r += highlightFactor * 0.1;
+                        c.b += highlightFactor * 0.08;
                         float offX = (rand(vec2(u_seed, 11.0)) - 0.5) * 0.015; 
                         float offY = (rand(vec2(u_seed, 22.0)) - 0.5) * 0.015;
                         float dist = distance(uv, vec2(0.5 + offX, 0.5 + offY));
-                        float vignette = smoothstep(1.2, 0.35, dist); 
-                        c = mix(c, c * vignette, 0.8); // 減少暗角強度
+                        float vignette = smoothstep(1.1, 0.35, dist); 
+                        c *= vignette;
                     } 
                     else if (u_mode == 10) { // FILM: AOI
-                        c = adjustColor(c, 1.0, 1.2, 1.15);
-                        vec3 liftColor = vec3(0.02, 0.05, 0.1); 
-                        c = mix(liftColor, vec3(1.0), c); // 確保黑位偏藍而不是死黑
-                        c = pow(c, vec3(1.05));
-                    }
-                    else if (u_mode == 12) { // FILM: CINE
-                        c = adjustColor(c, 1.05, 1.1, 1.2); 
-                        c.r *= 0.85; 
-                        c.b *= 1.15; 
-                        
+                        c = adjustColor(c, 1.0, 1.25, 1.15);
+                        float blueDom = smoothstep(0.2, 0.7, c.b - c.r);
+                        c.g = mix(c.g, min(1.0, c.b * 1.05), blueDom * 0.5);
+                        float redDom = smoothstep(0.1, 0.5, c.r - c.b);
+                        c.g += redDom * 0.04;
+                        vec3 liftColor = vec3(0.01, 0.04, 0.09); 
+                        c = mix(liftColor, vec3(1.0), c);
+                        c = pow(c, vec3(1.1));
                         float lum = dot(c, vec3(0.299, 0.587, 0.114));
-                        float halation = smoothstep(0.75, 0.98, lum);
-                        c.r = max(c.r, c.r + halation * 0.5); 
-                        c.g = min(c.g, c.g + halation * 0.1); 
+                        float shadowMask = 1.0 - smoothstep(0.0, 0.4, lum);
+                        c.b += shadowMask * 0.03; 
+                        c.g += shadowMask * 0.01; 
+                        c *= vec3(0.96, 1.0, 1.02);
+                    }
+                    else if (u_mode == 12) { // [新增] CINE 800T (Tungsten)
+                        // 1. 鎢絲燈色彩平衡 (Tungsten Balance)
+                        // 稍微壓低紅色，提升藍色，讓日光變成冷藍色調，但讓黃色街燈(紅+綠)被中和變白
+                        c = adjustColor(c, 1.05, 1.1, 1.2); // 增加飽和度與亮度
+                        c.r *= 0.85; // 壓低紅色 (冷卻畫面)
+                        c.b *= 1.15; // 提升藍色 (冷卻畫面)
                         
-                        // [修正] Cine 模式暗部提升，防止紅黑
-                        vec3 shadowLift = vec3(0.03, 0.03, 0.06); 
+                        // 2. 標誌性的紅色光暈 (Halation Effect)
+                        // 檢測高亮區域
+                        float lum = dot(c, vec3(0.299, 0.587, 0.114));
+                        // 降低閾值 (0.65) 以便更容易捕捉到街燈
+                        float halation = smoothstep(0.65, 0.95, lum);
+                        
+                        // 在高光處強制注入紅色與微量橘色，模擬底片背層反射
+                        // 這裡使用 max 確保高光不會只是變亮，而是真的變紅
+                        c.r = max(c.r, c.r + halation * 0.5); 
+                        c.g = min(c.g, c.g + halation * 0.1); // 讓核心稍微偏橘黃
+                        
+                        // 3. 高寬容度 (High Latitude) 與暗部細節
+                        // 稍微提亮暗部，並賦予暗部冷藍色調
+                        vec3 shadowLift = vec3(0.02, 0.02, 0.05); 
                         c = mix(shadowLift, vec3(1.0), c);
                         
+                        // 4. ISO 800 顆粒感
+                        // 比一般 ISO 400 稍微明顯一點的顆粒 (0.11)
                         float noise = (rand(uv * u_seed) - 0.5) * 0.11;
-                        if(lum < 0.15) c += vec3(noise); // 暗部單色噪點
-                        else c += noise;
+                        c += noise;
                     }
 
-                    // 通用雜訊 (確保暗部噪點單色化)
                     if(u_mode != 1 && u_mode != 2 && u_mode != 7 && u_mode != 12) {
                         float noise = (rand(uv * u_seed) - 0.5) * 0.08;
-                        float lum = dot(c, vec3(0.333));
-                        if(lum < 0.2) c += vec3(noise);
-                        else c += noise;
+                        c += noise;
                     }
                     
-                    // ACES Tone Mapping 輸出
-                    // 這裡的輸入 c 已經經過 adjustColor 的 "Shadow Lift" 處理
-                    // 所以不會再被 ACES 壓成死黑
-                    if (u_mode != 1 && u_mode != 2) {
-                        c = aces(c);
-                    }
-
                     gl_FragColor = vec4(c, 1.0);
                 }
             `;
