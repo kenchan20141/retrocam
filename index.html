@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="zh">
 <head>
 <link rel="manifest" href="manifest.json">
@@ -15,7 +14,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600&display=swap" rel="stylesheet">
     
 <style>
-    /* [樣式保持不變，為了節省篇幅，直接沿用原本的 CSS] */
+    /* [樣式保持不變] */
     :root {
         --leather-color: #151515;
         --metal-grad: linear-gradient(to bottom, #f0f0f0 0%, #d0d0d0 15%, #b0b0b0 40%, #8a8a8a 100%);
@@ -35,74 +34,16 @@
 
    #camera-container { width: 760px; height: 420px; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); transform-origin: center center; filter: drop-shadow(0 0 2px rgba(255,255,255,0.25)) drop-shadow(0 30px 60px rgba(0,0,0,0.9)); display: none; transform-style: preserve-3d; z-index: 100; contain: layout size; }
 
-    /* [用此版本完整替換舊的 .top-plate 規則] */
-
 .top-plate { 
-    width: 100%; 
-    height: 110px; 
-    background: var(--metal-grad); 
-    border-radius: 12px 12px 2px 2px; 
-    position: relative; 
-    z-index: 10; 
-    border: 1px solid rgba(255,255,255,0.2); 
-    border-bottom: 1px solid #555; 
-    
-    /* [核心修改] 使用多層次的內外陰影來打造精緻的金屬邊緣質感 */
-    box-shadow: 
-        /* 1. 頂部邊緣的內側高光，模擬金屬反光 */
-        inset 0 1px 1px rgba(255,255,255,0.7),
-        /* 2. 底部邊緣的深色線條，強化與機身的分割線 */
-        0 1px 0 #555;
+    width: 100%; height: 110px; background: var(--metal-grad); border-radius: 12px 12px 2px 2px; position: relative; z-index: 10; border: 1px solid rgba(255,255,255,0.2); border-bottom: 1px solid #555; box-shadow: inset 0 1px 1px rgba(255,255,255,0.7), 0 1px 0 #555;
 }
-   /* [修改] 機頂取景器外框 */
 .viewfinder-wrap { 
-    position: absolute; 
-    top: 15px; 
-    left: 30px; 
-    width: 120px; 
-    height: 80px; 
-    background: #000; /* 內部改為全黑，模擬暗箱 */
-    border: 4px solid #444; /* 加粗邊框，模擬金屬框 */
-    border-radius: 4px; 
-    box-shadow: 
-        0 2px 5px rgba(0,0,0,0.5), /* 外部陰影 */
-        inset 0 0 0 1px rgba(0,0,0,1); /* 邊框與機身的接縫 */
-    overflow: hidden; 
-    cursor: zoom-in; 
-    z-index: 12; 
-    transition: opacity 0.3s; 
+    position: absolute; top: 15px; left: 30px; width: 120px; height: 80px; background: #000; border: 4px solid #444; border-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(0,0,0,1); overflow: hidden; cursor: zoom-in; z-index: 12; transition: opacity 0.3s; 
 }
-
-/* [新增] 這是「玻璃質感」的關鍵：反光層與內陰影 */
 .viewfinder-wrap::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 20; /* 確保覆蓋在 Canvas 之上 */
-    pointer-events: none; /* 讓點擊事件可以穿透玻璃傳給 Canvas */
-    
-    /* 1. 內陰影：讓玻璃看起來凹陷 */
-    box-shadow: inset 0 0 15px rgba(0,0,0,0.8); 
-    
-    /* 2. 複雜的漸層：模擬弧形玻璃反光 + 鍍膜色澤 */
-    background: 
-        /* 左上角的強烈反光 (高光) */
-        linear-gradient(135deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.05) 20%, transparent 21%, transparent 100%),
-        /* 整體的微妙青色鍍膜反光 */
-        radial-gradient(circle at 50% 120%, rgba(100, 200, 255, 0.1), transparent 60%);
+    content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 20; pointer-events: none; box-shadow: inset 0 0 15px rgba(0,0,0,0.8); background: linear-gradient(135deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.05) 20%, transparent 21%, transparent 100%), radial-gradient(circle at 50% 120%, rgba(100, 200, 255, 0.1), transparent 60%);
 }
-
-/* [修改] 內部的 Canvas 畫面 */
-.vf-glass { 
-    width: 100%; 
-    height: 100%; 
-    opacity: 0.85; /* 稍微降低不透明度，讓它融入黑色背景 */
-    display: block; 
-    filter: contrast(1.1) brightness(0.9); /* 模擬從光學取景器看出去稍微暗一點的感覺 */
-}
+.vf-glass { width: 100%; height: 100%; opacity: 0.85; display: block; filter: contrast(1.1) brightness(0.9); }
     .function-group { position: absolute; top: 18px; left: 170px; width: 100px; height: 80px; display: flex; flex-direction: column; gap: 12px; z-index: 25; }
     .top-row-btns { display: flex; gap: 12px; align-items: center; }
     .flat-lock-btn { width: 50px; height: 26px; background: linear-gradient(to bottom, #e0e0e0, #bbb); border: 1px solid #888; border-radius: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.8); display: flex; justify-content: center; align-items: center; cursor: pointer; position: relative; }
@@ -158,47 +99,8 @@
     .cable-plunger-wrapper.pressed .cable-button-head { transform: translateY(12px); }
     .cable-plunger-wrapper.pressed .cable-stem { height: 8px; transform: translateY(12px); }
 
-    .front-viewfinder-frame { 
-    position: absolute; 
-    top: 15px; 
-    right: 40px; 
-    width: 90px; 
-    height: 65px; 
-    background: #000; 
-    border: 3px solid #555; 
-    border-radius: 4px; 
-    
-    /* 外部立體感 */
-    box-shadow: 
-        0 2px 4px rgba(0,0,0,0.4), 
-        inset 0 0 0 1px rgba(0,0,0,1); 
-        
-    overflow: hidden; 
-    cursor: zoom-in; 
-    z-index: 16; 
-}
-
-/* [新增] 正面玻璃質感 */
-.front-viewfinder-frame::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 20;
-    pointer-events: none;
-    
-    /* 較深的內陰影 */
-    box-shadow: inset 0 0 12px rgba(0,0,0,0.9);
-    
-    /* 正面看鏡頭通常會有紫色或琥珀色的鍍膜反光 */
-    background: 
-        /* 反光條紋 */
-        linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.15) 45%, rgba(255,255,255,0.05) 50%, transparent 55%),
-        /* 鍍膜感 */
-        radial-gradient(circle at 30% 30%, rgba(100, 0, 200, 0.1), transparent 70%);
-}
+    .front-viewfinder-frame { position: absolute; top: 15px; right: 40px; width: 90px; height: 65px; background: #000; border: 3px solid #555; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.4), inset 0 0 0 1px rgba(0,0,0,1); overflow: hidden; cursor: zoom-in; z-index: 16; }
+    .front-viewfinder-frame::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 20; pointer-events: none; box-shadow: inset 0 0 12px rgba(0,0,0,0.9); background: linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.15) 45%, rgba(255,255,255,0.05) 50%, transparent 55%), radial-gradient(circle at 30% 30%, rgba(100, 0, 200, 0.1), transparent 70%); }
     .front-vf-glass { width: 100%; height: 100%; transform: scaleX(-1); }
     .camera-body { width: 100%; height: 310px; position: relative; border-radius: 0 0 8px 8px; perspective: 1000px; transform-style: preserve-3d; }
 
@@ -208,74 +110,13 @@
 
     .back-door-wrapper { width: 100%; height: 100%; position: absolute; top: 0; left: 0; transform-origin: left center; transform-style: preserve-3d; transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1); z-index: 5; }
     .back-door-wrapper.open { transform: rotateY(-100deg); }
-    /* --- 相機背面 --- */
-.back-door-face { 
-    width: 100%; height: 100%; 
-    position: absolute; top: 0; left: 0; 
-    border-radius: 0 0 8px 8px; 
-    backface-visibility: hidden; 
-
-    /* [核心修改] 使用多層背景來疊加紋理和光影 */
-    background-image: 
-        /* 第一層 (最頂)：SVG 皮革紋理 */
-        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='leather'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='4' stitchTiles='stitch' result='noise'/%3E%3CfeSpecularLighting in='noise' specularConstant='1.5' specularExponent='30' surfaceScale='4.0' lighting-color='%23eee'%3E%3CfeDistantLight azimuth='45' elevation='50'/%3E%3C/feSpecularLighting%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23leather)' opacity='0.5'/%3E%3C/svg%3E"),
-        /* 第二層 (最底)：從上到下的整體光影漸變 */
-        linear-gradient(to bottom, #282828, #151515);
-    background-size: 140px 140px, auto;
-    
-    /* [核心修改] 使用多層內陰影來雕刻立體感 */
-    box-shadow: 
-        /* 1. (最關鍵) 頂部內陰影：模擬頂板投射在機身上的陰影 (環境光遮蔽) */
-        inset 0 6px 8px -4px rgba(0,0,0,0.85),
-        /* 2. 底部內高光：模擬光線勾勒底部邊緣 */
-        inset 0 -1px 1px rgba(255,255,255,0.05);
-}
+    .back-door-face { width: 100%; height: 100%; position: absolute; top: 0; left: 0; border-radius: 0 0 8px 8px; backface-visibility: hidden; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='leather'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='4' stitchTiles='stitch' result='noise'/%3E%3CfeSpecularLighting in='noise' specularConstant='1.5' specularExponent='30' surfaceScale='4.0' lighting-color='%23eee'%3E%3CfeDistantLight azimuth='45' elevation='50'/%3E%3C/feSpecularLighting%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23leather)' opacity='0.5'/%3E%3C/svg%3E"), linear-gradient(to bottom, #282828, #151515); background-size: 140px 140px, auto; box-shadow: inset 0 6px 8px -4px rgba(0,0,0,0.85), inset 0 -1px 1px rgba(255,255,255,0.05); }
     .back-door-interior { width: 100%; height: 100%; position: absolute; top: 0; left: 0; background: #1a1a1a; border-radius: 0 0 8px 8px; transform: rotateY(180deg); backface-visibility: hidden; box-shadow: inset 0 0 20px #000; display: flex; justify-content: center; align-items: center; border: 1px solid #333; }
     .pressure-plate { width: 90%; height: 80%; background: repeating-linear-gradient(90deg, #222, #222 20px, #111 20px, #111 22px); border: 2px solid #000; box-shadow: inset 0 0 10px #000; }
-    /* --- 相機正面 --- */
-.camera-front-face { 
-    width: 100%; height: 100%; 
-    position: absolute; top: 0; left: 0; z-index: 6; 
-    border-radius: 0 0 8px 8px; 
-    display: none; justify-content: center; align-items: center; 
-
-    /* [核心修改] 應用與背面完全相同的光影和紋理效果 */
-    background-image: 
-        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='leather'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='4' stitchTiles='stitch' result='noise'/%3E%3CfeSpecularLighting in='noise' specularConstant='1.5' specularExponent='30' surfaceScale='4.0' lighting-color='%23eee'%3E%3CfeDistantLight azimuth='45' elevation='50'/%3E%3C/feSpecularLighting%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23leather)' opacity='0.5'/%3E%3C/svg%3E"),
-        linear-gradient(to bottom, #282828, #151515);
-    background-size: 140px 140px, auto;
-    box-shadow: 
-        inset 0 6px 8px -4px rgba(0,0,0,0.85),
-        inset 0 -1px 1px rgba(255,255,255,0.05);
-}
+    .camera-front-face { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 6; border-radius: 0 0 8px 8px; display: none; justify-content: center; align-items: center; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='leather'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='4' stitchTiles='stitch' result='noise'/%3E%3CfeSpecularLighting in='noise' specularConstant='1.5' specularExponent='30' surfaceScale='4.0' lighting-color='%23eee'%3E%3CfeDistantLight azimuth='45' elevation='50'/%3E%3C/feSpecularLighting%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23leather)' opacity='0.5'/%3E%3C/svg%3E"), linear-gradient(to bottom, #282828, #151515); background-size: 140px 140px, auto; box-shadow: inset 0 6px 8px -4px rgba(0,0,0,0.85), inset 0 -1px 1px rgba(255,255,255,0.05); }
     .realistic-lens { width: 220px; height: 220px; border-radius: 50%; background: linear-gradient(135deg, #333 0%, #111 100%); border: 4px solid #222; box-shadow: 0 10px 25px rgba(0,0,0,0.8), inset 0 2px 5px rgba(255,255,255,0.1); display: flex; justify-content: center; align-items: center; position: relative; }
     .lens-barrel { width: 200px; height: 200px; border-radius: 50%; border: 8px solid #111; background: #000; display: flex; justify-content: center; align-items: center; position: relative; }
-    .lens-glass-element {
-    width: 160px;
-    height: 160px;
-    border-radius: 50%;
-
-    /* 1. 核心光學質感：模擬鏡頭鍍膜的深紫色/深藍色漸層，而非純黑 */
-    /* circle at 60% 40% 讓光點稍微偏右上，製造球體凸出的錯覺 */
-    background: radial-gradient(circle at 60% 40%, #2a1b3e 0%, #0d0518 45%, #000000 85%);
-
-    position: relative;
-    overflow: hidden; /* 確保內部的快門葉片與反光不會溢出 */
-
-    /* 2. 物理深度與玻璃厚度 */
-    box-shadow: 
-        /* 最深層的內陰影：模擬鏡桶深處的暗度 */
-        inset 0 0 40px rgba(0,0,0,0.95),
-        
-        /* 左上邊緣的高光：模擬玻璃凸起的邊緣受光 */
-        inset 3px 3px 6px rgba(255,255,255,0.15),
-        
-        /* 右下邊緣的微光：勾勒出玻璃的輪廓 */
-        inset -2px -2px 5px rgba(255,255,255,0.05);
-
-    /* 確保這層在鏡筒之上，但在反光層之下 */
-    z-index: 10; 
-}
+    .lens-glass-element { width: 160px; height: 160px; border-radius: 50%; background: radial-gradient(circle at 60% 40%, #2a1b3e 0%, #0d0518 45%, #000000 85%); position: relative; overflow: hidden; box-shadow: inset 0 0 40px rgba(0,0,0,0.95), inset 3px 3px 6px rgba(255,255,255,0.15), inset -2px -2px 5px rgba(255,255,255,0.05); z-index: 10; }
     .lens-glass-element::before { content: ''; position: absolute; top: -30%; left: -30%; width: 160%; height: 160%; background: radial-gradient(circle at 35% 35%, rgba(138, 43, 226, 0.25) 0%, transparent 50%); filter: blur(8px); pointer-events: none; }
     .lens-reflection { position: absolute; top: 25%; left: 25%; width: 30px; height: 15px; background: rgba(255,255,255,0.3); border-radius: 50%; transform: rotate(-45deg); filter: blur(4px); pointer-events: none; z-index: 2; }
     .shutter-flash-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #fff; border-radius: 50%; opacity: 0; pointer-events: none; z-index: 5; }
@@ -338,308 +179,59 @@
     .film-card h3 { margin: 4px 0 0; font-size: 24px; font-weight: 900; color: #000; line-height: 1; font-family: Impact, sans-serif; }
     .film-card p { margin: 2px 0; font-size: 10px; color: #333; font-weight: bold; text-transform: uppercase; }
 
-/* [用此版本完整替換舊的 #film-roll-overlay 到 .cl-iso 之間的所有 CSS] */
-    #film-roll-overlay { 
-        position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-        background: rgba(0,0,0,0.85); 
-        z-index: 6000; 
-        display: none; 
-        flex-direction: column; 
-        justify-content: center; 
-        align-items: center; 
-        perspective: 1500px; /* 增強景深 */
-        opacity: 0; 
-        transition: opacity 0.3s; 
-    }
+    #film-roll-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 6000; display: none; flex-direction: column; justify-content: center; align-items: center; perspective: 1500px; opacity: 0; transition: opacity 0.3s; }
     #film-roll-overlay.visible { opacity: 1; }
-
-    .film-roll-container { 
-        display: flex; 
-        gap: 40px; 
-        padding: 40px; 
-        overflow-x: auto; 
-        max-width: 90vw; 
-        align-items: center; 
-        scroll-behavior: smooth; 
-        -webkit-overflow-scrolling: touch; 
-    }
+    .film-roll-container { display: flex; gap: 40px; padding: 40px; overflow-x: auto; max-width: 90vw; align-items: center; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; }
     .film-roll-container::-webkit-scrollbar { display: none; }
-
-    /* --- 全新菲林筒樣式 --- */
-
-    .film-canister {
-        width: 85px; 
-        height: 145px;
-        position: relative;
-        flex-shrink: 0;
-        transform-style: preserve-3d;
-        cursor: pointer;
-        transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.4s;
-        transform: rotateX(-10deg) rotateY(10deg) scale(0.95);
-        filter: drop-shadow(5px 15px 15px rgba(0,0,0,0.7));
-    }
-    .film-canister:hover, .film-canister.active {
-        transform: rotateX(0deg) rotateY(0deg) scale(1.05) translateY(-5px);
-        filter: drop-shadow(5px 25px 20px rgba(0,0,0,0.5));
-    }
-
-     .canister-body {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    
-    /* [核心修改] 將 border-radius 的值從 5px 增加到 8px，讓四角更圓潤 */
-    border-radius: 17px 17px 8px 8px;
-    
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-left: 1px solid rgba(0,0,0,0.3);
-    border-right: 1px solid rgba(0,0,0,0.3);
-    box-shadow: 
-        inset 0 14px 10px -10px rgba(0,0,0,0.7), 
-        inset 0 -8px 6px -6px rgba(0,0,0,0.8);
-}
-
-    /* 筒身漸變顏色 (保持不變) */
-    .canister-body--silver {
-        background: linear-gradient(90deg, #6b6b6b 0%, #a7a7a7 10%, #e0e0e0 40%, #ffffff 50%, #e0e0e0 60%, #a7a7a7 90%, #6b6b6b 100%);
-    }
-    .canister-body--dark {
-        background: linear-gradient(90deg, #151515 0%, #2e2e2e 10%, #4a4a4a 40%, #5c5c5c 50%, #4a4a4a 60%, #2e2e2e 90%, #151515 100%);
-    }
-    .canister-body--champagne {
-        background: linear-gradient(90deg, #7e6c4a 0%, #b19d70 10%, #dfca9a 40%, #f9eecf 50%, #dfca9a 60%, #b19d70 90%, #7e6c4a 100%);
-    }
-
-    /* --- [核心魔法] 使用偽元素來雕刻頂部和底部 --- */
-
-    /* 1. 雕刻頂部：包含平面、突出的轉軸、和中空的軸心 */
-    .canister-body::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 14px;
-        border-radius: 50% / 100% 100% 0 0;
-        z-index: 5;
-        
-        /* [核心魔法] 將頂面圖層的 Y 軸位置推向極致，創造無可辯駁的高度差 */
-        background-image:
-            /* 第三層 (最頂)：中空的軸心頂面。位置極高 (at 50% 25%)，這是視覺高度的來源 */
-            radial-gradient(ellipse 45% 35% at 50% 25%, 
-                transparent 16%, #ccc 16.5%, #999 28%, transparent 28.5%
-            ),
-
-            /* 第二層 (中間)：轉軸的側壁。加深顏色，讓它成為一個堅實的基座 */
-            radial-gradient(ellipse 50% 40% at 50% 50%,
-                #181818 0%, #111111 40%, transparent 40.5%
-            ),
-            
-            /* 第一層 (最底)：菲林筒頂部的凹陷大平面。位置大幅降低 (at 50% 60%)，為轉軸留出足夠的「生長」空間 */
-            radial-gradient(ellipse 65% 50% at 50% 60%,
-                #282828 0%, #1c1c1c 85%, transparent 85.5%);
-        
-        box-shadow: inset 0 1px 1px rgba(255,255,255,0.1);
-    }
-
-    /* 2. 雕刻底部：帶有立體感的黑色粗弧線 (筒身捲邊) */
-   .canister-body::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 8px; /* 底部捲邊的高度 */
-    border-radius: 50% / 0 0 100% 100%;
-    z-index: 5;
-    
-    /* 基礎顏色 */
-    background-color: #1a1a1a;
-
-    /* [關鍵] 疊加一層柔和的放射狀漸變，模擬底部捲邊的圓潤高光 */
-    background-image: 
-        radial-gradient(ellipse 150% 80% at 50% 120%, 
-            rgba(255,255,255,0.12) 0%, 
-            transparent 50%
-        );
-
-    /* [關鍵] 使用內陰影來定義捲邊與筒身銜接處的輪廓 */
-    box-shadow: 
-        inset 0 1px 1px -1px rgba(255,255,255,0.2),
-        inset 0 -2px 3px rgba(0,0,0,0.6);
-}
-
-    
-
-    /* --- 菲林筒標籤 --- */
-    .canister-label {
-        width: 96%;
-        height: 75%;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        text-align: center;
-        padding: 5px;
-        border-radius: 3px;
-        position: relative;
-        z-index: 1;
-        overflow: hidden; /* 非常重要，確保偽元素不會超出範圍 */
-    }
-
-    /* --- [核心魔法：曲面光影疊加層] --- */
-    /* 這個偽元素會疊加在標籤背景之上，模擬圓柱光影 */
-    .canister-label::before {
-        content: '';
-        position: absolute;
-        top: 0; left: 0; width: 100%; height: 100%;
-        z-index: 2; /* 確保在背景之上，文字之下 */
-        pointer-events: none; /* 讓滑鼠可以點擊到標籤本身 */
-
-        /* [關鍵] 使用多層漸層來偽造光影和曲度 */
-        background:
-            /* 1. 頂部和底部的邊緣暗部，讓標籤看起來是嵌入的 */
-            linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, transparent 10%, transparent 90%, rgba(0,0,0,0.3) 100%),
-            
-            /* 2. 左側和右側的圓柱暗部，這是製造圓柱感的核心 */
-            linear-gradient(to right, rgba(0,0,0,0.5) 0%, transparent 25%, transparent 75%, rgba(0,0,0,0.5) 100%),
-            
-            /* 3. 左側的反光邊緣 (次高光) */
-            linear-gradient(to right, transparent 5%, rgba(255,255,255,0.15) 15%, transparent 30%),
-            
-            /* 4. 中間偏右的主高光，模擬塑膠或金屬的反光質感 */
-            linear-gradient(to right, transparent 40%, rgba(255,255,255,0.5) 48%, rgba(255,255,255,0.2) 52%, transparent 60%);
-    }
-
-    /* [之前版本的偽元素，現在用於紙質紋理] */
-    .canister-label::after {
-        content: '';
-        position: absolute;
-        top: 0; left: 0; width: 100%; height: 100%;
-        pointer-events: none;
-        z-index: 3; /* 確保紋理在光影之上 */
-    }
-    /* 紙質紋理 (會覆蓋掉光澤效果) */
-    .label-texture-paper::after {
-        background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48ZmlsdGVyIGlkPSJub2lzZSI+PGZlVHVyYnVsZW5jZSB0eXBlPSJmcmFjdGFsTm9pc2UiIGJhc2VGcmVxdWVuY3k9IjAuNjUiIG51bU9jdGF2ZXM9IjMiIHN0aXRjaFRpbGVzPSJzdGl0Y2giLz48L2ZpbHRlcj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWx0ZXI9InVybCgjbnoaXNlKSIgb3BhY2l0eT0iMC4wOCIvPjwvc3ZnPg==');
-        mix-blend-mode: overlay; /* 使用疊加模式，讓紋理更自然 */
-    }
-
-    .cl-name { 
-        font-family: Impact, sans-serif; 
-        font-size: 18px; 
-        line-height: 1; 
-        margin-bottom: 4px; 
-        text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
-    }
-    .cl-sub { 
-        font-family: sans-serif; 
-        font-size: 7px; 
-        font-weight: bold; 
-        text-transform: uppercase; 
-        text-shadow: 1px 1px 2px rgba(0,0,0,0.4);
-    }
-    .cl-iso { 
-        font-family: 'Courier New', monospace; 
-        font-weight: bold; 
-        font-size: 11px; 
-        margin-top: 5px; 
-        border: 1px solid; /* 顏色由JS動態提供 */
-        padding: 1px 4px; 
-        border-radius: 2px;
-        background: rgba(0,0,0,0.1);
-    }
+    .film-canister { width: 85px; height: 145px; position: relative; flex-shrink: 0; transform-style: preserve-3d; cursor: pointer; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.4s; transform: rotateX(-10deg) rotateY(10deg) scale(0.95); filter: drop-shadow(5px 15px 15px rgba(0,0,0,0.7)); }
+    .film-canister:hover, .film-canister.active { transform: rotateX(0deg) rotateY(0deg) scale(1.05) translateY(-5px); filter: drop-shadow(5px 25px 20px rgba(0,0,0,0.5)); }
+    .canister-body { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 17px 17px 8px 8px; display: flex; justify-content: center; align-items: center; border-left: 1px solid rgba(0,0,0,0.3); border-right: 1px solid rgba(0,0,0,0.3); box-shadow: inset 0 14px 10px -10px rgba(0,0,0,0.7), inset 0 -8px 6px -6px rgba(0,0,0,0.8); }
+    .canister-body--silver { background: linear-gradient(90deg, #6b6b6b 0%, #a7a7a7 10%, #e0e0e0 40%, #ffffff 50%, #e0e0e0 60%, #a7a7a7 90%, #6b6b6b 100%); }
+    .canister-body--dark { background: linear-gradient(90deg, #151515 0%, #2e2e2e 10%, #4a4a4a 40%, #5c5c5c 50%, #4a4a4a 60%, #2e2e2e 90%, #151515 100%); }
+    .canister-body--champagne { background: linear-gradient(90deg, #7e6c4a 0%, #b19d70 10%, #dfca9a 40%, #f9eecf 50%, #dfca9a 60%, #b19d70 90%, #7e6c4a 100%); }
+    .canister-body::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 14px; border-radius: 50% / 100% 100% 0 0; z-index: 5; background-image: radial-gradient(ellipse 45% 35% at 50% 25%, transparent 16%, #ccc 16.5%, #999 28%, transparent 28.5%), radial-gradient(ellipse 50% 40% at 50% 50%, #181818 0%, #111111 40%, transparent 40.5%), radial-gradient(ellipse 65% 50% at 50% 60%, #282828 0%, #1c1c1c 85%, transparent 85.5%); box-shadow: inset 0 1px 1px rgba(255,255,255,0.1); }
+    .canister-body::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 8px; border-radius: 50% / 0 0 100% 100%; z-index: 5; background-color: #1a1a1a; background-image: radial-gradient(ellipse 150% 80% at 50% 120%, rgba(255,255,255,0.12) 0%, transparent 50%); box-shadow: inset 0 1px 1px -1px rgba(255,255,255,0.2), inset 0 -2px 3px rgba(0,0,0,0.6); }
+    .canister-label { width: 96%; height: 75%; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 5px; border-radius: 3px; position: relative; z-index: 1; overflow: hidden; }
+    .canister-label::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; background: linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, transparent 10%, transparent 90%, rgba(0,0,0,0.3) 100%), linear-gradient(to right, rgba(0,0,0,0.5) 0%, transparent 25%, transparent 75%, rgba(0,0,0,0.5) 100%), linear-gradient(to right, transparent 5%, rgba(255,255,255,0.15) 15%, transparent 30%), linear-gradient(to right, transparent 40%, rgba(255,255,255,0.5) 48%, rgba(255,255,255,0.2) 52%, transparent 60%); }
+    .canister-label::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 3; }
+    .label-texture-paper::after { background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48ZmlsdGVyIGlkPSJub2lzZSI+PGZlVHVyYnVsZW5jZSB0eXBlPSJmcmFjdGFsTm9pc2UiIGJhc2VGcmVxdWVuY3k9IjAuNjUiIG51bU9jdGF2ZXM9IjMiIHN0aXRjaFRpbGVzPSJzdGl0Y2giLz48L2ZpbHRlcj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWx0ZXI9InVybCgjbnoaXNlKSIgb3BhY2l0eT0iMC4wOCIvPjwvc3ZnPg=='); mix-blend-mode: overlay; }
+    .cl-name { font-family: Impact, sans-serif; font-size: 18px; line-height: 1; margin-bottom: 4px; text-shadow: 1px 1px 3px rgba(0,0,0,0.5); }
+    .cl-sub { font-family: sans-serif; font-size: 7px; font-weight: bold; text-transform: uppercase; text-shadow: 1px 1px 2px rgba(0,0,0,0.4); }
+    .cl-iso { font-family: 'Courier New', monospace; font-weight: bold; font-size: 11px; margin-top: 5px; border: 1px solid; padding: 1px 4px; border-radius: 2px; background: rgba(0,0,0,0.1); }
 
     #fs-viewfinder { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 10000; display: none; cursor: crosshair; touch-action: none; }
     #fs-canvas { width: 100%; height: 100%; object-fit: contain; }
-    .fs-ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; box-shadow: inset 0 0 150px rgba(0,0,0,0.7); }
-   .fs-guide-frame {
-    position: absolute; 
-    top: 50%; left: 50%; 
-    transform: translate(-50%, -50%);
-    
-    /* [關鍵] 這是第一版的樣式 */
-    border: 1px solid rgba(255,255,255,0.3) !important; 
-    box-shadow: none !important; /* 移除復古陰影 */
-    background: transparent !important;
-    
-    pointer-events: none;
-    z-index: 5;
-}
+    .fs-guide-frame { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); border: none !important; box-shadow: none !important; background: transparent !important; pointer-events: none; z-index: 5; }
+    .split-image-circle { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 60px !important; height: 60px !important; border: 3px solid rgba(255,255,255,0.4) !important; border-radius: 50%; background: transparent !important; box-shadow: none !important; backdrop-filter: none !important; transition: border-color 0.2s, box-shadow 0.2s; z-index: 6; }
+    .split-image-circle.focused { border-color: #0f0 !important; box-shadow: 0 0 20px #0f0, inset 0 0 10px #0f0 !important; }
 
-/* 2. 還原圓圈：單純的白色粗線圓圈，沒有背景色 */
-.split-image-circle {
-    position: absolute; 
-    top: 50%; left: 50%; 
-    transform: translate(-50%, -50%);
+    .vf-zoom-indicator { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); font-family: 'Courier New', monospace; font-weight: bold; font-size: 20px; letter-spacing: 1px; color: #ffcc00; text-shadow: 0 0 5px rgba(255, 204, 0, 0.8); border: 2px solid #ffcc00; padding: 2px 10px; border-radius: 4px; background: rgba(60, 40, 0, 0.6); z-index: 20; transition: opacity 0.3s; pointer-events: none; }
+    body.is-selfie .vf-zoom-indicator { color: #ffcc00 !important; border-color: #ffcc00 !important; }
+    .vf-data-top { position: absolute; top: 20px; left: 60px; right: 20px; display: flex; justify-content: space-between; align-items: center; z-index: 20; }
+    .vf-mode-badge { border: 2px solid #50ff50; padding: 2px 8px; border-radius: 2px; font-size: 16px; background: rgba(0, 50, 0, 0.5); }
+    .vf-batt { display: flex; align-items: center; gap: 5px; font-size: 12px; }
+    .batt-icon { width: 24px; height: 10px; border: 2px solid #50ff50; padding: 1px; position: relative; }
+    .batt-icon::after { content:''; position:absolute; right:-4px; top:2px; width:2px; height:4px; background:#50ff50; }
+    .batt-level { width: 70%; height: 100%; background: #50ff50; animation: battBlink 5s infinite; }
+    @keyframes battBlink { 0%,90% {opacity:1;} 95% {opacity:0.2;} 100% {opacity:1;} }
+
+    .vf-data-bottom { position: absolute; bottom: 20px; width: 100%; display: flex; justify-content: space-between; align-items: flex-end; padding: 0 40px; }
+    .exp-meter { display: flex; align-items: center; gap: 5px; font-size: 14px; margin-bottom: 5px; }
+    .exp-scale { display: flex; gap: 6px; position: relative; align-items: center; margin: 0 5px; }
+    .exp-dot { width: 4px; height: 4px; background: #50ff50; opacity: 0.5; border-radius: 50%; }
+    .exp-dot.center { width: 6px; height: 6px; opacity: 1; background: #ff5050; box-shadow: 0 0 5px #ff0000; }
+    .exp-needle { position: absolute; bottom: -8px; left: 50%; width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-bottom: 6px solid #50ff50; transform: translateX(-50%); pointer-events: none; transition: left 0.2s ease-out; }
     
-    /* [關鍵] 這是第一版的尺寸與樣式 */
-    width: 60px !important; 
-    height: 60px !important;
-    border: 3px solid rgba(255,255,255,0.4) !important;
-    border-radius: 50%;
+    body.is-selfie .exp-needle { border-left-color: transparent !important; border-right-color: transparent !important; border-bottom-color: #ff5050 !important; background-color: transparent !important; }
+    body.is-selfie .exp-dot { background-color: #ff5050 !important; border: none !important; opacity: 0.5; }
+    body.is-selfie .exp-dot.center { background-color: #ff0000 !important; opacity: 1; box-shadow: 0 0 6px #ff0000 !important; }
     
-    /* 移除復古版的背景與特效 */
-    background: transparent !important;
-    box-shadow: none !important;
-    backdrop-filter: none !important;
-    
-    transition: border-color 0.2s, box-shadow 0.2s;
-    z-index: 6;
-}
-
-/* 3. 還原綠色對焦效果：經典的亮綠色光暈 */
-.split-image-circle.focused {
-    border-color: #0f0 !important;
-    box-shadow: 0 0 20px #0f0, inset 0 0 10px #0f0 !important;
-}
-
-
-/* [新增] 焦距顯示器樣式 */
-    .vf-zoom-indicator {
-        position: absolute;
-        top: 20px; /* 與頂部數據欄高度對齊 */
-        left: 50%;
-        transform: translateX(-50%); /* 絕對置中 */
-        
-        font-family: 'Courier New', monospace;
-        font-weight: bold;
-        font-size: 20px;
-        letter-spacing: 1px;
-        
-        /* 改用琥珀金 (Amber/Gold) 以區分綠色數據 */
-        color: #ffcc00; 
-        text-shadow: 0 0 5px rgba(255, 204, 0, 0.8); /* 金色光暈 */
-        
-        /* 外框裝飾 */
-        border: 2px solid #ffcc00;
-        padding: 2px 10px;
-        border-radius: 4px;
-        background: rgba(60, 40, 0, 0.6); /* 深褐色半透明背景，增加對比度 */
-        
-        z-index: 20;
-        transition: opacity 0.3s;
-        pointer-events: none; /* 防止擋住手勢操作 */
-    }
-
-    /* 自拍模式下也維持琥珀色，與紅綠介面形成對比，非常好看 */
-    body.is-selfie .vf-zoom-indicator {
-        color: #ffcc00 !important;
-        border-color: #ffcc00 !important;
-    }
-
-    
-/* 4. 防止文字重疊 (保留上次的微調) */
-.vf-data-top {
-    top: 10px; /* 貼近頂部 */
-    z-index: 20;
-}
-    .fs-data { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); color: #0f0; font-family: 'Courier New', monospace; font-size: 20px; text-shadow: 0 0 5px #0f0; display: flex; gap: 30px; background: rgba(0,0,0,0.5); padding: 5px 15px; border-radius: 4px; }
-    #vf-close-btn { position: absolute; top: 20px; left: 20px; pointer-events: auto; color: #fff; font-size: 40px; cursor: pointer; opacity: 0.6; font-family: Arial, sans-serif; line-height: 0.5; text-shadow: 0 0 4px #000; z-index: 10001; }
+    .vf-params { display: flex; gap: 20px; font-size: 18px; letter-spacing: 1px; }
+    .vf-yellow { color: #ffff50; text-shadow: 0 0 5px rgba(255, 255, 80, 0.8); }
+    .vf-counter-box { text-align: right; }
+    .vf-label { font-size: 10px; display: block; opacity: 0.8; }
+    .vf-big-num { font-size: 28px; line-height: 1; color: #ff5050; text-shadow: 0 0 8px #ff0000; }
+    #vf-close-btn { position: absolute; top: 15px; left: 20px; font-size: 32px; color: #fff; cursor: pointer; opacity: 0.5; z-index: 10001; }
     #vf-close-btn:hover { opacity: 1; }
 
     .shutter-blind { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 1500; animation: shutterAction 0.15s ease-in-out forwards; }
@@ -664,11 +256,9 @@
     .sp-film::before { top: -8px; } .sp-film::after { bottom: -4px; }
 
     #developing-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 3000; display: none; flex-direction: column; justify-content: center; align-items: center; }
-    
     .photo-paper-container { transform: scale(0.9); display: flex; justify-content: center; align-items: center; margin-bottom: 30px; position: relative; overflow: hidden; transition: box-shadow 0.3s; }
     .photo-paper-container.wet-process { box-shadow: 0 0 50px rgba(0, 100, 255, 0.15), inset 0 0 20px rgba(0,0,0,0.5); }
     .photo-paper-container.wet-process::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.05), rgba(0,0,20,0.3)); pointer-events: none; z-index: 10; mix-blend-mode: overlay; }
-
     #dev-image-wrap { box-shadow: 0 0 50px #000; opacity: 0; max-height: 80vh; max-width: 80vw; transition: all 0.3s; }
     #dev-image-wrap.in-liquid { filter: url(#liquidFilter); }
     .dev-status-text { color: #888; font-family: monospace; font-size: 16px; letter-spacing: 2px; animation: pulse 1s infinite; margin-top: 20px;}
@@ -709,250 +299,21 @@ body.is-selfie .shutter-release-btn { display: none; }
 .rd-btn.confirm:active { background: #300; }
 .rd-btn.alert-ok { color: #fff; display: none; }
 
-/* 1. 光學質感層：暗角 + 微微的磨砂感 */
-.vf-optic-layer {
-    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    pointer-events: none;
-    
-    /* 1. 調整漸層：透明區域從 50% 擴大到 65%，邊緣黑色不透明度從 0.95 降到 0.4 */
-    background: radial-gradient(circle at center, transparent 65%, rgba(0,0,0,0.2) 90%, rgba(0,0,0,0.4) 100%),
-                url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cmVjdCB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjZmZmIiBmaWxsLW9wYWNpdHk9IjAuMDUiLz4KPC9zdmc+'); 
-    
-    /* 2. 減弱內陰影 */
-    box-shadow: inset 0 0 20px rgba(0,0,0,0.3);
-    z-index: 1;
-}
-
-/* [修改] 移除 UI 層的厚重暗角 */
-.fs-ui-layer {
-    position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
-    pointer-events: none; 
-    
-    /* [關鍵] 將原本的 box-shadow: inset 0 0 150px... 改為 none 或極淡 */
-    box-shadow: none; 
-}
-
-/* 2. 指引框：移除原本的實線，改用角落標記 */
-.fs-guide-frame {
-    /* 位置由 JS 動態計算，這裡只設樣式 */
-    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-    border: none; /* 移除舊邊框 */
-    pointer-events: none;
-    z-index: 2;
-}
-
-/* 角落標記 (Crop Marks) */
-.corner {
-    position: absolute; width: 20px; height: 20px;
-    border-color: rgba(255, 255, 255, 0.7);
-    border-style: solid;
-    border-width: 0;
-    box-shadow: 0 0 4px rgba(255,255,255,0.4);
-}
+.vf-optic-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; background: radial-gradient(circle at center, transparent 65%, rgba(0,0,0,0.2) 90%, rgba(0,0,0,0.4) 100%), url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cmVjdCB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjZmZmIiBmaWxsLW9wYWNpdHk9IjAuMDUiLz4KPC9zdmc+'); box-shadow: inset 0 0 20px rgba(0,0,0,0.3); z-index: 1; }
+.fs-ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; box-shadow: none; font-family: 'Courier New', monospace; font-weight: bold; color: #50ff50; text-shadow: 0 0 5px rgba(80, 255, 80, 0.8); z-index: 10; }
+.corner { position: absolute; width: 20px; height: 20px; border-color: rgba(255, 255, 255, 0.7); border-style: solid; border-width: 0; box-shadow: 0 0 4px rgba(255,255,255,0.4); }
 .c-tl { top: 0; left: 0; border-top-width: 2px; border-left-width: 2px; }
 .c-tr { top: 0; right: 0; border-top-width: 2px; border-right-width: 2px; }
 .c-bl { bottom: 0; left: 0; border-bottom-width: 2px; border-left-width: 2px; }
 .c-br { bottom: 0; right: 0; border-bottom-width: 2px; border-right-width: 2px; }
 
-/* 中央十字 */
-.center-cross {
-    position: absolute; top: 50%; left: 50%; width: 20px; height: 20px;
-    transform: translate(-50%, -50%);
-}
-.center-cross::before { content:''; position:absolute; top:9px; left:0; width:100%; height:2px; background:rgba(255,255,255,0.4); }
-.center-cross::after { content:''; position:absolute; left:9px; top:0; height:100%; width:2px; background:rgba(255,255,255,0.4); }
+#exp-btn-minus, #exp-btn-plus { pointer-events: auto !important; cursor: pointer; z-index: 100; padding: 10px; user-select: none; }
 
-/* 3. 裂像對焦圈優化 */
-.split-image-circle {
-    /* 保持 JS 控制顯示/隱藏 */
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    box-shadow: 0 0 0 1px rgba(0,0,0,0.5), inset 0 0 10px rgba(0,0,0,0.2);
-    background: rgba(255,255,255,0.05);
-    backdrop-filter: contrast(1.2); /* 讓圈內稍微亮一點 */
-    z-index: 3;
-}
-/* 裂像中間的水平線 */
-.split-line {
-    position: absolute; top: 50%; left: 0; width: 100%; height: 1px;
-    background: rgba(255,255,255,0.4);
-}
-
-/* 4. 復古數據介面 (OSD) */
-.fs-ui-layer {
-    font-family: 'Courier New', monospace;
-    font-weight: bold;
-    color: #50ff50; /* 經典電子綠 */
-    text-shadow: 0 0 5px rgba(80, 255, 80, 0.8);
-    z-index: 10;
-}
-
-/* 頂部 */
-.vf-data-top {
-    position: absolute; top: 20px; left: 60px; right: 20px;
-    display: flex; justify-content: space-between; align-items: center;
-}
-.vf-mode-badge {
-    border: 2px solid #50ff50;
-    padding: 2px 8px;
-    border-radius: 2px;
-    font-size: 16px;
-    background: rgba(0, 50, 0, 0.5);
-}
-.vf-batt { display: flex; align-items: center; gap: 5px; font-size: 12px; }
-.batt-icon { width: 24px; height: 10px; border: 2px solid #50ff50; padding: 1px; position: relative; }
-.batt-icon::after { content:''; position:absolute; right:-4px; top:2px; width:2px; height:4px; background:#50ff50; }
-.batt-level { width: 70%; height: 100%; background: #50ff50; animation: battBlink 5s infinite; }
-@keyframes battBlink { 0%,90% {opacity:1;} 95% {opacity:0.2;} 100% {opacity:1;} }
-
-/* 底部 */
-.vf-data-bottom {
-    position: absolute; bottom: 20px; width: 100%;
-    display: flex; justify-content: space-between; align-items: flex-end;
-    padding: 0 40px;
-}
-
-/* 曝光表 */
-.exp-meter { display: flex; align-items: center; gap: 5px; font-size: 14px; margin-bottom: 5px; }
-.exp-scale { display: flex; gap: 6px; position: relative; align-items: center; margin: 0 5px; }
-.exp-dot { width: 4px; height: 4px; background: #50ff50; opacity: 0.5; border-radius: 50%; }
-.exp-dot.center { width: 6px; height: 6px; opacity: 1; background: #ff5050; box-shadow: 0 0 5px #ff0000; } /* 中央紅點 */
-.exp-needle {
-    position: absolute; 
-    bottom: -8px; 
-    /* 預設在中間 */
-    left: 50%; 
-    
-    width: 0; 
-    height: 0; 
-    border-left: 4px solid transparent; 
-    border-right: 4px solid transparent; 
-    border-bottom: 6px solid #50ff50; /* 螢光綠 */
-    
-    transform: translateX(-50%); /* 確保指針尖端對準位置 */
-    
-    pointer-events: none; /* 確保不擋住點擊 */
-    
-    /* [關鍵] 移除 animation，加入 transition 讓移動變順暢 */
-    transition: left 0.2s ease-out; 
-}
-
-/* [新增] 自拍模式下的指針顏色 (紅色) */
-body.is-selfie .exp-needle {
-    border-left-color: transparent !important;
-    border-right-color: transparent !important;
-    border-bottom-color: #ff5050 !important; /* 只保留底部紅色 */
-    background-color: transparent !important;
-}
-
-/* 2. 修正圓點：恢復成實心圓 */
-/* 原本的設定把背景變透明了，這裡改回紅色填充 */
-body.is-selfie .exp-dot {
-    background-color: #ff5050 !important;
-    border: none !important; /* 移除邊框，變回實心 */
-    opacity: 0.5;
-}
-
-/* 3. 中央點：保持高亮 */
-body.is-selfie .exp-dot.center {
-    background-color: #ff0000 !important;
-    opacity: 1;
-    box-shadow: 0 0 6px #ff0000 !important;
-}
-@keyframes meterShake { 0% {left:50%} 20% {left:45%} 40% {left:55%} 60% {left:48%} 100% {left:50%} }
-
-/* 參數文字 */
-.vf-params { display: flex; gap: 20px; font-size: 18px; letter-spacing: 1px; }
-.vf-yellow { color: #ffff50; text-shadow: 0 0 5px rgba(255, 255, 80, 0.8); } /* 黃色數值 */
-
-/* 計數器 */
-.vf-counter-box { text-align: right; }
-.vf-label { font-size: 10px; display: block; opacity: 0.8; }
-.vf-big-num { font-size: 28px; line-height: 1; color: #ff5050; text-shadow: 0 0 8px #ff0000; }
-
-/* 關閉按鈕稍微調整位置以避開 UI */
-#vf-close-btn { top: 15px; left: 20px; font-size: 32px; text-shadow: none; opacity: 0.5; }
-
-/* 自拍模式下的顏色變化 (變成紅色錄影風) */
-body.is-selfie .fs-ui-layer, 
-body.is-selfie .vf-mode-badge, 
-body.is-selfie .batt-icon {
-    color: #50ff50 !important;
-    border-color: #50ff50 !important;
-}
-
-/* 2. 修正普通刻度點：變回實心綠色 */
-body.is-selfie .exp-dot {
-    background-color: #50ff50 !important; /* 綠色背景 */
-    border: none !important;              /* 移除邊框 */
-    opacity: 0.5;
-}
-
-/* 3. 修正指針：變回綠色三角形 */
-body.is-selfie .exp-needle {
-    border-left-color: transparent !important;  /* 左右透明 */
-    border-right-color: transparent !important; /* 左右透明 */
-    border-bottom-color: #50ff50 !important;    /* 底部綠色 */
-    background-color: transparent !important;   /* 背景透明 */
-}
-
-/* 4. 修正電池：變回綠色 */
-body.is-selfie .batt-level {
-    background-color: #50ff50 !important;
-}
-
-/* 5. [關鍵] 只有「中央點」維持紅色高亮 */
-body.is-selfie .exp-dot.center {
-    background-color: #ff5050 !important; /* 紅色背景 */
-    box-shadow: 0 0 5px #ff0000 !important; /* 紅色光暈 */
-    opacity: 1;
-}
-
-    /* [修復] 強制讓曝光按鈕可以被點擊 */
-#exp-btn-minus, 
-#exp-btn-plus {
-    pointer-events: auto !important; /* 關鍵：恢復點擊感應 */
-    cursor: pointer;
-    z-index: 100; /* 確保浮在最上層 */
-    padding: 10px; /* 增加點擊範圍，手指好按 */
-    user-select: none; /* 防止雙擊選取文字 */
-}
-
-/* 確保指針不會擋住點擊 */
-.exp-needle {
-    pointer-events: none;
-}
-
-    /* [新增] 日期開關樣式 */
-.date-checkbox {
-    width: 20px;
-    height: 20px;
-    border: 2px solid #888;
-    background: transparent;
-    position: relative;
-    transition: all 0.2s;
-}
-
-/* 勾選狀態 (實心紅) */
-.date-checkbox.checked {
-    background: #c00;
-    border-color: #fff;
-    box-shadow: 0 0 5px #c00;
-}
-
-/* 勾選時的小勾勾 */
-.date-checkbox.checked::after {
-    content: '✔';
-    position: absolute;
-    top: -4px;
-    left: 2px;
-    color: white;
-    font-size: 14px;
-    font-weight: bold;
-}
-
+.date-checkbox { width: 20px; height: 20px; border: 2px solid #888; background: transparent; position: relative; transition: all 0.2s; }
+.date-checkbox.checked { background: #c00; border-color: #fff; box-shadow: 0 0 5px #c00; }
+.date-checkbox.checked::after { content: '✔'; position: absolute; top: -4px; left: 2px; color: white; font-size: 14px; font-weight: bold; }
 #date-option-wrapper:hover .date-checkbox { border-color: #fff; }
 #date-option-wrapper:hover span { color: #fff; }
-    
 </style>
 </head>
 <body>
@@ -975,32 +336,19 @@ body.is-selfie .exp-dot.center {
     <div id="orientation-lock"><svg viewBox="0 0 24 24"><path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/></svg><p>ROTATE DEVICE</p></div>
 
     <div id="fs-viewfinder">
-        <!-- 1. 畫布 (不變) -->
         <canvas id="fs-canvas"></canvas>
-        
-        <!-- 2. 復古光學質感層 (保留，增加質感) -->
         <div class="vf-optic-layer"></div>
-        
-        <!-- 3. UI 層 -->
         <div class="fs-ui-layer">
             <div id="vf-close-btn" title="Exit">×</div>
-            
-            <!-- 導引框 -->
-            <div class="fs-guide-frame" id="fsGuideFrame"></div>
-    
-            <!-- 對焦圈 -->
+            <div class="fs-guide-frame" id="fsGuideFrame">
+                <div class="corner c-tl"></div><div class="corner c-tr"></div><div class="corner c-bl"></div><div class="corner c-br"></div>
+            </div>
             <div class="split-image-circle" id="splitCircle"></div>
-    
-            <!-- 頂部數據 -->
             <div class="vf-data-top">
                 <div class="vf-mode-badge" id="fs-mode-text">B&W</div>
                 <div class="vf-batt"><span>BAT</span><div class="batt-icon"><div class="batt-level"></div></div></div>
             </div>
-
-            <!-- [新增] 這裡加入焦距顯示器 -->
             <div id="fs-zoom-text" class="vf-zoom-indicator">1.0x</div>
-    
-            <!-- 底部數據 -->
             <div class="vf-data-bottom">
               <div class="exp-meter">
                 <span id="exp-btn-minus" style="font-size:20px;">-</span>
@@ -1087,30 +435,17 @@ body.is-selfie .exp-dot.center {
     </div>
 
    <div id="style-selector-overlay">
-        <!-- 標題 -->
         <h2 style="color:white; font-family:'Courier New'; text-align:center;">SELECT PRINT STYLE</h2>
-        
-        <!-- 三個外框選項 -->
         <div class="style-options">
-            <div class="style-btn" data-style="standard">
-                <div class="style-preview sp-std"></div>STANDARD
-            </div>
-            <div class="style-btn" data-style="white">
-                <div class="style-preview sp-white"></div>INSTANT
-            </div>
-            <div class="style-btn" data-style="film">
-                <div class="style-preview sp-film"></div>FILM
-            </div>
+            <div class="style-btn" data-style="standard"><div class="style-preview sp-std"></div>STANDARD</div>
+            <div class="style-btn" data-style="white"><div class="style-preview sp-white"></div>INSTANT</div>
+            <div class="style-btn" data-style="film"><div class="style-preview sp-film"></div>FILM</div>
         </div>
-
-        <!-- [修正位置] 將日期開關放在這個 DIV 結束標籤的「裡面」 -->
         <div id="date-option-wrapper" style="margin-top: 30px; display: flex; align-items: center; gap: 12px; cursor: pointer; opacity: 0.9; transition: opacity 0.2s;">
             <div id="date-checkbox" class="date-checkbox checked"></div>
             <span style="color: #ddd; font-family: 'Courier New', monospace; font-size: 16px; font-weight: bold; letter-spacing: 1px; text-shadow: 0 0 5px rgba(0,0,0,0.5);">IMPRINT DATE</span>
         </div>
     </div> 
-
-
               
     <div id="review-overlay"><img id="review-img" src="" alt="Review"><div class="review-controls"><button class="btn-retro" id="btn-discard">DISCARD</button><button class="btn-retro" id="btn-keep">KEEP</button></div></div>
     <div id="developing-overlay"><div class="photo-paper-container"><img id="dev-image-wrap" src="" alt="Developing"></div><div class="dev-status-text" id="devStatus">DEVELOPING...</div></div>
@@ -1124,7 +459,6 @@ body.is-selfie .exp-dot.center {
     </div>
 
     <video id="video-source" autoplay playsinline style="display:none"></video>
-    <!-- [MODIFIED] This canvas is now WebGL enabled -->
     <canvas id="process-canvas" style="display:none"></canvas> 
     <canvas id="final-canvas" style="display:none"></canvas>
 
@@ -1141,14 +475,11 @@ body.is-selfie .exp-dot.center {
     </div>
 
 <script>
-
-let currentRollState = Math.random(); // 這是控制底片風格的靜態亂數
+    let currentRollState = Math.random();
     
-    /* --- 1. WEBGL RENDERER CLASS (NEW) --- */
-        class WebGLRenderer {
+    class WebGLRenderer {
         constructor(canvas) {
             this.canvas = canvas;
-            // 使用 alpha: false 提升效能
             this.gl = canvas.getContext('webgl', { preserveDrawingBuffer: true, alpha: false });
             if (!this.gl) { console.error("WebGL not supported"); return; }
             this.program = null;
@@ -1158,8 +489,6 @@ let currentRollState = Math.random(); // 這是控制底片風格的靜態亂數
 
         init() {
             const gl = this.gl;
-            
-            // Vertex Shader：包含 Zoom 邏輯
             const vsSource = `
                 attribute vec2 a_position;
                 attribute vec2 a_texCoord;
@@ -1167,25 +496,20 @@ let currentRollState = Math.random(); // 這是控制底片風格的靜態亂數
                 uniform float u_flipY;
                 uniform float u_flipX;
                 uniform float u_zoom; 
-
                 void main() {
                     gl_Position = vec4(a_position, 0, 1);
-                    
-                    // 數碼變焦運算
                     vec2 center = vec2(0.5, 0.5);
                     vec2 tex = a_texCoord;
                     tex = (tex - center) / u_zoom + center;
-
                     if(u_flipX > 0.5) tex.x = 1.0 - tex.x;
                     if(u_flipY > 0.5) tex.y = 1.0 - tex.y;
                     v_texCoord = tex;
                 }
             `;
 
-            // Fragment Shader：包含所有濾鏡模式 (含 HK 1990)
-           const fsSource = `
+            // Updated Fragment Shader with S-Curves and Lift for better Dynamic Range
+            const fsSource = `
                 precision highp float;
-                
                 uniform sampler2D u_image;
                 varying vec2 v_texCoord;
                 uniform int u_mode; 
@@ -1193,10 +517,9 @@ let currentRollState = Math.random(); // 這是控制底片風格的靜態亂數
                 uniform float u_stat_seed;
                 uniform vec2 u_texSize; 
 
-                float rand(vec2 co){
-                    return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
-                }
+                float rand(vec2 co){ return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453); }
 
+                // Standard helper
                 vec3 adjustColor(vec3 color, float brightness, float contrast, float saturation) {
                     vec3 avg = vec3(0.5);
                     color = mix(avg, color, contrast);
@@ -1206,45 +529,40 @@ let currentRollState = Math.random(); // 這是控制底片風格的靜態亂數
                     return color;
                 }
 
+                // [New] S-Curve Contrast (Soft clip) to prevent dead black/white
+                vec3 sCurve(vec3 x) {
+                    return x * x * (3.0 - 2.0 * x);
+                }
+
+                // [New] Channel Mixer for precise tinting
+                vec3 channelMix(vec3 c, vec3 rMix, vec3 gMix, vec3 bMix) {
+                    return vec3(dot(c, rMix), dot(c, gMix), dot(c, bMix));
+                }
+
                 void main() {
                     vec2 uv = v_texCoord;
                     vec4 color = texture2D(u_image, uv);
                     vec3 c = color.rgb;
 
-                    // 直通模式
-                    if (u_mode == 11) { 
-                        gl_FragColor = color;
-                        return; 
-                    }
+                    // Direct Passthrough
+                    if (u_mode == 11) { gl_FragColor = color; return; }
 
-                    // 素描模式
+                    // Sketch Modes (Logic retained but optimized)
                     if (u_mode >= 20) {
-                        float w = 1.0 / u_texSize.x; 
-                        float h = 1.0 / u_texSize.y;
-                        
+                        float w = 1.0 / u_texSize.x; float h = 1.0 / u_texSize.y;
                         vec3 cR = texture2D(u_image, uv + vec2(w, 0.0)).rgb;
                         vec3 cB = texture2D(u_image, uv + vec2(0.0, h)).rgb;
-                        
                         float gray = dot(c, vec3(0.333));
-                        float grayR = dot(cR, vec3(0.333));
-                        float grayB = dot(cB, vec3(0.333));
-                        
-                        float diff = abs(gray - grayR) + abs(gray - grayB);
-                        
+                        float diff = abs(gray - dot(cR, vec3(0.333))) + abs(gray - dot(cB, vec3(0.333)));
                         if (diff < 0.01) diff = 0.0;
 
                         if (u_mode == 20) { // Pencil
-                            if(diff > 0.06) gl_FragColor = vec4(vec3(0.15), 1.0);
-                            else gl_FragColor = vec4(vec3(0.92 + rand(uv)*0.08), 1.0);
+                            gl_FragColor = (diff > 0.06) ? vec4(vec3(0.15), 1.0) : vec4(vec3(0.92 + rand(uv)*0.08), 1.0);
                         } else if (u_mode == 22) { // Ink
-                            if(diff > 0.08 || gray < 0.3) gl_FragColor = vec4(vec3(0.05), 1.0);
-                            else gl_FragColor = vec4(1.0);
+                            gl_FragColor = (diff > 0.08 || gray < 0.3) ? vec4(vec3(0.05), 1.0) : vec4(1.0);
                         } else if (u_mode == 24) { // Cyber
                              if(diff > 0.1) gl_FragColor = vec4(0.0, 1.0, 0.2, 1.0);
-                             else {
-                                float grid = (mod(gl_FragCoord.y, 4.0) < 1.0) ? 0.1 : 0.0;
-                                gl_FragColor = vec4(0.0, grid, 0.0, 1.0);
-                             }
+                             else { float grid = (mod(gl_FragCoord.y, 4.0) < 1.0) ? 0.1 : 0.0; gl_FragColor = vec4(0.0, grid, 0.0, 1.0); }
                         } else if (u_mode == 26) { // HK Neon
                              if(diff > 0.08) {
                                  if(c.r > c.g && c.r > c.b) gl_FragColor = vec4(1.0, 0.0, 0.3, 1.0);
@@ -1252,179 +570,147 @@ let currentRollState = Math.random(); // 這是控制底片風格的靜態亂數
                                  else gl_FragColor = vec4(1.0);
                              } else gl_FragColor = vec4(0.05, 0.02, 0.06, 1.0);
                         } else if (u_mode == 21) { // Crayon
-                            float noise = (rand(uv) - 0.5) * 0.2;
-                            c = c + noise;
-                            if(diff > 0.06) gl_FragColor = vec4(c * 0.6, 1.0);
-                            else gl_FragColor = vec4(c + 0.2, 1.0);
+                            c += (rand(uv) - 0.5) * 0.2;
+                            gl_FragColor = (diff > 0.06) ? vec4(c * 0.6, 1.0) : vec4(c + 0.2, 1.0);
                         } else if (u_mode == 25) { // Blueprint
-                            if(diff > 0.06) gl_FragColor = vec4(0.9, 0.95, 1.0, 1.0);
-                            else gl_FragColor = vec4(0.0, 0.2, 0.5 + rand(uv)*0.1, 1.0);
+                            gl_FragColor = (diff > 0.06) ? vec4(0.9, 0.95, 1.0, 1.0) : vec4(0.0, 0.2, 0.5 + rand(uv)*0.1, 1.0);
                         } else if (u_mode == 23) { // Oil
-                             c = floor(c * 6.0) / 6.0; 
-                             if(diff > 0.05) c *= 0.8; 
-                             gl_FragColor = vec4(c, 1.0);
+                             c = floor(c * 6.0) / 6.0; if(diff > 0.05) c *= 0.8; gl_FragColor = vec4(c, 1.0);
                         } else if (u_mode == 27) { // Shuimo
-                             float ink = gray;
-                             if (diff > 0.05) ink -= 0.3; 
-                             ink = clamp(ink, 0.0, 1.0);
-                             ink = smoothstep(0.2, 0.9, ink); 
+                             float ink = smoothstep(0.2, 0.9, clamp(gray - (diff > 0.05 ? 0.3 : 0.0), 0.0, 1.0)); 
                              gl_FragColor = vec4(vec3(ink), 1.0);
-                        } else {
-                            float edge = step(0.06, diff);
-                            gl_FragColor = vec4(mix(vec3(1.0), vec3(0.0), edge), 1.0);
                         }
                         return;
                     }
 
-                    // --- Real Modes ---
-                    if (u_mode == 0) { // BW
-                        float gray = dot(c, vec3(0.4, 0.5, 0.1)); 
-                        c = vec3(smoothstep(0.05, 0.95, gray));
-                        c = mix(vec3(0.02), vec3(1.0), c); 
-                        float noise = (rand(uv*u_seed) - 0.5) * 0.12;
-                        c += noise;
+                    // --- REALISTIC MODES REVISED (Better Dynamic Range) ---
+                    
+                    if (u_mode == 0) { // BW: Street 1600 (High Contrast but with detail)
+                        // Use channel mixing to simulate panchromatic film (sensitive to skin)
+                        float gray = dot(c, vec3(0.4, 0.35, 0.25)); 
+                        // S-curve for contrast without clipping hard
+                        c = vec3(gray);
+                        c = sCurve(c); 
+                        // Lift blacks to dark gray (matte look)
+                        c = mix(vec3(0.08), vec3(1.0), c); 
+                        // Heavy grain
+                        c += (rand(uv*u_seed) - 0.5) * 0.15;
                     } 
-                    else if (u_mode == 1) { // GAME-CAM
+                    else if (u_mode == 1) { // GAME-CAM (Compressed range then crushed)
+                        // Compress range first to avoid total black
+                        c = mix(vec3(0.05), vec3(0.95), c);
                         c = adjustColor(c, 1.0, 1.1, 1.2);
                         c = floor(c * 8.0) / 8.0; 
                     } 
-                    else if (u_mode == 2) { // CCD
-                        c = adjustColor(c, 1.05, 1.1, 1.1);
-                        c.g *= 0.98;
-                        c.b = floor(c.b * 16.0) / 16.0;
-                    }
-                    else if (u_mode == 3) { // HCBW
-                        float gray = dot(c, vec3(0.6, 0.35, 0.05));
-                        gray = smoothstep(0.15, 0.85, gray);
-                        c = vec3(pow(gray, 1.2));
-                        float noise = (rand(uv*u_seed) - 0.5) * 0.15;
-                        c += noise;
-                    } 
-                    else if (u_mode == 4) { // FILM: TEAL
-                        c = adjustColor(c, 1.0, 0.95, 0.9);
-                        float skinMask = smoothstep(0.1, 0.6, c.r - c.b);
-                        c.b = max(c.b, 0.15 * (1.0 - c.r)); 
-                        c.g = mix(c.g, c.b * 0.9, 0.3 * (1.0 - skinMask));
-                        c.r += c.r * 0.1 * c.g; 
-                    } 
-                    else if (u_mode == 5) { // FILM: SUN
-                        c = adjustColor(c, 1.05, 1.0, 1.2);
-                        float lum = dot(c, vec3(0.333));
-                        c.r += lum * 0.15;
-                        c.g += lum * 0.10;
-                        vec3 warmShadow = vec3(0.05, 0.02, 0.0);
-                        c = max(c, warmShadow);
-                        c.b *= 0.85; 
-                    } 
-                    else if (u_mode == 6) { // FILM: VIVID
-                        c = adjustColor(c, 1.0, 1.3, 1.45);
-                        c.r = pow(c.r, 0.95);
-                        c.b *= 0.95; 
-                        c = pow(c, vec3(1.1));
-                    }  
-                    else if (u_mode == 7) { // FILM: AGED
-                        float rndType = rand(vec2(u_stat_seed, 10.0));
-                        float rndPush = rand(vec2(u_stat_seed, 20.0));
-                        float rndGrainSize = rand(vec2(u_stat_seed, 30.0));
-                        float dynamicContrast = 1.0 + (rndPush * 0.35); 
-                        float dynamicSat = 1.2 - (rndPush * 0.3);       
-                        c = adjustColor(c, 1.05, dynamicContrast, dynamicSat);
-                        if (rndType < 0.33) { 
-                            c.r *= 0.85; c.g *= 0.95; c.b *= 1.15; 
-                            vec3 blueFog = vec3(0.02, 0.05, 0.12);
-                            c = max(c, blueFog); c = pow(c, vec3(0.95)); 
-                        } else if (rndType < 0.66) { 
-                            c = mix(vec3(dot(c, vec3(0.333))), c, 0.7);
-                            c.g += 0.05; c.r += 0.02;
-                            c = mix(vec3(0.08, 0.1, 0.08), vec3(1.0), c);
-                        } else { 
-                            c.b *= 0.75; c.r *= 1.1; 
-                            vec3 brownShadow = vec3(0.08, 0.04, 0.02);
-                            c = max(c, brownShadow);
-                            c.r += (1.0-c.r) * 0.08; c.g += (1.0-c.g) * 0.04;
+                    else if (u_mode == 2) { // CCD (Digital noise, not film grain)
+                        c = adjustColor(c, 1.02, 1.05, 1.1);
+                        // Greenish shadow, Magenta highlight (classic digicam sensor drift)
+                        c.g += (1.0 - c.g) * 0.02;
+                        c.r += c.r * 0.02;
+                        // Chroma noise
+                        if (rand(uv * u_seed) > 0.9) {
+                            c.b += 0.05;
+                            c.r -= 0.05;
                         }
-                        float vignetteStr = 0.3 + (rndPush * 0.5);
-                        float dist = distance(uv, vec2(0.5));
-                        float vignette = smoothstep(1.3, 0.3, dist * (0.8 + rndType * 0.4));
-                        c *= mix(1.0, vignette, vignetteStr);
-                        float grainStrength = 0.04 + (rndGrainSize * 0.12);
-                        float noise = (rand(uv * u_seed * 2.0) - 0.5) * grainStrength;
-                        c += noise;
                     }
-                    else if (u_mode == 8) { // FILM: SOFT
-                        c = adjustColor(c, 1.15, 0.85, 0.9);
-                        c.r += 0.03; c.b += 0.02;
-                        c = mix(vec3(0.05, 0.04, 0.05), vec3(1.0), c);
+                    else if (u_mode == 3) { // HCBW (Fine 100)
+                        float gray = dot(c, vec3(0.3, 0.59, 0.11)); // Standard luma
+                        // Richer midtones, deep blacks but not crushed
+                        c = vec3(pow(gray, 1.1)); 
+                        c = mix(vec3(0.02), vec3(0.98), c); // Soft clip
+                        c += (rand(uv*u_seed) - 0.5) * 0.08;
                     } 
-                    else if (u_mode == 9) { // FILM: MOOD
-                        c = adjustColor(c, 1.0, 1.2, 1.1);
+                    else if (u_mode == 4) { // FILM: TEAL (Kyoto) - Split Toning
                         float lum = dot(c, vec3(0.333));
-                        float shadowFactor = 1.0 - smoothstep(0.0, 0.7, lum);
-                        c.g += shadowFactor * 0.15;
-                        c.b = mix(c.b, c.g * 0.5, shadowFactor);
-                        float highlightFactor = smoothstep(0.6, 1.0, lum);
-                        c.r += highlightFactor * 0.1;
-                        c.b += highlightFactor * 0.08;
-                        float offX = (rand(vec2(u_seed, 11.0)) - 0.5) * 0.015; 
-                        float offY = (rand(vec2(u_seed, 22.0)) - 0.5) * 0.015;
-                        float dist = distance(uv, vec2(0.5 + offX, 0.5 + offY));
-                        float vignette = smoothstep(1.1, 0.35, dist); 
-                        c *= vignette;
+                        vec3 shadowTint = vec3(0.0, 0.1, 0.15); // Teal
+                        vec3 highlightTint = vec3(0.15, 0.1, 0.0); // Orange
+                        // Apply tint based on luminance
+                        c = mix(c + shadowTint, c + highlightTint, lum);
+                        c = adjustColor(c, 1.0, 1.05, 0.9);
+                        // Lift blacks slightly
+                        c = max(c, vec3(0.03));
                     } 
-                    else if (u_mode == 10) { // FILM: AOI
-                        c = adjustColor(c, 1.0, 1.25, 1.15);
-                        float blueDom = smoothstep(0.2, 0.7, c.b - c.r);
-                        c.g = mix(c.g, min(1.0, c.b * 1.05), blueDom * 0.5);
-                        float redDom = smoothstep(0.1, 0.5, c.r - c.b);
-                        c.g += redDom * 0.04;
-                        vec3 liftColor = vec3(0.01, 0.04, 0.09); 
-                        c = mix(liftColor, vec3(1.0), c);
-                        c = pow(c, vec3(1.1));
-                        float lum = dot(c, vec3(0.299, 0.587, 0.114));
-                        float shadowMask = 1.0 - smoothstep(0.0, 0.4, lum);
-                        c.b += shadowMask * 0.03; 
-                        c.g += shadowMask * 0.01; 
-                        c *= vec3(0.96, 1.0, 1.02);
+                    else if (u_mode == 5) { // FILM: SUN (Cali) - Warm Lift
+                        c = adjustColor(c, 1.05, 1.0, 1.1);
+                        // Add warmth to shadows specifically
+                        vec3 warmLift = vec3(0.1, 0.05, 0.02);
+                        c = c * (1.0 - warmLift) + warmLift; 
+                        // Desaturate blues
+                        c.b = mix(c.b, dot(c, vec3(0.333)), 0.3);
+                    } 
+                    else if (u_mode == 6) { // FILM: VIVID (Slide)
+                        // Steep S-curve for reversal film look
+                        c = sCurve(c);
+                        c = adjustColor(c, 1.0, 1.1, 1.4);
+                        // Cool shadows
+                        c.b += (1.0 - max(c.r, c.g)) * 0.05;
+                    }  
+                    else if (u_mode == 7) { // FILM: AGED (Euro)
+                        // Strong matte look (Lifted blacks)
+                        float rndPush = rand(vec2(u_stat_seed, 20.0));
+                        vec3 lift = vec3(0.1, 0.08, 0.06); 
+                        c = c * (0.95) + lift;
+                        
+                        // Faded colors
+                        c = adjustColor(c, 1.0, 0.9 + (rndPush*0.2), 0.8);
+                        
+                        // Vignette
+                        float dist = distance(uv, vec2(0.5));
+                        c *= smoothstep(0.8, 0.2, dist * 0.6);
+                        
+                        // Grain
+                        c += (rand(uv * u_seed) - 0.5) * 0.12;
                     }
-                    else if (u_mode == 12) { // [新增] CINE 800T (Tungsten)
-                        // 1. 鎢絲燈色彩平衡 (Tungsten Balance)
-                        // 稍微壓低紅色，提升藍色，讓日光變成冷藍色調，但讓黃色街燈(紅+綠)被中和變白
-                        c = adjustColor(c, 1.05, 1.1, 1.2); // 增加飽和度與亮度
-                        c.r *= 0.85; // 壓低紅色 (冷卻畫面)
-                        c.b *= 1.15; // 提升藍色 (冷卻畫面)
+                    else if (u_mode == 8) { // FILM: SOFT (Airy)
+                        // Overexposed look, very low contrast
+                        c = adjustColor(c, 1.1, 0.85, 0.9);
+                        // Pastel tint
+                        c += vec3(0.02, 0.01, 0.03);
+                        // Lift shadows significantly
+                        c = max(c, vec3(0.1));
+                    } 
+                    else if (u_mode == 9) { // FILM: MOOD (HK 1990)
+                        // Wong Kar-wai style: Green shadows, preserved skin tones
+                        float lum = dot(c, vec3(0.333));
+                        vec3 greenCast = vec3(0.0, 0.15, 0.1);
+                        // Apply green mostly to shadows/mids
+                        c = mix(c + greenCast, c, smoothstep(0.4, 0.8, lum));
+                        c = adjustColor(c, 0.95, 1.2, 1.1);
+                        // Vignette
+                        float dist = distance(uv, vec2(0.5));
+                        c *= smoothstep(1.0, 0.3, dist);
+                    } 
+                    else if (u_mode == 10) { // FILM: AOI (Tokyo)
+                        // Cold, desaturated Reds
+                        c = channelMix(c, vec3(0.9, 0.1, 0.0), vec3(0.0, 1.0, 0.0), vec3(0.0, 0.1, 0.9));
+                        c.b = pow(c.b, 0.9); // Boost blue
+                        c = adjustColor(c, 1.0, 1.1, 0.9);
+                        c = max(c, vec3(0.02, 0.02, 0.05)); // Blue lift
+                    }
+                    else if (u_mode == 12) { // CINE 800T
+                        // 1. Tungsten Balance (Blue base)
+                        c = channelMix(c, vec3(0.85, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(0.0, 0.0, 1.15));
                         
-                        // 2. 標誌性的紅色光暈 (Halation Effect)
-                        // 檢測高亮區域
+                        // 2. Refined Halation (Red bloom only on very bright sources)
                         float lum = dot(c, vec3(0.299, 0.587, 0.114));
-                        // 降低閾值 (0.65) 以便更容易捕捉到街燈
-                        float halation = smoothstep(0.65, 0.95, lum);
+                        float halationMask = smoothstep(0.85, 1.0, lum); // Only top 15% brightness
                         
-                        // 在高光處強制注入紅色與微量橘色，模擬底片背層反射
-                        // 這裡使用 max 確保高光不會只是變亮，而是真的變紅
-                        c.r = max(c.r, c.r + halation * 0.5); 
-                        c.g = min(c.g, c.g + halation * 0.1); // 讓核心稍微偏橘黃
+                        // Inject Red/Orange into highlights
+                        c.r += halationMask * 0.4;
+                        c.g += halationMask * 0.1;
                         
-                        // 3. 高寬容度 (High Latitude) 與暗部細節
-                        // 稍微提亮暗部，並賦予暗部冷藍色調
-                        vec3 shadowLift = vec3(0.02, 0.02, 0.05); 
-                        c = mix(shadowLift, vec3(1.0), c);
+                        // 3. Cinema Curve (Lifted blacks, soft whites)
+                        c = c * 0.9 + 0.05; // Lift
+                        c = adjustColor(c, 1.0, 1.1, 1.1);
                         
-                        // 4. ISO 800 顆粒感
-                        // 比一般 ISO 400 稍微明顯一點的顆粒 (0.11)
-                        float noise = (rand(uv * u_seed) - 0.5) * 0.11;
-                        c += noise;
+                        // 4. Fine Grain
+                        c += (rand(uv * u_seed) - 0.5) * 0.1;
                     }
 
-                    if(u_mode != 1 && u_mode != 2 && u_mode != 7 && u_mode != 12) {
-                        float noise = (rand(uv * u_seed) - 0.5) * 0.08;
-                        c += noise;
-                    }
-                    
                     gl_FragColor = vec4(c, 1.0);
                 }
             `;
 
-            // [修復關鍵] 這些函數之前丟失了，導致畫面變黑
             const vertexShader = this.compileShader(gl, gl.VERTEX_SHADER, vsSource);
             const fragmentShader = this.compileShader(gl, gl.FRAGMENT_SHADER, fsSource);
             this.program = this.createProgram(gl, vertexShader, fragmentShader);
@@ -1432,7 +718,6 @@ let currentRollState = Math.random(); // 這是控制底片風格的靜態亂數
             const positionBuffer = gl.createBuffer();
             gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
             gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
-
             const texCoordBuffer = gl.createBuffer();
             gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
             gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0,1, 1,1, 0,0, 1,0]), gl.STATIC_DRAW); 
@@ -1455,29 +740,20 @@ let currentRollState = Math.random(); // 這是控制底片風格的靜態亂數
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
         }
 
-        // [修復關鍵] 補回缺失的 compileShader 函數
         compileShader(gl, type, source) {
             const shader = gl.createShader(type);
             gl.shaderSource(shader, source);
             gl.compileShader(shader);
-            if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-                console.error('Shader Error:', gl.getShaderInfoLog(shader));
-                gl.deleteShader(shader);
-                return null;
-            }
+            if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) { console.error('Shader Error:', gl.getShaderInfoLog(shader)); gl.deleteShader(shader); return null; }
             return shader;
         }
 
-        // [修復關鍵] 補回缺失的 createProgram 函數
         createProgram(gl, vs, fs) {
             const program = gl.createProgram();
             gl.attachShader(program, vs);
             gl.attachShader(program, fs);
             gl.linkProgram(program);
-            if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-                console.error('Program Link Error:', gl.getProgramInfoLog(program));
-                return null;
-            }
+            if (!gl.getProgramParameter(program, gl.LINK_STATUS)) { console.error('Program Link Error:', gl.getProgramInfoLog(program)); return null; }
             return program;
         }
 
@@ -1485,21 +761,17 @@ let currentRollState = Math.random(); // 這是控制底片風格的靜態亂數
             const gl = this.gl;
             gl.viewport(0, 0, this.canvas.width, this.canvas.height);
             gl.useProgram(this.program);
-
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_2D, this.texture);
             gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, videoElement);
-
             gl.enableVertexAttribArray(this.a_position);
             gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
             gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
             gl.vertexAttribPointer(this.a_position, 2, gl.FLOAT, false, 0, 0);
-
             gl.enableVertexAttribArray(this.a_texCoord);
             gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
             gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0,1, 1,1, 0,0, 1,0]), gl.STATIC_DRAW);
             gl.vertexAttribPointer(this.a_texCoord, 2, gl.FLOAT, false, 0, 0);
-
             gl.uniform1f(this.u_flipY, 0.0);
             gl.uniform1f(this.u_flipX, isSelfie ? 1.0 : 0.0);
             gl.uniform1i(this.u_mode, modeIndex);
@@ -1507,241 +779,74 @@ let currentRollState = Math.random(); // 這是控制底片風格的靜態亂數
             gl.uniform2f(this.u_texSize, this.canvas.width, this.canvas.height);
             gl.uniform1f(this.u_zoom, zoomLevel);
             gl.uniform1f(this.u_stat_seed, statSeed);
-
             gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
         }
     }
     
-
-    /* --- DATABASE & INIT --- */
+    // [應用邏輯保持不變]
     const DB_NAME = "RetroCamDB_ProMax"; const TEMP_STORE = "temp_roll"; const ALBUM_STORE = "user_album"; let db;
     function initDB() { return new Promise((resolve, reject) => { const request = indexedDB.open(DB_NAME, 3); request.onupgradeneeded = (e) => { db = e.target.result; if (!db.objectStoreNames.contains(TEMP_STORE)) db.createObjectStore(TEMP_STORE, { autoIncrement: true }); if (!db.objectStoreNames.contains(ALBUM_STORE)) db.createObjectStore(ALBUM_STORE, { keyPath: "id", autoIncrement: true }); }; request.onsuccess = (e) => { db = e.target.result; resolve(db); }; request.onerror = () => reject("DB Error"); }); }
     function saveToTemp(dataUrl) { return new Promise((resolve) => { const tx = db.transaction([TEMP_STORE], "readwrite"); tx.objectStore(TEMP_STORE).add({ image: dataUrl, date: new Date() }).onsuccess = () => resolve(true); }); }
     function getTempCount() { return new Promise((resolve) => { const tx = db.transaction([TEMP_STORE], "readonly"); tx.objectStore(TEMP_STORE).count().onsuccess = (e) => resolve(e.target.result); }); }
     function getTempPhotos() { return new Promise((resolve) => { const tx = db.transaction([TEMP_STORE], "readonly"); tx.objectStore(TEMP_STORE).getAll().onsuccess = (e) => resolve(e.target.result); }); }
     function clearTemp() { return new Promise(resolve => { db.transaction([TEMP_STORE], "readwrite").objectStore(TEMP_STORE).clear().onsuccess = resolve; }); }
-    function saveToAlbum(processedImage, serialNumber, styleInfo, w, h) { 
-        return new Promise(resolve => { 
-            const tx = db.transaction([ALBUM_STORE], "readwrite"); 
-            tx.objectStore(ALBUM_STORE).add({ image: processedImage, timestamp: Date.now(), serial: serialNumber, style: styleInfo, width: w || 0, height: h || 0 }).onsuccess = resolve; 
-        }); 
-    }
+    function saveToAlbum(processedImage, serialNumber, styleInfo, w, h) { return new Promise(resolve => { const tx = db.transaction([ALBUM_STORE], "readwrite"); tx.objectStore(ALBUM_STORE).add({ image: processedImage, timestamp: Date.now(), serial: serialNumber, style: styleInfo, width: w || 0, height: h || 0 }).onsuccess = resolve; }); }
     function getAlbumPhotos() { return new Promise(resolve => { const tx = db.transaction([ALBUM_STORE], "readonly"); tx.objectStore(ALBUM_STORE).getAll().onsuccess = (e) => resolve(e.target.result); }); }
     function deleteFromAlbum(ids) { return new Promise(resolve => { const tx = db.transaction([ALBUM_STORE], "readwrite"); const store = tx.objectStore(ALBUM_STORE); ids.forEach(id => store.delete(id)); tx.oncomplete = resolve; }); }
 
-    /* --- VARS --- */
-
-
-/* --- [新增] 數碼變焦 (Digital Zoom) 變數與邏輯 (含 UI 顯示) --- */
-    let currentZoom = 1.0;
-    const minZoom = 1.0;
-    const maxZoom = 3.0; // 最大放大 3 倍
-    let initialPinchDistance = 0;
-    let startZoomLevel = 1.0;
-    
-    // 防止兩指鬆開時誤觸雙擊重置
-    let isPinching = false; 
-
+    let currentZoom = 1.0; const minZoom = 1.0; const maxZoom = 3.0; let initialPinchDistance = 0; let startZoomLevel = 1.0; let isPinching = false; 
     const fsViewfinderEl = document.getElementById('fs-viewfinder');
-    const zoomTextEl = document.getElementById('fs-zoom-text'); // [新增] 獲取 UI 元素
-
-    // [新增] 輔助函數：更新 UI 文字
-    function updateZoomDisplay() {
-        if(zoomTextEl) {
-            zoomTextEl.textContent = currentZoom.toFixed(1) + "x";
-        }
-    }
-
-    // 1. 雙指接觸開始
-    fsViewfinderEl.addEventListener('touchstart', (e) => {
-        if (e.touches.length === 2) {
-            isPinching = true;
-            initialPinchDistance = Math.hypot(
-                e.touches[0].pageX - e.touches[1].pageX,
-                e.touches[0].pageY - e.touches[1].pageY
-            );
-            startZoomLevel = currentZoom;
-        }
-    }, { passive: false }); 
-
-    // 2. 雙指移動 (變焦中)
-    fsViewfinderEl.addEventListener('touchmove', (e) => {
-        if (e.touches.length === 2) {
-            e.preventDefault();
-            isPinching = true;
-
-            const currentDistance = Math.hypot(
-                e.touches[0].pageX - e.touches[1].pageX,
-                e.touches[0].pageY - e.touches[1].pageY
-            );
-
-            if (initialPinchDistance > 0) {
-                const pinchRatio = currentDistance / initialPinchDistance;
-                let newZoom = startZoomLevel * pinchRatio;
-                
-                // 限制範圍
-                newZoom = Math.max(minZoom, Math.min(newZoom, maxZoom));
-                currentZoom = newZoom;
-                
-                // [新增] 即時更新 UI
-                updateZoomDisplay();
-            }
-        }
-    }, { passive: false });
-
-    // 3. 雙擊重置
+    const zoomTextEl = document.getElementById('fs-zoom-text');
+    function updateZoomDisplay() { if(zoomTextEl) zoomTextEl.textContent = currentZoom.toFixed(1) + "x"; }
+    fsViewfinderEl.addEventListener('touchstart', (e) => { if (e.touches.length === 2) { isPinching = true; initialPinchDistance = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY); startZoomLevel = currentZoom; } }, { passive: false }); 
+    fsViewfinderEl.addEventListener('touchmove', (e) => { if (e.touches.length === 2) { e.preventDefault(); isPinching = true; const currentDistance = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY); if (initialPinchDistance > 0) { const pinchRatio = currentDistance / initialPinchDistance; let newZoom = startZoomLevel * pinchRatio; newZoom = Math.max(minZoom, Math.min(newZoom, maxZoom)); currentZoom = newZoom; updateZoomDisplay(); } } }, { passive: false });
     let lastTapTime = 0;
-    fsViewfinderEl.addEventListener('touchend', (e) => {
-        // 如果剛剛是縮放手勢，不要執行雙擊判定
-        if (isPinching) {
-            if (e.touches.length === 0) {
-                isPinching = false;
-            }
-            return;
-        }
+    fsViewfinderEl.addEventListener('touchend', (e) => { if (isPinching) { if (e.touches.length === 0) isPinching = false; return; } const currentTime = new Date().getTime(); const tapLength = currentTime - lastTapTime; if (tapLength < 300 && tapLength > 0) { currentZoom = 1.0; initialPinchDistance = 0; updateZoomDisplay(); } lastTapTime = currentTime; });
 
-        const currentTime = new Date().getTime();
-        const tapLength = currentTime - lastTapTime;
-        
-        if (tapLength < 300 && tapLength > 0) {
-            currentZoom = 1.0;
-            initialPinchDistance = 0;
-            // [新增] 重置時更新 UI
-            updateZoomDisplay();
-        }
-        lastTapTime = currentTime;
-    });
-
-    
     let isRollMode = localStorage.getItem('rollMode') === 'true'; let currentFrame = 0; let pendingPhoto = null; let globalSerialCounter = parseInt(localStorage.getItem('global_serial_counter') || '1'); let isSelfieMode = false; let isSketchMode = false; let isOrientationLocked = localStorage.getItem('orientationLocked') === 'true'; let isFilmViewMode = true; let isMenuLocked = false;
-    
-    // Multi-exposure State
-    let isFilmAdvanced = true; 
-    let exposureCanvas = document.createElement('canvas'); 
-    let currentReviewCanvas = null;
-    let exposureCtx = exposureCanvas.getContext('2d');
+    let isFilmAdvanced = true; let exposureCanvas = document.createElement('canvas'); let currentReviewCanvas = null; let exposureCtx = exposureCanvas.getContext('2d');
     
     const REAL_MODES = [
-        { id: 'BW', name: 'B&W', sub: 'STREET 1600', color: '#000', idx:0, iso: '800',
-          canisterColor: 'silver',
-          labelBg: 'linear-gradient(135deg, #f0f0f0, #ccc)',
-          labelColor: '#111' },
-        
-        { id: 'COLOR', name: 'COLOR', sub: 'GAME-CAM', color: '#c00', idx:1, iso: '800',
-          canisterColor: 'dark',
-          labelBg: 'linear-gradient(to top, #7d0000, #c00)',
-          labelColor: '#fff' },
-          
-        { id: 'CCD', name: 'DIGI', sub: 'CCD SENSOR', color: '#0055cc', idx:2, iso: '400',
-          canisterColor: 'silver',
-          labelBg: 'linear-gradient(#0055cc, #002288)',
-          labelColor: '#fff' },
-          
-        { id: 'HCBW', name: 'HC-BW', sub: 'FINE 100', color: '#555', idx:3, iso: '800',
-          canisterColor: 'dark',
-          labelBg: '#111',
-          labelColor: '#fff' },
-          
-        { id: 'FILM_TEAL', name: 'FILM: TEAL', sub: 'KYOTO 400', color: '#008080', idx:4, iso: '400',
-          canisterColor: 'champagne',
-          labelBg: 'linear-gradient(to right, #005f5f, #008080, #a0d8d8)',
-          labelColor: '#fff',
-          texture: 'paper' },
-          
-        { id: 'FILM_SUN', name: 'FILM: SUN', sub: 'CALI 200', color: '#ffcc00', idx:5, iso: '200',
-          canisterColor: 'silver',
-          labelBg: 'linear-gradient(135deg, #ff8c00, #ffcc00)',
-          labelColor: '#4d2600' },
-          
-        { id: 'FILM_VIVID', name: 'FILM: VIVID', sub: 'SLIDE 100', color: '#ff0055', idx:6, iso: '100',
-          canisterColor: 'silver',
-          labelBg: 'linear-gradient(45deg, #ff0055, #ff66a3, #fff)',
-          labelColor: '#000' },
-          
-        { id: 'FILM_AGED', name: 'FILM: AGED', sub: 'EURO 800', color: '#8b4513', idx:7, iso: '800',
-          canisterColor: 'dark',
-          labelBg: 'linear-gradient(180deg, #5c3d20, #8b4513)',
-          labelColor: '#f0e68c',
-          texture: 'paper' },
-          
-        { id: 'FILM_SOFT', name: 'FILM: SOFT', sub: 'AIRY 400H', color: '#90e0ef', idx:8, iso: '400',
-          canisterColor: 'champagne',
-          labelBg: 'linear-gradient(to bottom, #d1f5f5, #90e0ef)',
-          labelColor: '#006666' },
-          
-        { id: 'FILM_MOOD', name: 'FILM: MOOD', sub: 'HK 1990', color: '#006633', idx:9, iso: '800',
-          canisterColor: 'dark',
-          labelBg: 'linear-gradient(#004d26, #008040)',
-          labelColor: '#ffdd99' },
-          
-        { id: 'FILM_AOI', name: 'FILM: AOI', sub: 'TOKYO BLUE', color: '#0080ff', idx:10, iso: '200',
-          canisterColor: 'silver',
-          labelBg: 'linear-gradient(to top, #0050a0, #0080ff, #a0d8ff)',
-          labelColor: '#fff' },
- 
-        { id: 'FILM_CINE', name: 'FILM: CINE', sub: 'TUNGSTEN 800', color: '#ff3333', idx:12, iso: '800',
-          canisterColor: 'dark',
-          labelBg: 'linear-gradient(90deg, #111 0%, #222 50%, #cc0000 100%)',
-          labelColor: '#fff' }
+        { id: 'BW', name: 'B&W', sub: 'STREET 1600', color: '#000', idx:0, iso: '800', canisterColor: 'silver', labelBg: 'linear-gradient(135deg, #f0f0f0, #ccc)', labelColor: '#111' },
+        { id: 'COLOR', name: 'COLOR', sub: 'GAME-CAM', color: '#c00', idx:1, iso: '800', canisterColor: 'dark', labelBg: 'linear-gradient(to top, #7d0000, #c00)', labelColor: '#fff' },
+        { id: 'CCD', name: 'DIGI', sub: 'CCD SENSOR', color: '#0055cc', idx:2, iso: '400', canisterColor: 'silver', labelBg: 'linear-gradient(#0055cc, #002288)', labelColor: '#fff' },
+        { id: 'HCBW', name: 'HC-BW', sub: 'FINE 100', color: '#555', idx:3, iso: '800', canisterColor: 'dark', labelBg: '#111', labelColor: '#fff' },
+        { id: 'FILM_TEAL', name: 'FILM: TEAL', sub: 'KYOTO 400', color: '#008080', idx:4, iso: '400', canisterColor: 'champagne', labelBg: 'linear-gradient(to right, #005f5f, #008080, #a0d8d8)', labelColor: '#fff', texture: 'paper' },
+        { id: 'FILM_SUN', name: 'FILM: SUN', sub: 'CALI 200', color: '#ffcc00', idx:5, iso: '200', canisterColor: 'silver', labelBg: 'linear-gradient(135deg, #ff8c00, #ffcc00)', labelColor: '#4d2600' },
+        { id: 'FILM_VIVID', name: 'FILM: VIVID', sub: 'SLIDE 100', color: '#ff0055', idx:6, iso: '100', canisterColor: 'silver', labelBg: 'linear-gradient(45deg, #ff0055, #ff66a3, #fff)', labelColor: '#000' },
+        { id: 'FILM_AGED', name: 'FILM: AGED', sub: 'EURO 800', color: '#8b4513', idx:7, iso: '800', canisterColor: 'dark', labelBg: 'linear-gradient(180deg, #5c3d20, #8b4513)', labelColor: '#f0e68c', texture: 'paper' },
+        { id: 'FILM_SOFT', name: 'FILM: SOFT', sub: 'AIRY 400H', color: '#90e0ef', idx:8, iso: '400', canisterColor: 'champagne', labelBg: 'linear-gradient(to bottom, #d1f5f5, #90e0ef)', labelColor: '#006666' },
+        { id: 'FILM_MOOD', name: 'FILM: MOOD', sub: 'HK 1990', color: '#006633', idx:9, iso: '800', canisterColor: 'dark', labelBg: 'linear-gradient(#004d26, #008040)', labelColor: '#ffdd99' },
+        { id: 'FILM_AOI', name: 'FILM: AOI', sub: 'TOKYO BLUE', color: '#0080ff', idx:10, iso: '200', canisterColor: 'silver', labelBg: 'linear-gradient(to top, #0050a0, #0080ff, #a0d8ff)', labelColor: '#fff' },
+        { id: 'FILM_CINE', name: 'FILM: CINE', sub: 'TUNGSTEN 800', color: '#ff3333', idx:12, iso: '800', canisterColor: 'dark', labelBg: 'linear-gradient(90deg, #111 0%, #222 50%, #cc0000 100%)', labelColor: '#fff' }
     ];
     const SKETCH_MODES = [
-    { id: 'SKETCH_BW', name: 'PENCIL', sub: '2B GRAPHITE', color: '#333', idx:20, iso: '800',
-      canisterColor: 'silver',
-      labelBg: 'linear-gradient(135deg, #f5f5f5, #ddd)',
-      labelColor: '#333',
-      texture: 'paper' },
-    { id: 'SKETCH_COL', name: 'CRAYON', sub: 'SOFT PASTEL', color: '#d2691e', idx:21, iso: '800',
-      canisterColor: 'champagne',
-      labelBg: 'linear-gradient(135deg, #ffdab9, #ffcc99)',
-      labelColor: '#8b4513' },
-    { id: 'SKETCH_INK', name: 'INK', sub: 'COMIC PEN', color: '#000', idx:22, iso: '800',
-      canisterColor: 'dark',
-      labelBg: 'linear-gradient(to bottom, #0a0a0a, #333)',
-      labelColor: '#fff' },
-    { id: 'SKETCH_OIL', name: 'OIL', sub: 'IMPASTO', color: '#8b4513', idx:23, iso: '800',
-      canisterColor: 'dark',
-      labelBg: 'linear-gradient(180deg, #8b4513, #5c3d20)',
-      labelColor: '#f5f5dc' },
-    { id: 'SKETCH_CYBER', name: 'CYBER', sub: 'NEON GRID', color: '#0f0', idx:24, iso: '800',
-      canisterColor: 'dark',
-      labelBg: 'linear-gradient(45deg, #000, #0f0)',
-      labelColor: '#a0ffa0' },
-    { id: 'SKETCH_BLUE', name: 'BLUE', sub: 'BLUEPRINT', color: '#4169e1', idx:25, iso: '800',
-      canisterColor: 'silver',
-      labelBg: 'linear-gradient(to bottom, #e6f0ff, #a0c0ff)',
-      labelColor: '#00008b' },
-    { id: 'SKETCH_HK_NEON', name: 'HK NEON', sub: 'NIGHT LIGHTS', color: '#ff00cc', idx:26, iso: '800',
-      canisterColor: 'dark',
-      labelBg: 'linear-gradient(90deg, #1a0022, #ff00cc, #1a0022)',
-      labelColor: '#ffccff' },
-    { id: 'SKETCH_SHUIMO', name: 'SHUIMO', sub: 'INK WASH', color: '#111', idx:27, iso: '800',
-      canisterColor: 'champagne',
-      labelBg: 'linear-gradient(to bottom, #f5f5e0, #e8e8d0)',
-      labelColor: '#333',
-      texture: 'paper' }
+    { id: 'SKETCH_BW', name: 'PENCIL', sub: '2B GRAPHITE', color: '#333', idx:20, iso: '800', canisterColor: 'silver', labelBg: 'linear-gradient(135deg, #f5f5f5, #ddd)', labelColor: '#333', texture: 'paper' },
+    { id: 'SKETCH_COL', name: 'CRAYON', sub: 'SOFT PASTEL', color: '#d2691e', idx:21, iso: '800', canisterColor: 'champagne', labelBg: 'linear-gradient(135deg, #ffdab9, #ffcc99)', labelColor: '#8b4513' },
+    { id: 'SKETCH_INK', name: 'INK', sub: 'COMIC PEN', color: '#000', idx:22, iso: '800', canisterColor: 'dark', labelBg: 'linear-gradient(to bottom, #0a0a0a, #333)', labelColor: '#fff' },
+    { id: 'SKETCH_OIL', name: 'OIL', sub: 'IMPASTO', color: '#8b4513', idx:23, iso: '800', canisterColor: 'dark', labelBg: 'linear-gradient(180deg, #8b4513, #5c3d20)', labelColor: '#f5f5dc' },
+    { id: 'SKETCH_CYBER', name: 'CYBER', sub: 'NEON GRID', color: '#0f0', idx:24, iso: '800', canisterColor: 'dark', labelBg: 'linear-gradient(45deg, #000, #0f0)', labelColor: '#a0ffa0' },
+    { id: 'SKETCH_BLUE', name: 'BLUE', sub: 'BLUEPRINT', color: '#4169e1', idx:25, iso: '800', canisterColor: 'silver', labelBg: 'linear-gradient(to bottom, #e6f0ff, #a0c0ff)', labelColor: '#00008b' },
+    { id: 'SKETCH_HK_NEON', name: 'HK NEON', sub: 'NIGHT LIGHTS', color: '#ff00cc', idx:26, iso: '800', canisterColor: 'dark', labelBg: 'linear-gradient(90deg, #1a0022, #ff00cc, #1a0022)', labelColor: '#ffccff' },
+    { id: 'SKETCH_SHUIMO', name: 'SHUIMO', sub: 'INK WASH', color: '#111', idx:27, iso: '800', canisterColor: 'champagne', labelBg: 'linear-gradient(to bottom, #f5f5e0, #e8e8d0)', labelColor: '#333', texture: 'paper' }
 ];
     let savedMode = localStorage.getItem('camModeIdx'); let currentModeIdx = savedMode ? parseInt(savedMode) : 0;
     function getModes() { return isSketchMode ? SKETCH_MODES : REAL_MODES; }
     function validateModeIndex() { const modes = getModes(); if (currentModeIdx < 0 || currentModeIdx >= modes.length) currentModeIdx = 0; }
     validateModeIndex();
 
-    /* --- AUDIO --- */
     const shutterAudio = new Audio('camera.mp3'); shutterAudio.preload = 'auto';
     const latchAudio = new Audio('kick.mp3'); latchAudio.volume = 1.0; latchAudio.preload = 'auto';
     const AudioContext = window.AudioContext || window.webkitAudioContext; const actx = new AudioContext();
     function playShutterSound() { shutterAudio.currentTime = 0; const playPromise = shutterAudio.play(); if (playPromise !== undefined) { playPromise.catch(error => { if (actx.state === 'suspended') actx.resume(); const t = actx.currentTime; const oscClick = actx.createOscillator(); const gainClick = actx.createGain(); oscClick.type = 'square'; oscClick.frequency.setValueAtTime(800, t); oscClick.frequency.exponentialRampToValueAtTime(100, t + 0.05); gainClick.gain.setValueAtTime(0.5, t); gainClick.gain.exponentialRampToValueAtTime(0.01, t + 0.05); oscClick.connect(gainClick).connect(actx.destination); oscClick.start(t); oscClick.stop(t + 0.05); }); } }
     function playLeverSound() { if (actx.state === 'suspended') actx.resume(); const t = actx.currentTime; for(let i=0; i<5; i++) { const osc = actx.createOscillator(); const gain = actx.createGain(); osc.type = 'sawtooth'; osc.frequency.setValueAtTime(800, t + i*0.06); osc.frequency.exponentialRampToValueAtTime(100, t + i*0.06 + 0.03); gain.gain.setValueAtTime(1.2, t + i*0.06); gain.gain.exponentialRampToValueAtTime(0.01, t + i*0.06 + 0.03); osc.connect(gain); gain.connect(actx.destination); osc.start(t + i*0.06); osc.stop(t + i*0.06 + 0.04); } }
 
-    /* --- DOM ELEMENTS --- */
     const video = document.getElementById('video-source');
     const smallCanvas = document.getElementById('smallCanvas'); const smallCtx = smallCanvas.getContext('2d', { alpha: false });
     const frontCanvas = document.getElementById('frontCanvas'); const frontCtx = frontCanvas.getContext('2d', { alpha: false });
     const fsCanvas = document.getElementById('fs-canvas'); const fsCtx = fsCanvas.getContext('2d', { alpha: false });
-    
-    // WebGL Canvas
     const processCanvas = document.getElementById('process-canvas');
     let webGLRenderer = null;
-
     const finalCanvas = document.getElementById('final-canvas'); const finalCtx = finalCanvas.getContext('2d');
     
     const rollModeSwitch = document.getElementById('rollModeSwitch'); const sketchModeSwitch = document.getElementById('sketchModeSwitch'); const orientationBtn = document.getElementById('orientationBtn');
@@ -1753,7 +858,6 @@ let currentRollState = Math.random(); // 這是控制底片風格的靜態亂數
     const filmRollOverlay = document.getElementById('film-roll-overlay'); const filmRollContainer = document.getElementById('filmRollContainer'); const filmDoor = document.getElementById('filmDoor');
     const staticCanister = document.getElementById('staticCanister');
 
-    /* --- DIALOG SYSTEM --- */
     const rdOverlay = document.getElementById('retro-dialog-overlay');
     const rdMessage = document.getElementById('rd-message');
     const rdBtnCancel = document.getElementById('rd-btn-cancel');
@@ -1783,9 +887,7 @@ let currentRollState = Math.random(); // 這是控制底片風格的靜態亂數
 
     async function initSystem() { 
         await initDB(); 
-        // Init WebGL
         webGLRenderer = new WebGLRenderer(processCanvas);
-        
         if (isRollMode) { rollModeSwitch.classList.add('mode-36'); currentFrame = await getTempCount(); } else { rollModeSwitch.classList.remove('mode-36'); currentFrame = 0; } 
         updateCounterDisplay(); updateLeverUI(); 
         if(isOrientationLocked) { orientationBtn.classList.add('locked'); try { if (screen.orientation && screen.orientation.lock) {} } catch(e){} } 
@@ -1795,7 +897,6 @@ let currentRollState = Math.random(); // 這是控制底片風格的靜態亂數
 
     document.getElementById('enter-fs-btn').addEventListener('click', () => { startFullscreenAndCamera(); });
     async function startFullscreenAndCamera() {
-    // 1. 重置所有狀態
     releaseCameraResources();
     webGLRenderer = new WebGLRenderer(processCanvas);
     const fsPrompt = document.getElementById('fullscreen-prompt');
@@ -1803,54 +904,41 @@ let currentRollState = Math.random(); // 這是控制底片風格的靜態亂數
     const fsViewfinder = document.getElementById('fs-viewfinder');
     const el = document.documentElement;
     const rfs = el.requestFullscreen || el.webkitRequestFullScreen || el.webkitRequestFullscreen;
-    const isIPhone = /iPhone|iPad|iPod/.test(navigator.userAgent) && !window.MSStream; // ★ 修正：包含 iPad
+    const isIPhone = /iPhone|iPad|iPod/.test(navigator.userAgent) && !window.MSStream;
 
-    // 2. 隱藏提示與 UI
     if (fsPrompt) fsPrompt.style.display = 'none';
     if (cameraContainer) cameraContainer.style.display = 'none';
     if (fsViewfinder) fsViewfinder.style.display = 'none';
 
-    // 3. 初始化系統
     await initSystem();
 
     if (isIPhone) {
-        // iOS 不請求全屏，直接啟動相機
         console.log("iOS device detected, skipping fullscreen.");
         if (cameraContainer) cameraContainer.style.display = 'block';
-        try {
-            await initCamera();
-        } catch (err) {
+        try { await initCamera(); } catch (err) {
             console.error("Camera init failed on iOS:", err);
             if (fsPrompt) fsPrompt.style.display = 'flex';
             if (cameraContainer) cameraContainer.style.display = 'none';
         }
     } else if (rfs) {
-        // 非 iOS，嘗試全屏
         try {
             await rfs.call(el);
             if (cameraContainer) cameraContainer.style.display = 'block';
             await initCamera();
-            if (isOrientationLocked && screen.orientation?.lock) {
-                await screen.orientation.lock('landscape').catch(() => {});
-            }
+            if (isOrientationLocked && screen.orientation?.lock) { await screen.orientation.lock('landscape').catch(() => {}); }
         } catch (err) {
             console.warn('Fullscreen failed, falling back to normal mode', err);
             if (cameraContainer) cameraContainer.style.display = 'block';
-            try {
-                await initCamera();
-            } catch (initErr) {
+            try { await initCamera(); } catch (initErr) {
                 console.error("Fallback camera init failed:", initErr);
                 if (fsPrompt) fsPrompt.style.display = 'flex';
                 if (cameraContainer) cameraContainer.style.display = 'none';
             }
         }
     } else {
-        // 完全不支援全屏 API
         console.warn("Fullscreen API not supported.");
         if (cameraContainer) cameraContainer.style.display = 'block';
-        try {
-            await initCamera();
-        } catch (err) {
+        try { await initCamera(); } catch (err) {
             console.error("Camera init failed without fullscreen:", err);
             if (fsPrompt) fsPrompt.style.display = 'flex';
             if (cameraContainer) cameraContainer.style.display = 'none';
@@ -1860,56 +948,32 @@ let currentRollState = Math.random(); // 這是控制底片風格的靜態亂數
    async function initCamera() { 
         try { 
             if(video.srcObject) { video.srcObject.getTracks().forEach(track => track.stop()); } 
-            
             const stream = await navigator.mediaDevices.getUserMedia({ 
-                video: { 
-                    facingMode: isSelfieMode ? 'user' : 'environment', 
-                    width: { ideal: 1280 }, 
-                    height: { ideal: 720 },
-                    // [新增] 請求曝光模式為連續自動 (這是讓 EV 生效的前提)
-                    advanced: [{ exposureMode: 'continuous' }]
-                }, 
-                audio: false 
+                video: { facingMode: isSelfieMode ? 'user' : 'environment', width: { ideal: 1280 }, height: { ideal: 720 }, advanced: [{ exposureMode: 'continuous' }] }, audio: false 
             }); 
-            
             video.srcObject = stream; 
-            video.onloadedmetadata = () => { 
-                video.play(); 
-                renderLoop(); 
-                
-                // [新增] 相機啟動後，初始化曝光控制按鈕
-                initExposureControl();
-            }; 
-        } catch (err) { 
-            console.error("Camera Error", err); 
-        } 
+            video.onloadedmetadata = () => { video.play(); renderLoop(); initExposureControl(); }; 
+        } catch (err) { console.error("Camera Error", err); } 
     }
     function enforceFullscreen() {
     const isFullscreen = !!(document.fullscreenElement || document.webkitFullscreenElement);
     const fsPrompt = document.getElementById('fullscreen-prompt');
     const cameraContainer = document.getElementById('camera-container');
     const fsViewfinder = document.getElementById('fs-viewfinder');
-
     if (!isFullscreen) {
-        // 退出全屏：釋放資源 + 顯示 POWER ON 按鈕
         releaseCameraResources();
         if (cameraContainer) cameraContainer.style.display = 'none';
         if (fsViewfinder) fsViewfinder.style.display = 'none';
         if (fsPrompt) {
             fsPrompt.style.display = 'flex';
-            // ★ 確保按鈕事件存在（防止多次綁定失效）
             const btn = document.getElementById('enter-fs-btn');
             if (btn) {
-                // 移除舊監聽器避免重複
                 const newBtn = btn.cloneNode(true);
                 btn.parentNode.replaceChild(newBtn, btn);
                 newBtn.addEventListener('click', startFullscreenAndCamera);
             }
         }
-    } else {
-        // 進入全屏：隱藏提示
-        if (fsPrompt) fsPrompt.style.display = 'none';
-    }
+    } else { if (fsPrompt) fsPrompt.style.display = 'none'; }
 }
     document.addEventListener('fullscreenchange', enforceFullscreen);
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') { if (video.srcObject) { video.srcObject.getTracks().forEach(track => track.stop()); video.srcObject = null; } if(shutterAudio) { shutterAudio.pause(); shutterAudio.currentTime = 0; } } else if (document.visibilityState === 'visible') { enforceFullscreen(); setTimeout(() => { if (!video.srcObject || !video.srcObject.active) { initCamera(); } }, 300); } });
@@ -1920,33 +984,15 @@ let currentRollState = Math.random(); // 這是控制底片風格的靜態亂數
 
      function renderFilmSelector() {
         const modes = getModes();
-        filmRollContainer.innerHTML = ''; // 清空容器
- 
+        filmRollContainer.innerHTML = ''; 
         modes.forEach((m, index) => {
             const canister = document.createElement('div');
             canister.className = 'film-canister';
-            if (index === currentModeIdx) {
-                canister.classList.add('active');
-            }
- 
+            if (index === currentModeIdx) { canister.classList.add('active'); }
             const bodyClass = `canister-body canister-body--${m.canisterColor || 'silver'}`;
             const labelTextureClass = m.texture === 'paper' ? 'label-texture-paper' : '';
- 
-            // [修改] 將原本寫死的 400 替換為 ${m.iso}
-            canister.innerHTML = `
-                <div class="${bodyClass}">
-                    <div class="canister-label ${labelTextureClass}" style="background: ${m.labelBg};">
-                        <div class="cl-name" style="color: ${m.labelColor};">${m.name}</div>
-                        <div class="cl-sub" style="color: ${m.labelColor}; opacity: 0.8;">${m.sub}</div>
-                        <div class="cl-iso" style="border-color: ${m.labelColor}; color: ${m.labelColor};">${m.iso}</div>
-                    </div>
-                </div>
-            `;
- 
-            canister.addEventListener('click', (e) => {
-                e.stopPropagation();
-                selectModeFromRoll(index);
-            });
+            canister.innerHTML = `<div class="${bodyClass}"><div class="canister-label ${labelTextureClass}" style="background: ${m.labelBg};"><div class="cl-name" style="color: ${m.labelColor};">${m.name}</div><div class="cl-sub" style="color: ${m.labelColor}; opacity: 0.8;">${m.sub}</div><div class="cl-iso" style="border-color: ${m.labelColor}; color: ${m.labelColor};">${m.iso}</div></div></div>`;
+            canister.addEventListener('click', (e) => { e.stopPropagation(); selectModeFromRoll(index); });
             filmRollContainer.appendChild(canister);
         });
     }
@@ -1974,32 +1020,16 @@ let currentRollState = Math.random(); // 這是控制底片風格的靜態亂數
    function renderLoop() {
     requestAnimationFrame(renderLoop);
     if (!video.srcObject || !video.srcObject.active || video.paused || !webGLRenderer) return;
-
     const modes = getModes(); 
     validateModeIndex(); 
     const mode = modes[currentModeIdx];
-    
-    // Resize Canvas if needed - 這部分沿用您提供的正確版本
     let w = 640; let h = 360; 
     if (!isSketchMode && (mode.id === 'COLOR' || mode.id === 'BW')) { w = 320; h = 180; } 
     if (processCanvas.width !== w) { processCanvas.width = w; processCanvas.height = h; }
-
-    // --- [核心修改：整合中性預覽邏輯] ---
-    // 預設情況下，預覽索引就是當前模式的索引
     let previewModeIdx = mode.idx;
-
-    // 但如果當前模式是 AGED (索引 7)，我們就在預覽時強制使用中性的「直通模式」(索引 11)
-    if (mode.idx === 7) {
-        previewModeIdx = 11; 
-    }
-    // --- [修改結束] ---
-
-    // 在呼叫 WebGL 渲染時，傳入的是我們剛剛決定的 previewModeIdx，而不是固定的 mode.idx
+    if (mode.idx === 7) { previewModeIdx = 11; }
     webGLRenderer.render(video, previewModeIdx, isSelfieMode, currentZoom, currentRollState);
-    
-    // Copy to Viewfinders (2D) - 這部分沿用您提供的正確版本
     const isPixelated = (!isSketchMode && (mode.id === 'COLOR' || mode.id === 'BW'));
-    
     if (!isSelfieMode) { 
         if (smallCanvas.width !== w) { smallCanvas.width = w; smallCanvas.height = h; } 
         smallCanvas.style.imageRendering = isPixelated ? 'pixelated' : 'auto'; 
@@ -2009,162 +1039,72 @@ let currentRollState = Math.random(); // 這是控制底片風格的靜態亂數
         frontCanvas.style.imageRendering = isPixelated ? 'pixelated' : 'auto'; 
         frontCtx.drawImage(processCanvas, 0, 0, w, h); 
     }
-
     if (fsViewfinder.style.display === 'block') { 
         if (fsCanvas.width !== w) { fsCanvas.width = w; fsCanvas.height = h; } 
         fsCanvas.style.imageRendering = isPixelated ? 'pixelated' : 'auto'; 
         fsCtx.drawImage(processCanvas, 0, 0, w, h);
     }
 }
-
-
-    // [新代碼] 綁定兩個觀景窗按鈕，統一使用相同的開啟邏輯
-vfTrigger.addEventListener('click', openFullScreenViewfinder);
-frontVfTrigger.addEventListener('click', openFullScreenViewfinder);
- 
     
+    vfTrigger.addEventListener('click', openFullScreenViewfinder);
+    frontVfTrigger.addEventListener('click', openFullScreenViewfinder);
     vfCloseBtn.addEventListener('click', (e) => { e.stopPropagation(); fsViewfinder.style.display = 'none'; });
     fsViewfinder.addEventListener('click', (e) => { if(e.target.id !== 'vf-close-btn') handleShutter(e); });
     shutterBtn.addEventListener('click', handleShutter);
     frontShutterBtn.addEventListener('click', handleShutter);
     cablePlunger.addEventListener('click', (e) => { e.stopPropagation(); cablePlunger.classList.add('pressed'); setTimeout(() => cablePlunger.classList.remove('pressed'), 200); handleShutter(e); });
 
-
-// [新增] 模擬自動對焦：先白圈，0.8秒後變綠圈
-// [新增] 模擬自動對焦：先白圈，0.8秒後變綠圈
 function simulateAutoFocus() {
     const circle = document.getElementById('splitCircle');
     const viewfinder = document.getElementById('fs-viewfinder');
-    
     if(!circle || !viewfinder) return;
-    
-    // 1. 重置狀態：移除 focused 類別 (變回白色粗框)
     circle.classList.remove('focused');
-    
-    // 2. 設定延遲：模擬鏡頭對焦的時間 (800毫秒)
-    setTimeout(() => {
-        // 只有當觀景窗還「開著」的時候才變綠
-        // 防止使用者快速開關導致觀景窗關閉後還觸發變綠
-        if(viewfinder.style.display === 'block') {
-            circle.classList.add('focused');
-            
-            // (選用) 如果你想加入「逼逼」的對焦音效，可以在這裡呼叫
-            // if(actx.state !== 'suspended') playFocusBeep(); 
-        }
-    }, 800);
+    setTimeout(() => { if(viewfinder.style.display === 'block') { circle.classList.add('focused'); } }, 800);
 }
-
     
-// [新增] 模擬按下快門時，光圈快門數值跳動
 function randomizeOSD() {
     const shutters = ['1/60', '1/125', '1/250', '1/500', '1/1000'];
     const apertures = ['F1.4', 'F2.0', 'F2.8', 'F4.0', 'F5.6', 'F8.0'];
-    
     const s = shutters[Math.floor(Math.random() * shutters.length)];
     const a = apertures[Math.floor(Math.random() * apertures.length)];
-    
     const params = document.querySelectorAll('.vf-yellow');
-    if(params.length >= 2) {
-        params[0].textContent = s;
-        params[1].textContent = a;
-    }
+    if(params.length >= 2) { params[0].textContent = s; params[1].textContent = a; }
 }
 
- // [新增] 共用函數：打開全螢幕觀景窗 (統一邏輯)
     function openFullScreenViewfinder(e) {
         if (e) e.stopPropagation();
-        
-        // 確保相機已啟動
         if (!video.srcObject || !video.srcObject.active) return;
-
         fsViewfinder.style.display = 'block';
-        
-        // 1. 每次進入，曝光歸零
         resetExposure();
-
-        // 2. 每次進入，變焦歸零
         currentZoom = 1.0;
-        
-        // [新增] 重置焦距顯示為 1.0x
         const zoomTextEl = document.getElementById('fs-zoom-text');
         if(zoomTextEl) zoomTextEl.textContent = "1.0x";
-
-        // 3. 計算白框大小
         updateFSGuideFrame();
-        
-        // 4. 更新復古數值
         randomizeOSD();
-
-        // 5. 確保剛打開時圓圈是白色的
         const circle = document.getElementById('splitCircle');
         if(circle) circle.classList.remove('focused');
-
-        // 6. 素描模式隱藏對焦框
-        if(isSketchMode) { 
-            splitCircle.style.display = 'none'; 
-            fsGuideFrame.style.display = 'none'; 
-        } else { 
-            splitCircle.style.display = 'block'; 
-            fsGuideFrame.style.display = 'block'; 
-        } 
+        if(isSketchMode) { splitCircle.style.display = 'none'; fsGuideFrame.style.display = 'none'; } else { splitCircle.style.display = 'block'; fsGuideFrame.style.display = 'block'; } 
     }
 
-    
-  function handleShutter(e) { 
+    function handleShutter(e) { 
         if(e) e.stopPropagation(); 
         if (e && e.target.id === 'vf-close-btn') return; 
-        
-        // 檢查條件
         if (!isSelfieMode && backDoorWrapper.classList.contains('open')) return; 
         if (isRollMode && currentFrame >= 36) return; 
-        
         const btn = isSelfieMode ? document.getElementById('selfieShutterBtn') : shutterBtn; 
         const circle = document.getElementById('splitCircle');
-        
-        // --- 時間點 T=0：按下瞬間 ---
-        
-        // 1. 按鈕視覺下壓
         btn.classList.add('pressed'); 
-        
-        // 2. [關鍵] 圓圈立刻變綠 (先讓你看見綠圈)
         if(circle) circle.classList.add('focused');
-
-        // --- 時間點 T=0.1秒：執行快門 ---
         setTimeout(() => {
-            
-            // 3. 播放快門聲
             playShutterSound(); 
-            
-            // 4. 播放快門簾黑屏/閃光動畫
-            if (isSelfieMode) { 
-                shutterFlash.classList.remove('flash'); 
-                void shutterFlash.offsetWidth; 
-                shutterFlash.classList.add('flash'); 
-                setTimeout(() => shutterFlash.classList.remove('flash'), 150); 
-            } else { 
-                const container = (fsViewfinder.style.display === 'block') ? fsViewfinder : vfTrigger; 
-                const blind = document.createElement('div'); 
-                blind.className = container === fsViewfinder ? 'shutter-blind' : 'vf-shutter-blind'; 
-                container.appendChild(blind); 
-                setTimeout(() => blind.remove(), 150); 
-            } 
-
-            // --- 時間點 T=0.6秒：切換畫面 ---
-            // (從快門聲後再等 0.5秒，確保你有足夠時間感受到綠圈與拍照的過程)
+            if (isSelfieMode) { shutterFlash.classList.remove('flash'); void shutterFlash.offsetWidth; shutterFlash.classList.add('flash'); setTimeout(() => shutterFlash.classList.remove('flash'), 150); } else { const container = (fsViewfinder.style.display === 'block') ? fsViewfinder : vfTrigger; const blind = document.createElement('div'); blind.className = container === fsViewfinder ? 'shutter-blind' : 'vf-shutter-blind'; container.appendChild(blind); setTimeout(() => blind.remove(), 150); } 
             setTimeout(() => { 
                 performCapture(); 
-
-
-             
-                // 復原狀態
                 btn.classList.remove('pressed'); 
-
-currentRollState = Math.random();
-                
+                currentRollState = Math.random();
                 if(circle) circle.classList.remove('focused');
             }, 400);
-
-        }, 100); // <--- 這裡控制「變綠」到「聲音」的 0.1 秒延遲
+        }, 100); 
     }
 
     function generateLightLeak(ctx, w, h, severity = 1) { ctx.save(); ctx.globalCompositeOperation = 'screen'; const baseCount = severity > 1 ? 3 : (Math.random() > 0.7 ? 2 : 1); for(let i=0; i<baseCount; i++) { const type = Math.random(); const opacity = (0.4 + Math.random() * 0.4) * severity; const hue = Math.random() > 0.8 ? 40 + Math.random()*10 : 10 + Math.random()*30; let colorInner = `hsla(${hue}, 90%, 60%, ${opacity})`; let colorOuter = `hsla(${hue-10}, 90%, 40%, 0)`; if (type < 0.4) { const isLeft = Math.random() > 0.5; const width = w * (0.15 + Math.random() * 0.3); const grad = ctx.createLinearGradient(isLeft ? 0 : w, 0, isLeft ? width : w - width, 0); grad.addColorStop(0, colorInner); grad.addColorStop(1, colorOuter); ctx.fillStyle = grad; ctx.fillRect(0, 0, w, h); } else { const cx = Math.random() > 0.5 ? 0 : w; const cy = Math.random() > 0.5 ? 0 : h; const r = Math.max(w, h) * (0.4 + Math.random() * 0.4); const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r); grad.addColorStop(0, `hsla(${hue}, 20%, 90%, ${opacity})`); grad.addColorStop(1, `hsla(${hue}, 90%, 20%, 0)`); ctx.fillStyle = grad; ctx.fillRect(0, 0, w, h); } } ctx.restore(); }
@@ -2173,30 +1113,15 @@ currentRollState = Math.random();
     fsViewfinder.style.display = 'none';
     const modes = getModes(); const mode = modes[currentModeIdx]; 
     const targetW = 1920, targetH = 1080; 
-    
-    // [關鍵邏輯]
-    // 拍攝瞬間，如果模式是 AGED，就強制用它的真實索引 (7) 重新渲染一次高解析度畫面。
     if (mode.idx === 7 && webGLRenderer) {
-        // 確保 processCanvas 尺寸足夠大以輸出高畫質照片
-        if (processCanvas.width !== targetW || processCanvas.height !== targetH) {
-            processCanvas.width = targetW;
-            processCanvas.height = targetH;
-        }
-        // 使用索引 7 (AGED) 進行最後的渲染
+        if (processCanvas.width !== targetW || processCanvas.height !== targetH) { processCanvas.width = targetW; processCanvas.height = targetH; }
         webGLRenderer.render(video, 7, isSelfieMode, currentZoom, currentRollState);
     }
-
-    const tempC = document.createElement('canvas');
-    tempC.width = targetW; tempC.height = targetH;
-    const tempCtx = tempC.getContext('2d');
-    tempCtx.filter = 'none'; 
-    
-    // 從 processCanvas 獲取最終渲染的畫面
+    const tempC = document.createElement('canvas'); tempC.width = targetW; tempC.height = targetH;
+    const tempCtx = tempC.getContext('2d'); tempCtx.filter = 'none'; 
     tempCtx.drawImage(processCanvas, 0, 0, targetW, targetH); 
-    
     if (mode.id.startsWith('FILM_')) { const severity = (mode.id === 'FILM_AGED') ? 2.0 : 1.0; generateLightLeak(tempCtx, targetW, targetH, severity); } 
     currentReviewCanvas = tempC;
-
     if (!isRollMode) {
         const previewData = tempC.toDataURL('image/jpeg', 0.9);
         document.getElementById('review-img').src = previewData;
@@ -2209,7 +1134,6 @@ currentRollState = Math.random();
         updateLeverUI();
     }
 }
-        
     document.getElementById('btn-discard').addEventListener('click', () => { currentReviewCanvas = null; pendingPhoto = null; document.getElementById('review-overlay').style.display = 'none'; }); 
     document.getElementById('btn-keep').addEventListener('click', () => { 
         document.getElementById('review-overlay').style.display = 'none'; 
@@ -2249,116 +1173,65 @@ currentRollState = Math.random();
         }, 400); 
     });
 
-    // [新增] 日期開關邏輯
     const dateOptWrapper = document.getElementById('date-option-wrapper');
     const dateCheckbox = document.getElementById('date-checkbox');
-    let isDateImprintOn = true; // 預設開啟
-
+    let isDateImprintOn = true; 
     if (dateOptWrapper && dateCheckbox) {
         dateOptWrapper.addEventListener('click', () => {
             isDateImprintOn = !isDateImprintOn;
-            if (isDateImprintOn) {
-                dateCheckbox.classList.add('checked');
-            } else {
-                dateCheckbox.classList.remove('checked');
-            }
+            if (isDateImprintOn) { dateCheckbox.classList.add('checked'); } else { dateCheckbox.classList.remove('checked'); }
         });
     }
 
-    // [修改] 風格按鈕點擊事件 (加入傳遞 isDateImprintOn)
     document.querySelectorAll('.style-btn').forEach(btn => { 
         btn.addEventListener('click', async (e) => { 
             const style = e.currentTarget.dataset.style; 
             styleOverlay.style.display = 'none'; 
-            
             isFilmAdvanced = true; 
             updateLeverUI(); 
             exposureCtx.clearRect(0,0, exposureCanvas.width, exposureCanvas.height);
-            
             let photosToProcess = []; 
-            if (isRollMode && currentFrame >= 36) { 
-                photosToProcess = await getTempPhotos(); 
-            } 
-            else if (pendingPhoto) { 
-                photosToProcess = [{ image: pendingPhoto, date: new Date() }]; 
-                pendingPhoto = null; 
-            }
-            
+            if (isRollMode && currentFrame >= 36) { photosToProcess = await getTempPhotos(); } 
+            else if (pendingPhoto) { photosToProcess = [{ image: pendingPhoto, date: new Date() }]; pendingPhoto = null; }
             if (photosToProcess.length > 0) { 
                 fsViewfinder.style.display = 'none'; 
-                // [關鍵修改] 呼叫顯影函數時，傳入 isDateImprintOn
                 await startDevelopingAnimation(photosToProcess, style, isDateImprintOn); 
             }
         }); 
     });
 
-   // 1. 處理顯示用的最終照片 (修正 Serial 位置)
-   // [修改] 增加 showDate 參數，控制是否繪製日期
     function processFinalPhoto(imgUrl, dateObj, serialNo, style, customText, showDate = true) { 
         return new Promise(async (resolve) => { 
             try { await document.fonts.load('600 40px "Noto Serif TC"'); } catch (e) {}
             const img = new Image(); 
             img.onload = () => { 
                 let w = 1920, h = 1080; let padTop = 0, padSide = 0, padBottom = 0; 
-                // 設定畫布尺寸與邊距
                 if (style === 'white') { padTop = 50; padSide = 50; padBottom = 180; w = 1200; h = Math.floor(w * (img.height / img.width)) + padTop + padBottom; } 
                 else if (style === 'film') { padTop = 80; padSide = 0; padBottom = 80; w = img.width; h = img.height + padTop + padBottom; } 
                 else { w = img.width; h = img.height; }
-
                 finalCanvas.width = w; finalCanvas.height = h; const ctx = finalCanvas.getContext('2d'); ctx.filter = 'none'; 
-                
-                // 繪製背景與圖片
                 if (style === 'white') { ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h); ctx.drawImage(img, padSide, padTop, w - padSide*2, h - padTop - padBottom); } 
                 else if (style === 'film') { ctx.fillStyle = '#111'; ctx.fillRect(0, 0, w, h); ctx.drawImage(img, 0, padTop, w, img.height); ctx.fillStyle = '#fff'; const holeW = 30, gap = 20; for(let x = 30; x < w; x += (holeW + gap)) { ctx.fillRect(x, 25, holeW, 30); } for(let x = 30; x < w; x += (holeW + gap)) { ctx.fillRect(x, h - 55, holeW, 30); } } 
                 else { ctx.drawImage(img, 0, 0, w, h); } 
-
-                // [修改邏輯] 只有當 showDate 為 true 時才繪製日期
                 if (showDate) {
                     const d = new Date(dateObj); 
                     const dateStr = `'${d.getFullYear().toString().slice(-2)} ${(d.getMonth()+1).toString().padStart(2,'0')} ${d.getDate().toString().padStart(2,'0')}`; 
-                    
                     let dateX = w - 60; let dateY = h - 50;
-                    // 日期位置微調
                     if (style === 'white') { dateX = w - padSide - 30; dateY = h - padBottom - 30; } 
                     else if (style === 'film') { dateX = w - 50; dateY = h - padBottom - 40; }
-
-                    if (isSketchMode) { 
-                        ctx.save(); ctx.shadowBlur = 0; ctx.fillStyle = 'rgba(50, 50, 50, 0.85)'; ctx.font = `normal 45px "Segoe Print", cursive`; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom'; ctx.translate(dateX, dateY); ctx.rotate(-0.05); ctx.fillText(dateStr, 0, 0); ctx.restore(); 
-                    } 
-                    else { 
-                        ctx.shadowColor = '#ff5500'; ctx.shadowBlur = 15; ctx.fillStyle = 'rgba(255, 170, 50, 0.9)'; 
-                        const fontSize = style === 'white' ? 40 : 50; 
-                        ctx.font = `bold ${fontSize}px "Courier New", monospace`; 
-                        ctx.textAlign = 'right'; ctx.textBaseline = 'bottom'; 
-                        ctx.fillText(dateStr, dateX, dateY); 
-                    }
+                    if (isSketchMode) { ctx.save(); ctx.shadowBlur = 0; ctx.fillStyle = 'rgba(50, 50, 50, 0.85)'; ctx.font = `normal 45px "Segoe Print", cursive`; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom'; ctx.translate(dateX, dateY); ctx.rotate(-0.05); ctx.fillText(dateStr, 0, 0); ctx.restore(); } 
+                    else { ctx.shadowColor = '#ff5500'; ctx.shadowBlur = 15; ctx.fillStyle = 'rgba(255, 170, 50, 0.9)'; const fontSize = style === 'white' ? 40 : 50; ctx.font = `bold ${fontSize}px "Courier New", monospace`; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom'; ctx.fillText(dateStr, dateX, dateY); }
                 }
-
-                // SERIAL NUMBER 繪製 (保持不變)
                 let serX = 30, serY = 70, serColor = 'rgba(255,255,255,0.8)';
-                
-                if (style === 'white') { 
-                    serX = 50; 
-                    serY = h - 65; 
-                    serColor = '#333'; 
-                } else if (style === 'film') { 
-                    serX = 40; 
-                    serY = h - 80;
-                    serColor = 'rgba(255,255,255,0.6)'; 
-                }
-                
+                if (style === 'white') { serX = 50; serY = h - 65; serColor = '#333'; } else if (style === 'film') { serX = 40; serY = h - 80; serColor = 'rgba(255,255,255,0.6)'; }
                 ctx.shadowColor = style === 'white' ? 'transparent' : '#000'; ctx.shadowBlur = 2; ctx.fillStyle = serColor; ctx.font = `bold 36px "Courier New", monospace`; ctx.textAlign = 'left'; ctx.textBaseline = 'bottom'; 
                 if (serialNo !== "") { ctx.fillText(`No.${serialNo}`, serX, serY); }
-                
-                // 自定義文字 (Instant Style)
                 if (style === 'white' && customText && customText.trim() !== "") { ctx.fillStyle = '#111'; ctx.shadowBlur = 0; ctx.font = `600 38px "Noto Serif TC", serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.fillText(customText, w / 2, h - 40); }
-                
                 resolve(finalCanvas.toDataURL('image/jpeg', 0.9)); 
             }; img.src = imgUrl; 
         }); 
     }
 
-    // 2. 處理匯出用的照片 (修正 Serial 位置，確保與預覽一致)
     function annotateExportPhoto(imgUrl, serialNo, style, customText) {
         return new Promise(async (resolve) => {
             try { await document.fonts.load('600 40px "Noto Serif TC"'); } catch (e) {}
@@ -2366,95 +1239,57 @@ currentRollState = Math.random();
             const img = new Image(); img.onload = () => {
                 const w = img.width; const h = img.height; const canvas = document.createElement('canvas'); canvas.width = w; canvas.height = h; const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0);
                 const hasCaption = (customText && customText.trim() !== "");
-                
                if (serialNo && serialNo !== "") {
     let serX = 30, serY = 70, serColor = '#fff', useShadow = true; 
-                    if (style === 'white') { 
-                        if (hasCaption) { 
-                            serX = 50; serY = h - 190; serColor = 'rgba(255, 255, 255, 0.9)'; useShadow = true; 
-                        } else { 
-                            serX = 50; 
-                            // [修改] 標準模式無 Caption 時，位置統一為 h - 65
-                            serY = h - 65; 
-                            serColor = '#333'; useShadow = false; 
-                        } 
-                    } else if (style === 'film') { 
-    serX = 40; 
-    serY = h - 80;  // [修改] 改為 h - 80，讓文字更明顯地高於底部齒孔
-    serColor = 'rgba(255,255,255,0.6)'; 
-}
-                    
+                    if (style === 'white') { if (hasCaption) { serX = 50; serY = h - 190; serColor = 'rgba(255, 255, 255, 0.9)'; useShadow = true; } else { serX = 50; serY = h - 65; serColor = '#333'; useShadow = false; } } else if (style === 'film') { serX = 40; serY = h - 80; serColor = 'rgba(255,255,255,0.6)'; }
                     if (useShadow) { ctx.shadowColor = '#000'; ctx.shadowBlur = 4; ctx.shadowOffsetX = 1; ctx.shadowOffsetY = 1; } else { ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; }
                     ctx.fillStyle = serColor; ctx.font = `bold 36px "Courier New", monospace`; ctx.textAlign = 'left'; ctx.textBaseline = 'bottom'; ctx.fillText(`No.${serialNo}`, serX, serY);
                 }
-                
                 if (style === 'white' && hasCaption) { ctx.fillStyle = '#111'; ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; ctx.font = `600 42px "Noto Serif TC", serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.fillText(customText, w / 2, h - 90); }
                 resolve(canvas.toDataURL('image/jpeg', 0.92));
             }; img.src = imgUrl;
         });
     }
         
-    // [修改] 接收 wantDate 參數
     async function startDevelopingAnimation(photos, style, wantDate = true) { 
-        // 清空輸入框防止殘留
         document.getElementById('exp-text-input').value = "";
-
         devOverlay.style.display = 'flex'; 
         devStatus.textContent = "PREPARING..."; 
-        
         let waterLoopId; let rippleTime = 0; let waveIntensity = 1.0; 
         const turbulenceNode = document.querySelector('#liquidFilter feTurbulence'); 
         const paperContainer = document.querySelector('.photo-paper-container');
-        
         function renderWaterRipple() { rippleTime += 0.05; const baseFreqY = (0.05 + Math.sin(rippleTime * 0.5) * 0.01) * waveIntensity; const displayFreq = Math.max(0.001, baseFreqY); turbulenceNode.setAttribute('baseFrequency', `0.01 ${displayFreq}`); waterLoopId = requestAnimationFrame(renderWaterRipple); }
-
         const processed = []; 
         for (let p of photos) { 
             const thisSerial = globalSerialCounter++; 
             localStorage.setItem('global_serial_counter', globalSerialCounter); 
-            
-            // [關鍵修改] 呼叫 processFinalPhoto 時，傳入 wantDate 參數 (最後一個參數)
-            // 參數順序: imgUrl, dateObj, serialNo, style, customText, showDate
             const finalImg = await processFinalPhoto(p.image, p.date, "", style, "", wantDate); 
-            
             processed.push({ img: finalImg, serial: thisSerial, style: style }); 
         }
-        
         for (let i = 0; i < processed.length; i++) { 
             devStatus.textContent = `DEVELOPING ${i+1}/${processed.length}`; 
             devImageWrap.src = processed[i].img; 
             devImageWrap.style.border = style === 'white' ? 'none' : '8px solid white'; 
-            
             waveIntensity = 1.0; devImageWrap.style.opacity = '0'; devImageWrap.style.filter = 'none'; 
             paperContainer.classList.add('wet-process'); devImageWrap.classList.add('in-liquid');
             renderWaterRipple(); 
-            
             devImageWrap.style.animation = 'none'; devImageWrap.offsetHeight; 
             devImageWrap.style.animation = 'developProcess 3s forwards linear'; 
-            
             await new Promise(r => setTimeout(r, 2500));
-            
             const calmDuration = 800; const startTime = Date.now();
             while (true) { const elapsed = Date.now() - startTime; if (elapsed >= calmDuration) { waveIntensity = 0; break; } const progress = elapsed / calmDuration; waveIntensity = 1.0 - Math.pow(progress, 0.5); await new Promise(r => requestAnimationFrame(r)); }
-            
             cancelAnimationFrame(waterLoopId); 
             devImageWrap.style.opacity = '1'; devImageWrap.style.transform = 'scale(1)'; 
             devImageWrap.style.animation = 'none'; devImageWrap.style.filter = 'none'; 
             devImageWrap.classList.remove('in-liquid'); paperContainer.classList.remove('wet-process');
-            
             await new Promise(r => setTimeout(r, 1500));
-            
-            // 存入相冊
             await saveToAlbum(processed[i].img, processed[i].serial, processed[i].style, finalCanvas.width, finalCanvas.height); 
             devImageWrap.style.opacity = '0';
         } 
-        
         document.getElementById('exp-text-input').value = ""; 
-        
         devStatus.textContent = "FINISHED"; 
         await new Promise(r => setTimeout(r, 800)); 
         devOverlay.style.display = 'none'; 
-        
         if (isRollMode) { await clearTemp(); currentFrame = 0; updateCounterDisplay(); } else { pendingPhoto = null; } 
         updateLeverUI(); 
     }
@@ -2499,281 +1334,114 @@ currentRollState = Math.random();
     const exportModal = document.getElementById('export-modal'); let exportActionType = ''; 
     function checkSelection() { if (selectedAlbumIds.size === 0) return false; return true; }
     document.getElementById('alb-download').addEventListener('click', () => { 
-        if(!checkSelection()) { 
-            retroAlert("SELECT PHOTOS FIRST"); 
-            return; 
-        } 
-        
+        if(!checkSelection()) { retroAlert("SELECT PHOTOS FIRST"); return; } 
         exportActionType = 'download'; 
-        
-        // 1. 取得輸入框元素並清空
-        const inputEl = document.getElementById('exp-text-input');
-        inputEl.value = ""; 
-        
-        // 2. 取得選中的照片資料
+        const inputEl = document.getElementById('exp-text-input'); inputEl.value = ""; 
         const selectedPhotos = currentAlbumData.filter(p => selectedAlbumIds.has(p.id));
-        
-        // 3. [修訂邏輯] 只有當「選取數量為 1」且「風格為 white (拍立得)」時，才顯示輸入框
-        if (selectedPhotos.length === 1 && selectedPhotos[0].style === 'white') {
-            inputEl.style.display = 'block'; // 顯示
-        } else {
-            inputEl.style.display = 'none';  // 隱藏 (多選或非拍立得風格)
-        }
-        
+        if (selectedPhotos.length === 1 && selectedPhotos[0].style === 'white') { inputEl.style.display = 'block'; } else { inputEl.style.display = 'none'; }
         exportModal.style.display = 'flex'; 
     });
 
-    // [修改] 分享按鈕監聽器：加入同樣的檢查邏輯
      document.getElementById('alb-share').addEventListener('click', () => { 
-        if(!checkSelection()) { 
-            retroAlert("SELECT PHOTOS FIRST"); 
-            return; 
-        } 
-        
-        if(!navigator.share) { 
-            retroAlert("SHARING NOT SUPPORTED"); 
-            return; 
-        } 
-        
+        if(!checkSelection()) { retroAlert("SELECT PHOTOS FIRST"); return; } 
+        if(!navigator.share) { retroAlert("SHARING NOT SUPPORTED"); return; } 
         exportActionType = 'share'; 
-        
-        // 1. 取得輸入框元素並清空
-        const inputEl = document.getElementById('exp-text-input');
-        inputEl.value = ""; 
-        
-        // 2. 取得選中的照片資料
+        const inputEl = document.getElementById('exp-text-input'); inputEl.value = ""; 
         const selectedPhotos = currentAlbumData.filter(p => selectedAlbumIds.has(p.id));
-        
-        // 3. [修訂邏輯] 同樣嚴格限制：單張 + 拍立得風格
-        if (selectedPhotos.length === 1 && selectedPhotos[0].style === 'white') {
-            inputEl.style.display = 'block'; // 顯示
-        } else {
-            inputEl.style.display = 'none';  // 隱藏
-        }
-        
+        if (selectedPhotos.length === 1 && selectedPhotos[0].style === 'white') { inputEl.style.display = 'block'; } else { inputEl.style.display = 'none'; }
         exportModal.style.display = 'flex'; 
     });
-     document.getElementById('exp-cancel').addEventListener('click', () => {
-        document.getElementById('exp-text-input').value = "";
-        exportModal.style.display = 'none';
-    });
+     document.getElementById('exp-cancel').addEventListener('click', () => { document.getElementById('exp-text-input').value = ""; exportModal.style.display = 'none'; });
     document.getElementById('exp-no-serial').addEventListener('click', () => processExport(false));
     document.getElementById('exp-with-serial').addEventListener('click', () => processExport(true));
    async function processExport(addSerial) { 
         const inputEl = document.getElementById('exp-text-input');
-        const customText = inputEl.value; // 讀取當前輸入的文字
-        
+        const customText = inputEl.value; 
         const selectedData = currentAlbumData.filter(p => selectedAlbumIds.has(p.id)); 
-        const filesToShare = []; 
-        document.body.style.cursor = 'wait';
-        
+        const filesToShare = []; document.body.style.cursor = 'wait';
         try {
             for (let p of selectedData) { 
-                // 這裡會將你的 Caption 合成到原本乾淨的照片上
                 const finalDataUrl = await annotateExportPhoto(p.image, addSerial ? p.serial : "", p.style, customText); 
                 const fileName = `RETRO_${Date.now()}_${p.serial}.jpg`; 
-                
-                if (exportActionType === 'download') { 
-                    const link = document.createElement('a'); link.download = fileName; link.href = finalDataUrl; link.click(); await new Promise(r => setTimeout(r, 200)); 
-                } 
-                else { 
-                    const blob = await (await fetch(finalDataUrl)).blob(); filesToShare.push(new File([blob], fileName, { type: 'image/jpeg' })); 
-                } 
+                if (exportActionType === 'download') { const link = document.createElement('a'); link.download = fileName; link.href = finalDataUrl; link.click(); await new Promise(r => setTimeout(r, 200)); } 
+                else { const blob = await (await fetch(finalDataUrl)).blob(); filesToShare.push(new File([blob], fileName, { type: 'image/jpeg' })); } 
             } 
-            
-            if (exportActionType === 'share' && filesToShare.length > 0) { 
-                try { await navigator.share({ files: filesToShare }); } catch (e) {} 
-            } 
-            
-            const idsToRemove = selectedData.map(p => p.id); 
-            await deleteFromAlbum(idsToRemove); 
-            await loadAlbum(); 
-            
-            // [修正] 匯出完成後，清空輸入框，避免下次誤用
-            inputEl.value = "";
-            
-            resetToCameraUI(); 
-        } catch (err) { 
-            console.error("Export failed:", err); 
-            retroAlert("EXPORT ERROR\nCheck console for details"); 
-        } finally { 
-            document.body.style.cursor = 'default'; 
-        }
+            if (exportActionType === 'share' && filesToShare.length > 0) { try { await navigator.share({ files: filesToShare }); } catch (e) {} } 
+            const idsToRemove = selectedData.map(p => p.id); await deleteFromAlbum(idsToRemove); await loadAlbum(); 
+            inputEl.value = ""; resetToCameraUI(); 
+        } catch (err) { console.error("Export failed:", err); retroAlert("EXPORT ERROR\nCheck console for details"); } finally { document.body.style.cursor = 'default'; }
     }
     function resetToCameraUI() { exportModal.style.display = 'none'; closeBackDoor(); document.getElementById('review-overlay').style.display = 'none'; pendingPhoto = null; updateLeverUI(); }
     function checkOrientation() { if (window.innerHeight > window.innerWidth) { document.getElementById('orientation-lock').style.display = 'flex'; document.getElementById('camera-container').style.display = 'none'; fsPrompt.style.display = 'none'; } else { document.getElementById('orientation-lock').style.display = 'none'; if (document.fullscreenElement) { document.getElementById('camera-container').style.display = 'block'; document.getElementById('fullscreen-prompt').style.display = 'none'; resizeElements(); } else { enforceFullscreen(); } } }
     function resizeElements() { const container = document.getElementById('camera-container'); const w = window.innerWidth; const h = window.innerHeight; const baseW = 760; const baseH = 420; const isTablet = (w / h) < 1.6; const multiplier = isTablet ? 0.8 : 0.85; const scale = Math.min(w / baseW, h / baseH) * multiplier; container.style.top = '53%'; container.style.left = '50%'; container.style.transform = `translate(-50%, -50%) scale(${scale})`; if (document.fullscreenElement || window.innerHeight < window.innerWidth) { container.style.display = 'block'; } }
-   window.addEventListener('resize', () => { 
-    checkOrientation(); 
-    resizeElements(); 
-    updateFSGuideFrame(); // 加入這一行，旋轉手機時白框會自動修正
-    setTimeout(() => {
-        resizeElements();
-        updateFSGuideFrame(); // 延遲再執行一次確保準確
-    }, 300); 
-});
+   window.addEventListener('resize', () => { checkOrientation(); resizeElements(); updateFSGuideFrame(); setTimeout(() => { resizeElements(); updateFSGuideFrame(); }, 300); });
 
-
-// 1. 真實電量系統
 async function initBatterySystem() {
-    const battLevel = document.querySelector('.batt-level');
-    const battIcon = document.querySelector('.batt-icon');
-    
+    const battLevel = document.querySelector('.batt-level'); const battIcon = document.querySelector('.batt-icon');
     if (navigator.getBattery) {
-        // 支援 API (Android, PC)
         try {
             const battery = await navigator.getBattery();
-            
             const updateBatt = () => {
-                // 轉換為百分比寬度 (0.0 - 1.0)
                 battLevel.style.width = (battery.level * 100) + '%';
-                
-                // 充電中顯示綠色/黃色提示
-                if(battery.charging) {
-                    battIcon.style.borderColor = '#ffff00'; // 充電變黃
-                    battLevel.style.backgroundColor = '#ffff00';
-                } else {
-                    battIcon.style.borderColor = ''; // 恢復原色
-                    battLevel.style.backgroundColor = '';
-                }
+                if(battery.charging) { battIcon.style.borderColor = '#ffff00'; battLevel.style.backgroundColor = '#ffff00'; } else { battIcon.style.borderColor = ''; battLevel.style.backgroundColor = ''; }
             };
-            
-            // 初始執行與監聽
-            updateBatt();
-            battery.addEventListener('levelchange', updateBatt);
-            battery.addEventListener('chargingchange', updateBatt);
-            
-        } catch (e) {
-            console.log("Battery API Error", e);
-        }
-    } else {
-        // 不支援 API (iOS Safari) - 保持預設 CSS 動畫或設為滿電
-        // 這裡我們讓它顯示 85% 假裝一下，避免空的
-        if(battLevel) battLevel.style.width = '85%';
-    }
+            updateBatt(); battery.addEventListener('levelchange', updateBatt); battery.addEventListener('chargingchange', updateBatt);
+        } catch (e) { console.log("Battery API Error", e); }
+    } else { if(battLevel) battLevel.style.width = '85%'; }
 }
 
-/* --- [新增] 全域曝光變數與重置函數 --- */
-let currentEV = 0; 
-const STEP_EV = 0.5; // 每次點擊移動 0.5 EV (半格)
-const MAX_EV = 2.0;  // 最大 +2
-const MIN_EV = -2.0; // 最小 -2
+let currentEV = 0; const STEP_EV = 0.5; const MAX_EV = 2.0; const MIN_EV = -2.0; 
 
-/* --- [重置函數] --- */
 function resetExposure() {
     currentEV = 0;
     const needle = document.getElementById('exp-needle');
-    if(needle) needle.style.left = '50%'; // 回到正中間
-    
+    if(needle) needle.style.left = '50%';
     if (video.srcObject) {
         video.style.filter = 'brightness(100%)';
         const track = video.srcObject.getVideoTracks()[0];
         const capabilities = track.getCapabilities ? track.getCapabilities() : {};
-        if (capabilities.exposureCompensation) {
-            track.applyConstraints({ advanced: [{ exposureCompensation: 0 }] }).catch(()=>{});
-        }
+        if (capabilities.exposureCompensation) { track.applyConstraints({ advanced: [{ exposureCompensation: 0 }] }).catch(()=>{}); }
     }
 }
 
-/* --- [曝光控制函數] --- */
 async function initExposureControl() {
-    const btnPlus = document.getElementById('exp-btn-plus');
-    const btnMinus = document.getElementById('exp-btn-minus');
-    const needle = document.getElementById('exp-needle');
-
+    const btnPlus = document.getElementById('exp-btn-plus'); const btnMinus = document.getElementById('exp-btn-minus'); const needle = document.getElementById('exp-needle');
     if (!btnPlus || !btnMinus || !needle) return;
-
-    // 移除舊監聽器
-    const newPlus = btnPlus.cloneNode(true);
-    const newMinus = btnMinus.cloneNode(true);
-    btnPlus.parentNode.replaceChild(newPlus, btnPlus);
-    btnMinus.parentNode.replaceChild(newMinus, btnMinus);
-
+    const newPlus = btnPlus.cloneNode(true); const newMinus = btnMinus.cloneNode(true);
+    btnPlus.parentNode.replaceChild(newPlus, btnPlus); btnMinus.parentNode.replaceChild(newMinus, btnMinus);
     const applyExposure = async (direction) => {
-        // 1. 計算數值
-        if (direction === 'up') currentEV = Math.min(currentEV + STEP_EV, MAX_EV);
-        else currentEV = Math.max(currentEV - STEP_EV, MIN_EV);
-
-        // 2. 移動指針 (完全數學對應，不會亂跳)
-        // -2 EV = 10% (左邊)
-        //  0 EV = 50% (中間)
-        // +2 EV = 90% (右邊)
-        const needlePos = 50 + (currentEV * 20); 
-        needle.style.left = needlePos + '%';
-        
-        // 3. 執行曝光調整
+        if (direction === 'up') currentEV = Math.min(currentEV + STEP_EV, MAX_EV); else currentEV = Math.max(currentEV - STEP_EV, MIN_EV);
+        const needlePos = 50 + (currentEV * 20); needle.style.left = needlePos + '%';
         if (video.srcObject) {
             const track = video.srcObject.getVideoTracks()[0];
             const capabilities = track.getCapabilities ? track.getCapabilities() : {};
-
-            if (capabilities.exposureCompensation) {
-                try {
-                    await track.applyConstraints({
-                        advanced: [{ exposureCompensation: currentEV }]
-                    });
-                } catch (err) { console.warn("EV error", err); }
-            } else {
-                // iOS 模擬亮度
-                const brightness = 1 + (currentEV * 0.2); 
-                video.style.filter = `brightness(${brightness})`;
-            }
+            if (capabilities.exposureCompensation) { try { await track.applyConstraints({ advanced: [{ exposureCompensation: currentEV }] }); } catch (err) { console.warn("EV error", err); } } else { const brightness = 1 + (currentEV * 0.2); video.style.filter = `brightness(${brightness})`; }
         }
     };
-
     newPlus.addEventListener('click', (e) => { e.stopPropagation(); e.preventDefault(); applyExposure('up'); });
     newMinus.addEventListener('click', (e) => { e.stopPropagation(); e.preventDefault(); applyExposure('down'); });
 }
 
-// 初始啟動
 initBatterySystem();
-
-    
 
 function updateFSGuideFrame() {
     const container = document.getElementById('fs-viewfinder');
     if (container.style.display !== 'block') return;
-
-    const canvas = document.getElementById('process-canvas'); // 這是我們的源頭尺寸
+    const canvas = document.getElementById('process-canvas'); 
     const frame = document.getElementById('fsGuideFrame');
-    
-    // 取得當前畫面比例 (通常是 16:9)
     const imgAspect = canvas.width / canvas.height;
     const winAspect = window.innerWidth / window.innerHeight;
-    
     let actualImgW, actualImgH;
-
-    if (winAspect > imgAspect) {
-        // 螢幕比照片寬 (左右有黑邊) -> 照片高度等於螢幕高度
-        actualImgH = window.innerHeight;
-        actualImgW = actualImgH * imgAspect;
-    } else {
-        // 螢幕比照片高 (上下有黑邊) -> 照片寬度等於螢幕寬度
-        actualImgW = window.innerWidth;
-        actualImgH = actualImgW / imgAspect;
-    }
-
-    // 設定白框大小為實際照片範圍的 85%
+    if (winAspect > imgAspect) { actualImgH = window.innerHeight; actualImgW = actualImgH * imgAspect; } else { actualImgW = window.innerWidth; actualImgH = actualImgW / imgAspect; }
     frame.style.width = (actualImgW * 0.85) + 'px';
     frame.style.height = (actualImgH * 0.85) + 'px';
 }
 
-    function releaseCameraResources() {
-    if (video.srcObject) {
-        const tracks = video.srcObject.getTracks();
-        tracks.forEach(track => track.stop());
-        video.srcObject = null;
-    }
-    if (shutterAudio) {
-        shutterAudio.pause();
-        shutterAudio.currentTime = 0;
-    }
-    // 不要在此處強制 destroy WebGL context；讓 startFullscreenAndCamera 重建即可
+function releaseCameraResources() {
+    if (video.srcObject) { const tracks = video.srcObject.getTracks(); tracks.forEach(track => track.stop()); video.srcObject = null; }
+    if (shutterAudio) { shutterAudio.pause(); shutterAudio.currentTime = 0; }
 }
-
-    // 確保初始綁定一次（防止 enforceFullscreen 中 cloneNode 前無事件）
 document.getElementById('enter-fs-btn')?.addEventListener('click', startFullscreenAndCamera);
-
-    
 </script>
 </body>
 </html>
