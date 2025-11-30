@@ -1182,7 +1182,7 @@ let currentRollState = Math.random(); // 這是控制底片風格的靜態亂數
                 }
             `;
 
-            // Fragment Shader：包含所有濾鏡模式 (含 HK 1990)
+          // Fragment Shader：包含所有濾鏡模式 (已加入高光修復 ACES 算法)
            const fsSource = `
                 precision highp float;
                 
@@ -1197,10 +1197,28 @@ let currentRollState = Math.random(); // 這是控制底片風格的靜態亂數
                     return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
                 }
 
+                // [新增] ACES Filmic Tone Mapping
+                // 這是解決死白的關鍵：它模擬底片感光化學反應，將超過 1.0 的過曝數值
+                // "柔和地" 壓縮回可見範圍，保留高光細節。
+                vec3 aces(vec3 x) {
+                    const float a = 2.51;
+                    const float b = 0.03;
+                    const float c = 2.43;
+                    const float d = 0.59;
+                    const float e = 0.14;
+                    return clamp((x * (a * x + b)) / (x * (c * x + d) + e), 0.0, 1.0);
+                }
+
+                // [修改] 優化過的調色函數
                 vec3 adjustColor(vec3 color, float brightness, float contrast, float saturation) {
                     vec3 avg = vec3(0.5);
                     color = mix(avg, color, contrast);
-                    color = color + (brightness - 1.0);
+                    
+                    // [重點] 改用乘法(Gain)處理亮度，而非原本的加法(Offset)
+                    // 舊邏輯: color + (brightness - 1.0) 會導致亮部直接切斷變成死白
+                    // 新邏輯: color * brightness 會按比例提升，保留亮部層次
+                    color = color * brightness; 
+                    
                     float gray = dot(color, vec3(0.299, 0.587, 0.114));
                     color = mix(vec3(gray), color, saturation);
                     return color;
@@ -1211,13 +1229,13 @@ let currentRollState = Math.random(); // 這是控制底片風格的靜態亂數
                     vec4 color = texture2D(u_image, uv);
                     vec3 c = color.rgb;
 
-                    // 直通模式
+                    // 直通模式 (保持原樣，不經過 Tone Mapping)
                     if (u_mode == 11) { 
                         gl_FragColor = color;
                         return; 
                     }
 
-                    // 素描模式
+                    // 素描模式 (保持原樣)
                     if (u_mode >= 20) {
                         float w = 1.0 / u_texSize.x; 
                         float h = 1.0 / u_texSize.y;
@@ -1276,7 +1294,10 @@ let currentRollState = Math.random(); // 這是控制底片風格的靜態亂數
                         return;
                     }
 
-                    // --- Real Modes ---
+                    // --- Real Modes (FILM SIMULATION) ---
+                    // 在這裡進行濾鏡處理，我們允許數值暫時超過 1.0，
+                    // 最後再用 ACES 壓回來，這樣就能產生漂亮的過曝高光。
+
                     if (u_mode == 0) { // BW
                         float gray = dot(c, vec3(0.4, 0.5, 0.1)); 
                         c = vec3(smoothstep(0.05, 0.95, gray));
@@ -1317,6 +1338,7 @@ let currentRollState = Math.random(); // 這是控制底片風格的靜態亂數
                         c.b *= 0.85; 
                     } 
                     else if (u_mode == 6) { // FILM: VIVID
+                        // 稍微降低這裡的亮度增益，交給 ACES 處理
                         c = adjustColor(c, 1.0, 1.3, 1.45);
                         c.r = pow(c.r, 0.95);
                         c.b *= 0.95; 
@@ -1386,40 +1408,39 @@ let currentRollState = Math.random(); // 這是控制底片風格的靜態亂數
                         c.g += shadowMask * 0.01; 
                         c *= vec3(0.96, 1.0, 1.02);
                     }
-                    else if (u_mode == 12) { // [新增] CINE 800T (Tungsten)
-                        // 1. 鎢絲燈色彩平衡 (Tungsten Balance)
-                        // 稍微壓低紅色，提升藍色，讓日光變成冷藍色調，但讓黃色街燈(紅+綠)被中和變白
-                        c = adjustColor(c, 1.05, 1.1, 1.2); // 增加飽和度與亮度
-                        c.r *= 0.85; // 壓低紅色 (冷卻畫面)
-                        c.b *= 1.15; // 提升藍色 (冷卻畫面)
+                    else if (u_mode == 12) { // FILM: CINE
+                        c = adjustColor(c, 1.05, 1.1, 1.2); 
+                        c.r *= 0.85; 
+                        c.b *= 1.15; 
                         
-                        // 2. 標誌性的紅色光暈 (Halation Effect)
-                        // 檢測高亮區域
                         float lum = dot(c, vec3(0.299, 0.587, 0.114));
-                        // 降低閾值 (0.65) 以便更容易捕捉到街燈
-                        float halation = smoothstep(0.65, 0.95, lum);
+                        // 針對死白的修復：調高光暈閾值，避免全白
+                        float halation = smoothstep(0.75, 0.98, lum);
                         
-                        // 在高光處強制注入紅色與微量橘色，模擬底片背層反射
-                        // 這裡使用 max 確保高光不會只是變亮，而是真的變紅
                         c.r = max(c.r, c.r + halation * 0.5); 
-                        c.g = min(c.g, c.g + halation * 0.1); // 讓核心稍微偏橘黃
+                        c.g = min(c.g, c.g + halation * 0.1); 
                         
-                        // 3. 高寬容度 (High Latitude) 與暗部細節
-                        // 稍微提亮暗部，並賦予暗部冷藍色調
                         vec3 shadowLift = vec3(0.02, 0.02, 0.05); 
                         c = mix(shadowLift, vec3(1.0), c);
                         
-                        // 4. ISO 800 顆粒感
-                        // 比一般 ISO 400 稍微明顯一點的顆粒 (0.11)
                         float noise = (rand(uv * u_seed) - 0.5) * 0.11;
                         c += noise;
                     }
 
+                    // 通用雜訊
                     if(u_mode != 1 && u_mode != 2 && u_mode != 7 && u_mode != 12) {
                         float noise = (rand(uv * u_seed) - 0.5) * 0.08;
                         c += noise;
                     }
                     
+                    // [核心修改]
+                    // 在輸出之前，應用 ACES 色調映射
+                    // 這一步會將所有計算中超過 1.0 的數值（死白）壓回 0.8~1.0 之間的細節
+                    // 如果模式是 CCD 或 GAME-CAM 則跳過，保持電子感
+                    if (u_mode != 1 && u_mode != 2) {
+                        c = aces(c);
+                    }
+
                     gl_FragColor = vec4(c, 1.0);
                 }
             `;
